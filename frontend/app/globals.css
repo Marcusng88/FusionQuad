@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b1326;
+  --surface: #131b2e;
+  --surface-2: #171f33;
+  --surface-3: #222a3d;
+  --surface-4: #2d3449;
+  --foreground: #dae2fd;
+  --muted: #bbcabf;
+  --outline: #3c4a42;
+  --primary: #4edea3;
+  --primary-strong: #10b981;
+  --secondary: #adc6ff;
+  --secondary-strong: #0566d9;
+  --tertiary: #ffb95f;
+  --tertiary-strong: #e29100;
+  --danger: #ff8c7a;
+  --danger-strong: #93000a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+  --color-muted: var(--muted);
+  --color-outline: var(--outline);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-secondary: var(--secondary);
+  --color-secondary-strong: var(--secondary-strong);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-strong: var(--tertiary-strong);
+  --color-danger: var(--danger);
+  --color-danger-strong: var(--danger-strong);
+  --font-sans: "Segoe UI Variable", "Segoe UI", sans-serif;
+  --font-mono: "Consolas", "Lucida Console", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(5, 102, 217, 0.16), transparent 32%),
+    radial-gradient(circle at top right, rgba(78, 222, 163, 0.14), transparent 24%),
+    linear-gradient(180deg, rgba(45, 52, 73, 0.2), transparent 16%),
+    var(--background);
+  color: var(--foreground);
+  font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(78, 222, 163, 0.25);
+}
+
+.font-display {
+  font-family: "Bahnschrift", "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+
+.font-label {
+  font-family: "Consolas", "Lucida Console", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panel-shadow {
+  box-shadow: 0 24px 60px rgba(3, 8, 20, 0.35);
+}
+
+.chart-grid {
+  background-image:
+    linear-gradient(to right, rgba(60, 74, 66, 0.42) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(60, 74, 66, 0.3) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.panel-noise {
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(173, 198, 255, 0.05), transparent 45%),
+    linear-gradient(315deg, rgba(78, 222, 163, 0.04), transparent 50%);
+}
