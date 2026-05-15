@@ -43,7 +43,7 @@ class TestWorkflow:
         """Workflow has all agent nodes from plan.md."""
         workflow = create_workflow()
         graph = workflow.get_graph()
-        node_names = {node.id for node in graph.nodes}
+        node_names = set(graph.nodes)
 
         assert "data_loader" in node_names
         assert "forecast" in node_names

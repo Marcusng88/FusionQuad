@@ -27,8 +27,7 @@ Safety rules:
 """
 
 
-@tool
-def mock_inverter_dispatch(
+def _mock_inverter_dispatch_impl(
     action: str,
     power_kw: float,
     duration_min: int,
@@ -67,6 +66,26 @@ def mock_inverter_dispatch(
     }
 
 
+@tool
+def mock_inverter_dispatch(
+    action: str,
+    power_kw: float,
+    duration_min: int,
+    current_soc: float,
+    bess_capacity_kwh: float,
+    temperature_c: float,
+) -> dict[str, Any]:
+    """Mock smart inverter dispatch - simulates BESS response."""
+    return _mock_inverter_dispatch_impl(
+        action=action,
+        power_kw=power_kw,
+        duration_min=duration_min,
+        current_soc=current_soc,
+        bess_capacity_kwh=bess_capacity_kwh,
+        temperature_c=temperature_c,
+    )
+
+
 def _deep_agent_enabled(state: AgentState) -> bool:
     if state.get("use_deep_agent") is True:
         return True
@@ -99,9 +118,9 @@ def _run_dispatch(state: AgentState) -> tuple[dict[str, Any], float, float, floa
     action = dispatch_action.get("action", "hold")
     duration_min = dispatch_action.get("duration_min", 30)
 
-    battery_soc = state.get("battery_soc", 0.50)
-    bess_capacity_kwh = state.get("bess_capacity_kwh", 500.0)
-    temperature_c = state.get("temperature_c", 30.0)
+    battery_soc = state.get("battery_soc") or 0.50
+    bess_capacity_kwh = state.get("bess_capacity_kwh") or 500.0
+    temperature_c = state.get("temperature_c") or 30.0
 
     power_kw = 0.0
     if action == "discharge":
@@ -113,7 +132,7 @@ def _run_dispatch(state: AgentState) -> tuple[dict[str, Any], float, float, floa
         action = "hold"
         power_kw = 0.0
 
-    result = mock_inverter_dispatch(
+    result = _mock_inverter_dispatch_impl(
         action=action,
         power_kw=power_kw,
         duration_min=duration_min,
@@ -124,7 +143,7 @@ def _run_dispatch(state: AgentState) -> tuple[dict[str, Any], float, float, floa
 
     new_soc = result.get("new_soc", battery_soc)
     new_temp = temperature_c + result.get("temp_increase_c", 0.0)
-    new_cycle = state.get("cycle_count", 0.0) + result.get("cycle_count_increment", 0.0)
+    new_cycle = (state.get("cycle_count") or 0.0) + result.get("cycle_count_increment", 0.0)
 
     return result, new_soc, new_cycle, new_temp
 
