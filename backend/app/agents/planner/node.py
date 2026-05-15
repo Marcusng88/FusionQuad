@@ -94,17 +94,9 @@ def _parse_strategy_payload(payload: Any) -> OptimizationStrategy | None:
         return None
 
     return OptimizationStrategy(
-        strategy_name=str(parsed.get("strategy_name") or parsed.get("strategy") or ""),
-        shave_kw=float(
-            parsed.get("shave_kw")
-            or (parsed.get("targets") or {}).get("shave_kw")
-            or 50.0
-        ),
-        reserve_soc_pct=float(
-            parsed.get("reserve_soc_pct")
-            or (parsed.get("targets") or {}).get("reserve_soc_pct")
-            or 0.20
-        ),
+        strategy_name=str(parsed.get("strategy_name", "")),
+        shave_kw=float(parsed.get("shave_kw", 50.0)),
+        reserve_soc_pct=float(parsed.get("reserve_soc_pct", 0.20)),
         target_soc_end=float(parsed.get("target_soc_end", 0.50)),
         rationale=str(parsed.get("rationale", "")),
         confidence=float(parsed.get("confidence", 0.5)),

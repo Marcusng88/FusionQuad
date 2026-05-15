@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Panel } from "@/features/dashboard/components/dashboard-primitives";
 import { formatCurrencyValue } from "@/features/dashboard/lib/formatters";
 import { ACCENT_STYLES } from "@/features/dashboard/theme";
-import { SCENARIO_LIST, SCENARIOS } from "@/features/dashboard/data/scenarios";
+import { SCENARIO_LIST } from "@/features/dashboard/data/scenarios";
 import type { ScenarioKey } from "@/features/dashboard/types";
 
 export default function ScenariosPage() {

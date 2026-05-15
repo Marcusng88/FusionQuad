@@ -39,18 +39,6 @@ def _select_facility_forecast(state: AgentState) -> tuple[str | None, list[float
     return None, []
 
 
-def _strategy_for_solver(strategy: dict | None) -> dict:
-    """Normalise OptimizationStrategy TypedDict to the flat shape the MILP solver expects."""
-    if not strategy:
-        return {}
-    return {
-        "strategy": strategy.get("strategy_name") or strategy.get("strategy"),
-        "shave_kw": strategy.get("shave_kw", 0.0),
-        "reserve_soc_pct": strategy.get("reserve_soc_pct", 0.20),
-        "target_soc_end": strategy.get("target_soc_end", 0.50),
-    }
-
-
 @tool
 def milp_optimizer(
     load_forecast: list[float],
@@ -73,11 +61,10 @@ def milp_optimizer(
         previous_dispatch_plan: Optional warm-start from prior ticks
     """
     solver = OptimizationSolver()
-    solver_strategy = _strategy_for_solver(optimization_strategy)
     forecast_values = load_forecast if isinstance(load_forecast, list) and len(load_forecast) > 0 else []
 
     input_data = OptimizationInput(
-        optimization_strategy=solver_strategy,
+        optimization_strategy=optimization_strategy or {},
         load_forecast=forecast_values,
         tariff_window=tariff_window,
         battery_soc=battery_soc,
@@ -343,10 +330,9 @@ def _local_milp_fallback(
 ) -> dict:
     """Fallback MILP computation when the deep agent is unavailable."""
     solver = OptimizationSolver()
-    solver_strategy = _strategy_for_solver(optimization_strategy)
 
     input_data = OptimizationInput(
-        optimization_strategy=solver_strategy,
+        optimization_strategy=optimization_strategy,
         load_forecast=forecast_values,
         tariff_window=tariff_window,
         battery_soc=battery_soc,

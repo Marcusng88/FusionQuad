@@ -40,6 +40,14 @@ export type DecisionLog = {
   estimated_saving_rm?: number;
 };
 
+export type SizingRecommendation = {
+  recommended_bess_capacity_kwh: number;
+  recommended_solar_capacity_kwp: number;
+  estimated_peak_reduction_kw: number;
+  estimated_monthly_savings_rm: number;
+  rationale: string;
+};
+
 export type ScenarioKey =
   | "baseline"
   | "solarOnly"
@@ -62,4 +70,76 @@ export type ScenarioData = {
 export type NavItem = {
   href: string;
   label: string;
+};
+
+export type SimulationDayType = "weekday" | "holiday" | "solar_duck_curve" | "large_weekday";
+
+export type DateTimeRange = {
+  start: string | null;
+  end: string | null;
+};
+
+export type SimulationRunStatus = "idle" | "paused" | "playing" | "completed";
+
+export type SimulationDispatchAction = {
+  action?: string;
+  charge_kw?: number;
+  discharge_kw?: number;
+  duration_min?: number;
+} | null;
+
+export type SimulationApiState = {
+  session_id: string;
+  status: "paused" | "playing" | "completed";
+  day_type: string;
+  current_interval: number;
+  total_intervals: number;
+  current_time: string | null;
+  battery_soc: number;
+  bess_capacity_kwh: number;
+  baseline_load: number | null;
+  actual_load: number | null;
+  forecast_kw: number | null;
+  tariff_window: string | null;
+  total_savings_rm: number;
+  shave_percentage: number;
+  within_limit_ticks: number;
+  decision_log: Array<Record<string, unknown>>;
+  agent_trace: DecisionLog[];
+  last_dispatch_kw: number;
+  md_limit_kw: number;
+  md_rate: number;
+  dispatch_action: SimulationDispatchAction;
+  sizing_recommendation: SizingRecommendation | null;
+  available_start: string | null;
+  available_end: string | null;
+  selected_start_time: string | null;
+  selected_end_time: string | null;
+  scenarios: Array<{ key: SimulationDayType; label: string; blurb: string }>;
+};
+
+export type SimulationViewModel = {
+  sessionId: string | null;
+  status: SimulationRunStatus;
+  dayType: SimulationDayType;
+  history: EnergyPoint[];
+  summary: SimulationSummary;
+  decisionLogs: DecisionLog[];
+  currentInterval: number;
+  totalIntervals: number;
+  currentTimeLabel: string;
+  forecastKw: number | null;
+  forecastConfidence: number | null;
+  batterySocPercent: number;
+  bessCapacityKwh: number;
+  totalSavingsRm: number;
+  shavePercentage: number;
+  withinLimitTicks: number;
+  mdLimitKw: number;
+  lastDispatchKw: number;
+  agentTrace: DecisionLog[];
+  sizingRecommendation: SizingRecommendation | null;
+  availableStart: string | null;
+  availableEnd: string | null;
+  scenarios: Array<{ key: SimulationDayType; label: string; blurb: string }>;
 };

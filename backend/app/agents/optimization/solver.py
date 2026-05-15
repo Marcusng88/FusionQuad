@@ -58,7 +58,7 @@ class OptimizationSolver:
             return self._force_hold(input_data)
         if not input_data.load_forecast:
             return self._empty_plan(input_data)
-        if not input_data.optimization_strategy.get("strategy"):
+        if not input_data.optimization_strategy.get("strategy_name"):
             return self._conservative_fallback(input_data)
         try:
             return self._solve_milp(input_data)

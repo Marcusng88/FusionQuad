@@ -24,7 +24,8 @@ async def start_simulation(
         day_type=payload.day_type,
         bess_capacity_kwh=payload.bess_capacity_kwh,
         battery_soc=payload.battery_soc,
-        use_deep_agent=payload.use_deep_agent,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
     )
 
 

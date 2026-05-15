@@ -20,6 +20,7 @@ def _get_csv_filename(day_type: str) -> str:
         "weekday": "2. Load Profile (No Solar) E.csv",
         "holiday": "3. Load Profile (No Solar) SuN.csv",
         "solar_duck_curve": "1. Load Profile (With Solar Installed) SoL.csv",
+        "large_weekday": "4. Load Profile (With Solar) Mi2.csv",
     }
     if day_type not in mapping:
         logger.warning("Unknown day_type '%s', defaulting to weekday", day_type)
@@ -51,6 +52,10 @@ def load_facility_data(day_type: str) -> dict[str, Any]:
         "facility_name": metadata.facility_name,
     }
 
+    datetime_col = df["datetime"]
+    available_start = datetime_col.min()
+    available_end = datetime_col.max()
+
     return {
         "data": df.to_dict(orient="records"),
         "metadata": {
@@ -58,6 +63,8 @@ def load_facility_data(day_type: str) -> dict[str, Any]:
             "facility_name": metadata.facility_name,
             "tariff_type": metadata.tariff_type,
             "meter_type": metadata.meter_type,
+            "available_start": available_start,
+            "available_end": available_end,
         },
         "data_quality": data_quality,
     }
@@ -74,7 +81,7 @@ def data_loader_node(state: dict[str, Any]) -> dict[str, Any]:
     """
     day_type = state.get("day_type", "weekday")
 
-    if day_type not in ("weekday", "holiday", "solar_duck_curve"):
+    if day_type not in ("weekday", "holiday", "solar_duck_curve", "large_weekday"):
         logger.warning("Unknown day_type '%s', defaulting to weekday", day_type)
         day_type = "weekday"
 
