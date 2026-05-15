@@ -12,6 +12,7 @@ from langchain.tools import tool
 
 from app.agents.planner import STRATEGIES_DIR, get_forecast_context, read_guideline_file, search_guidelines
 from app.agents.state import AgentState
+from app.core.model_selection import resolve_deepagents_model
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 
@@ -71,7 +72,7 @@ def _deep_agent_enabled(state: AgentState) -> bool:
 
 
 def _build_planner_agent() -> Any:
-    model = os.getenv("DEEPAGENTS_MODEL", _DEFAULT_MODEL)
+    model = resolve_deepagents_model(_DEFAULT_MODEL)
     backend_root = STRATEGIES_DIR.parent
     return create_deep_agent(
         name="planner-agent",

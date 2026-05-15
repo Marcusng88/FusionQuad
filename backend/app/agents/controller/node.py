@@ -9,6 +9,7 @@ from deepagents import create_deep_agent
 from langchain.tools import tool
 
 from app.agents.state import AgentState
+from app.core.model_selection import resolve_deepagents_model
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 
@@ -74,7 +75,7 @@ def _deep_agent_enabled(state: AgentState) -> bool:
 
 
 def _build_controller_agent() -> Any:
-    model = os.getenv("DEEPAGENTS_MODEL", _DEFAULT_MODEL)
+    model = resolve_deepagents_model(_DEFAULT_MODEL)
     return create_deep_agent(
         name="controller-agent",
         model=model,

@@ -20,6 +20,7 @@ from app.agents.auditor.evaluation import (
     evaluate_rules,
     should_run_llm,
 )
+from app.core.model_selection import resolve_deepagents_model
 
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
@@ -61,7 +62,7 @@ _AUDITOR_AGENT = None
 def _get_auditor_agent():
     global _AUDITOR_AGENT
     if _AUDITOR_AGENT is None:
-        model = os.getenv("DEEPAGENTS_MODEL", _DEFAULT_MODEL)
+        model = resolve_deepagents_model(_DEFAULT_MODEL)
         _AUDITOR_AGENT = create_deep_agent(
             name="auditor-agent",
             model=model,
