@@ -1,7 +1,8 @@
 """Evaluation tools for the Auditor agent."""
 
-from datetime import datetime
 from typing import TypedDict
+
+from app.agents.tariff.rates import get_energy_rate as _get_central_rate
 
 
 class DeltaEvaluation(TypedDict):
@@ -70,13 +71,7 @@ def evaluate_delta(
     else:
         forecast_error_pct = 0.0
 
-    # Tariff-based savings (RM per kWh, simplified)
-    tariff_rates = {
-        "PEAK": 0.45,
-        "OFF_PEAK": 0.22,
-        "WEEKEND": 0.30,
-    }
-    rate = tariff_rates.get(tariff_window, 0.30)
+    rate = _get_central_rate("C2", tariff_window)
     interval_savings_rm = shave_kw * (duration_min / 60) * rate
 
     # Delta score: weighted combination of metrics

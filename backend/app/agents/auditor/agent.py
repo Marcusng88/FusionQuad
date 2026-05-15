@@ -7,8 +7,11 @@ Per SPEC-auditor.md:
 """
 
 from datetime import datetime
+import json
+import os
 from typing import TypedDict
 
+from deepagents import create_deep_agent
 from app.agents.auditor.evaluation import (
     DeltaEvaluation,
     LLMEvaluation,
@@ -17,6 +20,21 @@ from app.agents.auditor.evaluation import (
     evaluate_rules,
     should_run_llm,
 )
+from app.core.model_selection import resolve_deepagents_model
+
+
+_DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
+
+_AUDITOR_PROMPT = """You are the Auditor Agent for FusionQuad.
+Evaluate dispatch outcomes and provide reasoning + recommendation when prompted.
+
+Return JSON only with:
+{
+    "reasoning": "...",
+    "recommendation": "...",
+    "confidence": 0.0
+}
+"""
 
 
 class AuditorResult(TypedDict):
@@ -29,6 +47,44 @@ class AuditorResult(TypedDict):
     perceive: str
     reason: str
     act: str
+
+
+def _deep_agent_enabled(state: dict) -> bool:
+    if state.get("use_deep_agent") is True:
+        return True
+    flag = os.getenv("DEEPAGENTS_ENABLED", "").strip().lower()
+    return flag in {"1", "true", "yes", "on"}
+
+
+_AUDITOR_AGENT = None
+
+
+def _get_auditor_agent():
+    global _AUDITOR_AGENT
+    if _AUDITOR_AGENT is None:
+        model = resolve_deepagents_model(_DEFAULT_MODEL)
+        _AUDITOR_AGENT = create_deep_agent(
+            name="auditor-agent",
+            model=model,
+            system_prompt=_AUDITOR_PROMPT,
+        )
+    return _AUDITOR_AGENT
+
+
+def _parse_llm_payload(payload: str) -> dict | None:
+    try:
+        return json.loads(payload)
+    except json.JSONDecodeError:
+        pass
+
+    start = payload.find("{")
+    end = payload.rfind("}")
+    if start >= 0 and end > start:
+        try:
+            return json.loads(payload[start : end + 1])
+        except json.JSONDecodeError:
+            return None
+    return None
 
 
 def auditor_node(state: dict) -> dict:
@@ -107,11 +163,39 @@ def auditor_node(state: dict) -> dict:
     # MODE 3: LLM reasoning only when needed
     llm_eval = None
     if should_run_llm(delta_eval, rule_eval):
-        llm_eval = LLMEvaluation(
-            reasoning=_generate_llm_reasoning(delta_eval, rule_eval),
-            recommendation=_generate_recommendation(rule_eval, delta_eval),
-            confidence=0.85 if rule_eval["passed"] else 0.6,
-        )
+        if _deep_agent_enabled(state):
+            prompt = (
+                "Analyze the following evaluation data and provide reasoning and a recommendation.\n\n"
+                f"Delta evaluation: {delta_eval}\n"
+                f"Rule evaluation: {rule_eval}\n"
+                f"Tariff window: {tariff_window}\n"
+            )
+            try:
+                agent = _get_auditor_agent()
+                result = agent.invoke(
+                    {"messages": [{"role": "user", "content": prompt}]},
+                    config={"configurable": {"thread_id": "auditor"}},
+                )
+                messages = result.get("messages", []) if isinstance(result, dict) else []
+                last = messages[-1].content if messages else ""
+                parsed = _parse_llm_payload(str(last)) or {}
+                llm_eval = LLMEvaluation(
+                    reasoning=parsed.get("reasoning", _generate_llm_reasoning(delta_eval, rule_eval)),
+                    recommendation=parsed.get("recommendation", _generate_recommendation(rule_eval, delta_eval)),
+                    confidence=float(parsed.get("confidence", 0.75)),
+                )
+            except Exception:
+                llm_eval = LLMEvaluation(
+                    reasoning=_generate_llm_reasoning(delta_eval, rule_eval),
+                    recommendation=_generate_recommendation(rule_eval, delta_eval),
+                    confidence=0.75,
+                )
+        else:
+            llm_eval = LLMEvaluation(
+                reasoning=_generate_llm_reasoning(delta_eval, rule_eval),
+                recommendation=_generate_recommendation(rule_eval, delta_eval),
+                confidence=0.75,
+            )
 
     timestamp_str = current_time.strftime("%Y-%m-%d %H:%M") if isinstance(current_time, datetime) else str(current_time or "")
 

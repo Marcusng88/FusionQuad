@@ -5,12 +5,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.services.simulation import SimulationService
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(app: FastAPI):
     """Application lifecycle hooks."""
+    app.state.simulation_service = SimulationService()
     yield
+    await app.state.simulation_service.shutdown()
 
 
 def create_application() -> FastAPI:

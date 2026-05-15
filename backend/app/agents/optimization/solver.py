@@ -4,6 +4,8 @@ from typing import Literal, Optional
 
 import pulp
 
+from app.agents.tariff.rates import get_energy_rate as _get_central_rate
+
 
 @dataclass
 class DispatchInterval:
@@ -217,8 +219,7 @@ class OptimizationSolver:
         )
 
     def _get_energy_rate(self, tariff_window: str) -> float:
-        rates = {"PEAK": 0.45, "OFF_PEAK": 0.22, "WEEKEND": 0.25}
-        return rates.get(tariff_window, 0.30)
+        return _get_central_rate("C2", tariff_window)
 
     def _estimate_savings(self, power_kw: Optional[float], input_data: OptimizationInput) -> float:
         if power_kw is None or power_kw <= 0:

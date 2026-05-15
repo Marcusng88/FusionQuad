@@ -107,7 +107,7 @@ Load shifting moves consumption from peak to off-peak periods to exploit price d
 
 Integrating BESS allows for automated "valley filling" where the battery is charged during the low-cost 10:00 PM – 2:00 PM window and discharged during high-cost intervals, significantly boosting the solar ROI and accelerating payback times.21
 The Agentic AI Paradigm: From Automation to Autonomous Reasoning
-Traditional automation in energy management follows a "model-in-the-loop" approach, where an AI model provides a forecast, and a human or a fixed rule-based controller acts upon it. Agentic AI shifts this to an "agent-in-the-loop" paradigm.6 An agentic system is characterized by autonomy, proactivity, and goal-directed behavior—it doesn't just predict text or data; it executes multi-step plans in a cognitive control loop.7
+Traditional automation in energy management follows a "model-in-the-loop" approach, where an AI model provides a forecast, and a human or a fixed rule-based controller acts upon it. Agentic AI shifts this to an "agent-in-the-loop" paradigm.6 An agentic system is characterized by autonomy, proactivity, and goal-directed behavior—it doesn't just predict text or data; it executes -step plans in a cognitive control loop.7
 Multi-Agent Systems (MAS) and Orchestration
 The complexity of a C&I facility requires the decomposition of tasks into specialized agents working within an orchestration framework like LangGraph.8 A multi-agent design allows each agent to focus on a tractable unit of work, improving accuracy and reducing the context window overflow inherent in monolithic LLM designs.33
 

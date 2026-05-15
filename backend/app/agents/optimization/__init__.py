@@ -6,6 +6,7 @@ from app.agents.optimization.solver import (
     DispatchInterval,
     OptimizationResult,
 )
+from app.agents.optimization.node import optimization_node
 
 __all__ = [
     "OptimizationSolver",
@@ -13,4 +14,5 @@ __all__ = [
     "DispatchAction",
     "DispatchInterval",
     "OptimizationResult",
+    "optimization_node",
 ]
