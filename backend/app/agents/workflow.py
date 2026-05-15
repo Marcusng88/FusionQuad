@@ -8,7 +8,6 @@ from app.agents.data_loader.node import data_loader_node
 from app.agents.forecast import forecast_node
 from app.agents.tariff.node import TariffNode
 from app.agents.planner.node import planner_node
-from app.agents.optimization import optimization_node
 from app.agents.controller.node import controller_node
 from app.agents.auditor.agent import auditor_node
 
@@ -24,7 +23,6 @@ def create_workflow() -> StateGraph:
     builder.add_node("forecast", forecast_node)
     builder.add_node("tariff", tariff_node.invoke)
     builder.add_node("planner", planner_node)
-    builder.add_node("optimization", optimization_node)
     builder.add_node("controller", controller_node)
     builder.add_node("auditor", auditor_node)
 
@@ -33,8 +31,7 @@ def create_workflow() -> StateGraph:
     builder.add_edge("data_loader", "forecast")
     builder.add_edge("forecast", "tariff")
     builder.add_edge("tariff", "planner")
-    builder.add_edge("planner", "optimization")
-    builder.add_edge("optimization", "controller")
+    builder.add_edge("planner", "controller")
     builder.add_edge("controller", "auditor")
     builder.add_edge("auditor", END)
 

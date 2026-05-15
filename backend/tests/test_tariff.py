@@ -7,7 +7,7 @@ from app.agents.tariff.node import (
     _is_holiday,
 )
 from app.agents.tariff.rates import TARIFF_RATES
-from app.schemas.agent import AgentState
+from app.agents.state import AgentState
 
 
 class TestGetTariffWindow:
@@ -76,81 +76,50 @@ class TestTariffRates:
 class TestTariffNode:
     def test_peak_window_sets_correct_rates(self):
         node = TariffNode()
-        state = AgentState(
-            current_time=datetime(2025, 5, 14, 15, 0),
-            tariff_window=None,
-            energy_rate=None,
-            demand_charge=None,
-            tariff_type=None,
-        )
+        state = AgentState(current_time=datetime(2025, 5, 14, 15, 0))
         result = node.invoke(state)
-        assert result["tariff_window"] == "PEAK"
-        assert result["energy_rate"] == pytest.approx(0.45)
-        assert result["demand_charge"] == pytest.approx(97.06)
+        tariff = result["tariff"]
+        assert tariff["window"] == "PEAK"
+        assert tariff["energy_rate"] == pytest.approx(0.45)
+        assert tariff["demand_charge"] == pytest.approx(97.06)
 
     def test_off_peak_window_zero_demand(self):
         node = TariffNode()
-        state = AgentState(
-            current_time=datetime(2025, 5, 14, 7, 0),
-            tariff_window=None,
-            energy_rate=None,
-            demand_charge=None,
-            tariff_type=None,
-        )
+        state = AgentState(current_time=datetime(2025, 5, 14, 7, 0))
         result = node.invoke(state)
-        assert result["tariff_window"] == "OFF_PEAK"
-        assert result["energy_rate"] == pytest.approx(0.22)
-        assert result["demand_charge"] == 0.0
+        tariff = result["tariff"]
+        assert tariff["window"] == "OFF_PEAK"
+        assert tariff["energy_rate"] == pytest.approx(0.22)
+        assert tariff["demand_charge"] == 0.0
 
     def test_weekend_window_zero_demand(self):
         node = TariffNode()
-        state = AgentState(
-            current_time=datetime(2025, 5, 17, 14, 0),
-            tariff_window=None,
-            energy_rate=None,
-            demand_charge=None,
-            tariff_type=None,
-        )
+        state = AgentState(current_time=datetime(2025, 5, 17, 14, 0))
         result = node.invoke(state)
-        assert result["tariff_window"] == "WEEKEND"
-        assert result["energy_rate"] == pytest.approx(0.30)
-        assert result["demand_charge"] == 0.0
+        tariff = result["tariff"]
+        assert tariff["window"] == "WEEKEND"
+        assert tariff["energy_rate"] == pytest.approx(0.30)
+        assert tariff["demand_charge"] == 0.0
 
     def test_e1_tariff_type(self):
         node = TariffNode(tariff_type="E1")
-        state = AgentState(
-            current_time=datetime(2025, 5, 14, 15, 0),
-            tariff_window=None,
-            energy_rate=None,
-            demand_charge=None,
-            tariff_type=None,
-        )
+        state = AgentState(current_time=datetime(2025, 5, 14, 15, 0))
         result = node.invoke(state)
-        assert result["tariff_type"] == "E1"
-        assert result["energy_rate"] == pytest.approx(0.45)
-        assert result["demand_charge"] == pytest.approx(89.27)
+        tariff = result["tariff"]
+        assert tariff["tariff_type"] == "E1"
+        assert tariff["energy_rate"] == pytest.approx(0.45)
+        assert tariff["demand_charge"] == pytest.approx(89.27)
 
     def test_holiday_treated_as_weekend(self):
         node = TariffNode()
-        state = AgentState(
-            current_time=datetime(2025, 1, 1, 15, 0),
-            tariff_window=None,
-            energy_rate=None,
-            demand_charge=None,
-            tariff_type=None,
-        )
+        state = AgentState(current_time=datetime(2025, 1, 1, 15, 0))
         result = node.invoke(state)
-        assert result["tariff_window"] == "WEEKEND"
+        assert result["tariff"]["window"] == "WEEKEND"
 
     def test_none_current_time_defaults_to_peak(self):
         node = TariffNode()
-        state = AgentState(
-            current_time=None,
-            tariff_window=None,
-            energy_rate=None,
-            demand_charge=None,
-            tariff_type=None,
-        )
+        state = AgentState(current_time=None)
         result = node.invoke(state)
-        assert result["tariff_window"] == "PEAK"
-        assert result["energy_rate"] == pytest.approx(0.45)
+        tariff = result["tariff"]
+        assert tariff["window"] == "PEAK"
+        assert tariff["energy_rate"] == pytest.approx(0.45)

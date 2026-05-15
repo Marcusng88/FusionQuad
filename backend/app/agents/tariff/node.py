@@ -1,11 +1,11 @@
-﻿"""Tariff Agent - computes TNB tariff window and rates from simulation datetime."""
+"""Tariff Agent - computes TNB tariff window and rates from simulation datetime."""
 import json
 import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-from app.agents.state import AgentState
+from app.agents.state import AgentState, TariffContext
 from app.agents.tariff.rates import TARIFF_RATES, get_energy_rate
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class TariffNode:
             tariff_type = "C2"
         self.tariff_type = tariff_type
 
-    def invoke(self, state: AgentState) -> AgentState:
+    def invoke(self, state: AgentState) -> dict:
         current_time = state.get("current_time")
         if current_time is None:
             logger.warning("current_time is None, defaulting to PEAK window")
@@ -62,8 +62,10 @@ class TariffNode:
         demand_charge = DEMAND_RATES[self.tariff_type] if window == "PEAK" else 0.0
 
         return {
-            "tariff_window": window,
-            "energy_rate": energy_rate,
-            "demand_charge": demand_charge,
-            "tariff_type": self.tariff_type,
+            "tariff": TariffContext(
+                window=window,
+                energy_rate=energy_rate,
+                demand_charge=demand_charge,
+                tariff_type=self.tariff_type,
+            )
         }
