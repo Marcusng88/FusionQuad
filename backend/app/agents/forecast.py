@@ -6,7 +6,6 @@ import pandas as pd
 import torch
 
 from app.agents.state import AgentState
-from app.data.csv_loader import CSVLoader
 from app.ml.forecast_model import ForecastModel
 
 
@@ -15,8 +14,6 @@ def forecast_node(state: AgentState) -> dict:
 
     Uses the trained ForecastModel to predict load for loaded facility data.
     """
-    loader = CSVLoader()
-    data_dir = Path(__file__).parent.parent.parent / "data"
     model_path = Path(__file__).parent.parent.parent / "models" / "forecast_weights.pt"
 
     forecasts = {}
@@ -46,7 +43,14 @@ def forecast_node(state: AgentState) -> dict:
 
                 if len(X_val) > 0:
                     mape = model.evaluate_mape(X_val, y_val)
-                    confidence = max(0.0, min(1.0, 1.0 - mape / 100.0))
+                    if mape <= 5:
+                        confidence = 0.95
+                    elif mape <= 15:
+                        confidence = 0.80
+                    elif mape <= 30:
+                        confidence = 0.60
+                    else:
+                        confidence = 0.40
                 else:
                     confidence = 0.5
             else:
@@ -58,6 +62,8 @@ def forecast_node(state: AgentState) -> dict:
                 X_sample = X[-1:]
                 pred = model.predict(X_sample)
                 forecast_values = pred.cpu().tolist()
+                if isinstance(forecast_values, (int, float)):
+                    forecast_values = [forecast_values]
 
             forecasts[facility] = forecast_values
             confidences[facility] = confidence

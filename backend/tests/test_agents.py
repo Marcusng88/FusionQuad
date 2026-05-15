@@ -10,6 +10,8 @@ class TestAgentState:
     def test_agent_state_has_required_fields(self):
         """AgentState TypedDict has all required fields per plan.md."""
         state = AgentState(
+            day_type=None,
+            current_time=None,
             loaded_data=None,
             data_quality=None,
             load_forecast=None,
@@ -17,10 +19,10 @@ class TestAgentState:
             tariff_window=None,
             energy_rate=None,
             demand_charge=None,
-            optimization_plan=None,
-            peak_shave_target=None,
-            report=None,
-            savings_estimate=None,
+            optimization_strategy=None,
+            dispatch_plan=None,
+            dispatch_action=None,
+            battery_soc=None,
             messages=[],
         )
         assert state["loaded_data"] is None
@@ -38,7 +40,7 @@ class TestWorkflow:
         assert workflow is not None
 
     def test_workflow_has_required_nodes(self):
-        """Workflow has all 5 agent nodes from plan.md."""
+        """Workflow has all agent nodes from plan.md."""
         workflow = create_workflow()
         graph = workflow.get_graph()
         node_names = {node.id for node in graph.nodes}
@@ -46,8 +48,10 @@ class TestWorkflow:
         assert "data_loader" in node_names
         assert "forecast" in node_names
         assert "tariff" in node_names
+        assert "planner" in node_names
         assert "optimization" in node_names
-        assert "report" in node_names
+        assert "controller" in node_names
+        assert "auditor" in node_names
 
     def test_workflow_runs_with_empty_state(self):
         """Workflow invocation with empty state does not crash."""
@@ -56,6 +60,8 @@ class TestWorkflow:
 
         result = workflow.invoke(
             AgentState(
+                day_type=None,
+                current_time=None,
                 loaded_data=None,
                 data_quality=None,
                 load_forecast=None,
@@ -63,10 +69,10 @@ class TestWorkflow:
                 tariff_window=None,
                 energy_rate=None,
                 demand_charge=None,
-                optimization_plan=None,
-                peak_shave_target=None,
-                report=None,
-                savings_estimate=None,
+                optimization_strategy=None,
+                dispatch_plan=None,
+                dispatch_action=None,
+                battery_soc=None,
                 messages=[],
             ),
             config,

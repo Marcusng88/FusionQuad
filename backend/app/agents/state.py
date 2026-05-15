@@ -1,37 +1,68 @@
-"""Shared state definition for multi-agent energy management workflow."""
+"""Shared state definition for the multi-agent energy management workflow."""
 
+from datetime import datetime
 from typing import Annotated
 from typing_extensions import TypedDict
 
 from langgraph.graph import add_messages
 
 
-class AgentState(TypedDict):
-    """State carried through the multi-agent workflow.
+class AgentState(TypedDict, total=False):
+    """State carried through the multi-agent workflow."""
 
-    Based on plan.md AgentState design from LangGraph section.
-    """
+    # Simulation context
+    day_type: str | None
+    current_time: datetime | None
+    forecast_window: int | None
+    current_facility: str | None
+    md_limit_kw: float | None
 
     # Data loading
-    loaded_data: dict | None  # CSV data per facility
-    data_quality: dict | None  # Data quality metrics
+    loaded_data: dict | None
+    data_quality: dict | None
 
     # Forecasting
-    load_forecast: list[float] | None  # Predicted load values
-    forecast_confidence: float | None  # Model confidence 0-1
+    load_forecast: dict[str, list[float]] | None
+    forecast_confidence: dict[str, float] | None
+    forecast_kw: float | None
 
     # Tariff analysis
-    tariff_window: str | None  # PEAK | OFF_PEAK | WEEKEND
-    energy_rate: float | None  # sen/kWh
-    demand_charge: float | None  # RM/kW
+    tariff_window: str | None
+    energy_rate: float | None
+    demand_charge: float | None
+    tariff_type: str | None
 
-    # Optimization
-    optimization_plan: list[dict] | None  # BESS dispatch schedule
-    peak_shave_target: float | None  # kW target reduction
+    # Planner output
+    optimization_strategy: dict | None
 
-    # Reporting
-    report: str | None  # Final analysis report
-    savings_estimate: float | None  # RM estimated savings
+    # Optimization output
+    dispatch_plan: list[dict] | None
+    current_dispatch_index: int | None
+    dispatch_action: dict | None
+
+    # Controller inputs/outputs
+    battery_soc: float | None
+    bess_capacity_kwh: float | None
+    cycle_count: float | None
+    temperature_c: float | None
+    dispatch_result: dict | None
+    last_dispatch_kw: float | None
+    last_dispatch_duration_min: int | None
+
+    # Load tracking for Auditor
+    baseline_load: float | None
+    actual_load: float | None
+
+    # Auditor outputs
+    auditor_result: dict | None
+    decision_log: list[dict] | None
+    shave_percentage: float | None
+    total_savings_rm: float | None
+    within_limit_ticks: int | None
+    total_intervals: int | None
+
+    # Deep agent toggle
+    use_deep_agent: bool | None
 
     # Accumulated messages
     messages: Annotated[list, add_messages]
