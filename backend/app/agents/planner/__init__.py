@@ -3,27 +3,29 @@ from pathlib import Path
 from typing import Any
 
 STRATEGIES_DIR = Path(__file__).parent.parent.parent.parent / "strategies"
+EXPERIENCE_DIR = Path(__file__).parent.parent.parent.parent / "experience"
 
 
 def search_guidelines(query: str) -> list[dict[str, Any]]:
-    """Search strategy files for matching guidelines."""
+    """Search strategy and experience files for matching guidelines."""
     if not query or not query.strip():
         return []
-    
+
     keywords = query.lower().split()
     results = []
-    
-    if not STRATEGIES_DIR.exists():
-        return results
-    
-    for filepath in STRATEGIES_DIR.glob("*.md"):
-        content = filepath.read_text()
-        if any(kw in content.lower() for kw in keywords):
-            results.append({
-                "content": content[:500],
-                "source": filepath.name
-            })
-    
+
+    for dirname in [STRATEGIES_DIR, EXPERIENCE_DIR]:
+        if not dirname.exists():
+            continue
+        for filepath in dirname.glob("*.md"):
+            content = filepath.read_text()
+            if any(kw in content.lower() for kw in keywords):
+                results.append({
+                    "content": content[:500],
+                    "source": filepath.name,
+                    "dir": filepath.parent.name,
+                })
+
     return results
 
 
@@ -43,34 +45,42 @@ def read_guideline_file(path: str) -> str:
 
 
 def get_forecast_context(state: dict[str, Any]) -> str:
-    """Build context string from AgentState fields."""
+    """Build context string from AgentState value objects."""
     if not state:
         return ""
-    
+
     parts = []
-    
-    if tariff := state.get("tariff_window"):
-        parts.append(f"Tariff Window: {tariff}")
+
+    tariff = state.get("tariff") or {}
+    if window := tariff.get("window"):
+        parts.append(f"Tariff Window: {window}")
+
     if day_type := state.get("day_type"):
         parts.append(f"Day Type: {day_type}")
-    if soc := state.get("battery_soc"):
+
+    battery = state.get("battery") or {}
+    if soc := battery.get("soc"):
         parts.append(f"Battery SOC: {soc}%")
-    if load := state.get("load_forecast"):
-        parts.append(f"Load Forecast: {load} kW")
-    if confidence := state.get("forecast_confidence"):
-        parts.append(f"Forecast Confidence: {confidence}")
-    if cycles := state.get("cycle_count"):
+    if cycles := battery.get("cycle_count"):
         parts.append(f"Cycle Count: {cycles}")
+
+    forecast = state.get("forecast") or {}
+    if load := forecast.get("load_forecast"):
+        parts.append(f"Load Forecast: {load} kW")
+    if confidence := forecast.get("confidence"):
+        parts.append(f"Forecast Confidence: {confidence}")
+
     if time := state.get("current_time"):
         parts.append(f"Current Time: {time}")
-    
+
     return "\n".join(parts) if parts else ""
 
 
 def run_planner_tick(agent, state: dict[str, Any]) -> dict[str, Any]:
     """Execute single planner tick with agent and state."""
     context = get_forecast_context(state)
-    results = search_guidelines(f"{state.get('tariff_window', '')} {state.get('day_type', '')}")
+    tariff = state.get("tariff") or {}
+    results = search_guidelines(f"{tariff.get('window', '')} {state.get('day_type', '')}")
     
     guidelines_text = "\n\n".join(
         f"=== {r['source']} ===\n{r['content']}" for r in results

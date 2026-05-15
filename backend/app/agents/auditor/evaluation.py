@@ -149,7 +149,7 @@ def evaluate_rules(
                 detail="Discharging during OFF_PEAK window - may be suboptimal",
             ))
 
-    passed = len(violations) == 0
+    passed = not any(v["severity"] == "critical" for v in violations)
     return RuleEvaluation(passed=passed, violations=violations)
 
 
