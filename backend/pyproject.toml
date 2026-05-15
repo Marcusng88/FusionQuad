@@ -10,3 +10,12 @@ dependencies = [
     "pulp>=3.3.1",
     "pydantic-settings>=2.14.1",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
