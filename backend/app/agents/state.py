@@ -62,7 +62,7 @@ class OptimizationStrategy(TypedDict, total=False):
     rationale: str
     confidence: float
     md_limit_kw: float
-    constraints: list
+    constraints: list[str]
 
 
 # ---------------------------------------------------------------------------

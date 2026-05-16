@@ -61,6 +61,11 @@ class TariffNode:
         energy_rate = get_energy_rate(self.tariff_type, window)
         demand_charge = DEMAND_RATES[self.tariff_type] if window == "PEAK" else 0.0
 
+        logger.info(
+            "tariff | window=%s energy_rate=%.4f demand_charge=%.2f type=%s",
+            window, energy_rate, demand_charge, self.tariff_type,
+        )
+
         return {
             "tariff": TariffContext(
                 window=window,

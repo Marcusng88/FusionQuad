@@ -10,20 +10,17 @@ from deepagents import create_deep_agent
 from deepagents.backends import FilesystemBackend
 from deepagents.backends.state import StateBackend
 from deepagents.backends.composite import CompositeBackend
-from langchain.tools import tool
+import logging
 
 from app.agents.planner import STRATEGIES_DIR, EXPERIENCE_DIR, get_forecast_context, search_guidelines
 from app.agents.state import AgentState, OptimizationStrategy
 from app.core.model_selection import resolve_deepagents_model
 
+logger = logging.getLogger(__name__)
+
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 
 _PLANNER_PROMPT = (Path(__file__).parent / "prompts" / "system.md").read_text(encoding="utf-8")
-
-@tool
-def get_forecast_context_tool(state: dict[str, Any]) -> str:
-    """Build a formatted forecast context string from agent state."""
-    return get_forecast_context(state)
 
 
 def _build_planner_backend() -> CompositeBackend:
@@ -44,11 +41,12 @@ def _get_planner_agent() -> Any:
     global _PLANNER_AGENT
     if _PLANNER_AGENT is None:
         model = resolve_deepagents_model(_DEFAULT_MODEL)
+        logger.info("planner | initializing agent model=%s", model)
         _PLANNER_AGENT = create_deep_agent(
             name="planner-agent",
             model=model,
             system_prompt=_PLANNER_PROMPT,
-            tools=[get_forecast_context_tool],
+            tools=[],
             backend=_build_planner_backend(),
             response_format=OptimizationStrategy,
         )
@@ -132,10 +130,19 @@ def planner_node(state: AgentState) -> dict:
             messages = result.get("messages", []) if isinstance(result, dict) else []
             last = messages[-1].content if messages else ""
             strategy = _parse_strategy_payload(last) or _fallback_strategy(state)
-    except Exception:
+    except Exception as exc:
+        logger.warning("planner | agent error, using fallback: %s", exc)
         strategy = _fallback_strategy(state)
 
     if not strategy.get("md_limit_kw"):
         strategy = OptimizationStrategy(**{**strategy, "md_limit_kw": float(state.get("md_limit_kw") or 800.0)})
+
+    logger.info(
+        "planner | strategy=%s shave_kw=%.1f reserve_soc=%.0f%% confidence=%.2f",
+        strategy.get("strategy_name", "unknown"),
+        strategy.get("shave_kw", 0.0),
+        float(strategy.get("reserve_soc_pct", 0.0)) * 100,
+        strategy.get("confidence", 0.0),
+    )
 
     return {"optimization_strategy": strategy}

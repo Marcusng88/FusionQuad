@@ -140,7 +140,11 @@ export default function LiveDashboardPage() {
                     min={scenarioMetadata.available_start.slice(0, 16)}
                     type="datetime-local"
                     value={timeRange.start ?? ""}
-                    onChange={(e) => setTimeRange({ start: e.target.value || null, end: timeRange.end })}
+                    onChange={(e) => {
+                      const newStart = e.target.value || null;
+                      const endStillValid = newStart && timeRange.end && timeRange.end >= newStart;
+                      setTimeRange({ start: newStart, end: endStillValid ? timeRange.end : null });
+                    }}
                   />
                 </div>
                 <div>
@@ -150,7 +154,7 @@ export default function LiveDashboardPage() {
                     className="mt-1 w-full rounded-lg border border-outline bg-surface-2 px-3 py-1.5 text-xs"
                     disabled={isBusy}
                     max={scenarioMetadata.available_end.slice(0, 16)}
-                    min={scenarioMetadata.available_start.slice(0, 16)}
+                    min={timeRange.start ?? scenarioMetadata.available_start.slice(0, 16)}
                     type="datetime-local"
                     value={timeRange.end ?? ""}
                     onChange={(e) => setTimeRange({ start: timeRange.start, end: e.target.value || null })}

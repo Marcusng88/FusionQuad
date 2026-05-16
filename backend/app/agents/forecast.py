@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -9,6 +10,8 @@ import torch
 
 from app.agents.state import AgentState, ForecastResult
 from app.ml.forecast_model import ForecastModel
+
+logger = logging.getLogger(__name__)
 
 
 def forecast_node(state: AgentState) -> dict:
@@ -43,7 +46,12 @@ def forecast_node(state: AgentState) -> dict:
             forecast_values = _predict_horizon(model, history, horizon)
             forecasts[facility] = forecast_values
             confidences[facility] = confidence
-        except Exception:
+            logger.info(
+                "forecast | facility=%s confidence=%.2f horizon=%d first_kw=%.1f",
+                facility, confidence, horizon, forecast_values[0] if forecast_values else 0.0,
+            )
+        except Exception as exc:
+            logger.warning("forecast | facility=%s failed: %s", facility, exc)
             forecasts[facility] = []
             confidences[facility] = 0.0
 

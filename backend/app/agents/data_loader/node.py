@@ -93,6 +93,16 @@ def data_loader_node(state: dict[str, Any]) -> dict[str, Any]:
 
     data_quality = {facility_key: result["data_quality"]}
 
+    dq = result["data_quality"]
+    meta = result.get("metadata") or {}
+    logger.info(
+        "data_loader | facility=%s rows=%d start=%s end=%s",
+        dq.get("facility_name", facility_key),
+        dq.get("rows", 0),
+        str(meta.get("available_start", ""))[:16],
+        str(meta.get("available_end", ""))[:16],
+    )
+
     return {
         "loaded_data": loaded_data,
         "data_quality": data_quality,

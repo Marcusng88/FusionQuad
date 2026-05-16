@@ -10,9 +10,12 @@ At end-of-day, it reads past audit reports and appends a summary.
 """
 
 from datetime import datetime
+import logging
 from pathlib import Path
 import json
 from typing import TypedDict
+
+logger = logging.getLogger(__name__)
 
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
 
@@ -131,6 +134,7 @@ def _get_auditor_agent(system_prompt: str, is_eod: bool) -> object:
     if is_eod:
         if _AUDITOR_AGENT_EOD is None:
             model = resolve_deepagents_model(_DEFAULT_MODEL)
+            logger.info("auditor | initializing eod agent model=%s", model)
             _AUDITOR_AGENT_EOD = create_deep_agent(
                 name="auditor-agent-eod",
                 model=model,
@@ -142,6 +146,7 @@ def _get_auditor_agent(system_prompt: str, is_eod: bool) -> object:
     else:
         if _AUDITOR_AGENT_TICK is None:
             model = resolve_deepagents_model(_DEFAULT_MODEL)
+            logger.info("auditor | initializing tick agent model=%s", model)
             _AUDITOR_AGENT_TICK = create_deep_agent(
                 name="auditor-agent-tick",
                 model=model,
@@ -268,8 +273,8 @@ def auditor_node(state: dict) -> dict:
                 recommendation=parsed.get("recommendation", ""),
                 confidence=float(parsed.get("confidence", 0.75)),
             )
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("auditor | agent invoke failed, using rule+delta eval: %s", exc)
 
     if llm_eval is None:
         rule_eval = evaluate_rules(
@@ -304,6 +309,16 @@ def auditor_node(state: dict) -> dict:
         perceive=perceive,
         reason=reason,
         act=act,
+    )
+
+    logger.info(
+        "auditor | tick=%d rules=%s delta_score=%.1f shave_kw=%.1f savings_rm=%.4f within_limit=%s",
+        current_interval,
+        "PASS" if rule_eval.get("passed") else "FAIL",
+        delta_eval.get("delta_score", 0.0),
+        delta_eval.get("shave_kw", 0.0),
+        delta_eval.get("interval_savings_rm", 0.0),
+        actual_load <= md_limit_kw,
     )
 
     decision_entry = {

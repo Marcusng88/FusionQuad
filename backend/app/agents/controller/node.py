@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,8 @@ from app.agents.controller.middleware import DispatchValidationMiddleware
 from app.agents.optimization.solver import OptimizationInput, OptimizationSolver
 from app.agents.state import AgentState, BatteryState, DispatchAction, DispatchResult
 from app.core.model_selection import resolve_deepagents_model
+
+logger = logging.getLogger(__name__)
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 
@@ -38,32 +41,43 @@ def milp_optimizer(
     battery_soc: float,
     bess_capacity_kwh: float,
     md_limit_kw: float,
-    optimization_strategy: dict,
-    previous_dispatch_plan: list[dict] | None = None,
+    strategy_name: str = "conservative_shaving",
+    shave_kw: float = 80.0,
+    target_soc_end: float = 0.5,
+    reserve_soc_pct: float = 0.2,
 ) -> dict:
     """MILP solver — computes optimal BESS dispatch action for this tick.
 
     Args:
-        load_forecast: List of forecast kW values (should be at least 1 for current tick)
+        load_forecast: List of forecast kW values (at least 1 for current tick)
         tariff_window: PEAK | OFF_PEAK | WEEKEND
         battery_soc: Current state-of-charge (0-1)
         bess_capacity_kwh: Installed BESS capacity
-        md_limit_kw: Maximum demand limit
-        optimization_strategy: Planner's strategy dict with targets and constraints
-        previous_dispatch_plan: Optional warm-start from prior ticks
+        md_limit_kw: Maximum demand limit kW
+        strategy_name: Strategy from planner e.g. conservative_shaving
+        shave_kw: Target peak shave amount in kW
+        target_soc_end: Target SOC at end of horizon (0-1)
+        reserve_soc_pct: Minimum SOC reserve (0-1)
     """
     solver = OptimizationSolver()
     forecast_values = load_forecast if isinstance(load_forecast, list) and len(load_forecast) > 0 else []
 
+    optimization_strategy = {
+        "strategy_name": strategy_name,
+        "shave_kw": shave_kw,
+        "target_soc_end": target_soc_end,
+        "reserve_soc_pct": reserve_soc_pct,
+    }
+
     input_data = OptimizationInput(
-        optimization_strategy=optimization_strategy or {},
+        optimization_strategy=optimization_strategy,
         load_forecast=forecast_values,
         tariff_window=tariff_window,
         battery_soc=battery_soc,
         bess_capacity_kwh=bess_capacity_kwh,
         md_limit_kw=md_limit_kw,
         current_dispatch_index=0,
-        previous_dispatch_plan=previous_dispatch_plan,
+        previous_dispatch_plan=None,
     )
 
     result = solver.solve(input_data)
@@ -128,6 +142,7 @@ _CONTROLLER_AGENT: Any | None = None
 
 def _build_controller_agent() -> Any:
     model = resolve_deepagents_model(_DEFAULT_MODEL)
+    logger.info("controller | initializing agent model=%s", model)
     return create_deep_agent(
         name="controller-agent",
         model=model,
@@ -207,7 +222,8 @@ def controller_node(state: AgentState) -> dict:
             response = result.get("messages", [])
             if response:
                 messages.append({"role": "assistant", "content": str(response[-1].content)})
-    except Exception:
+    except Exception as exc:
+        logger.warning("controller | agent error, falling back to MILP: %s", exc)
         forced_action = forced_action or None
 
     if forced_action is None:
@@ -238,6 +254,11 @@ def controller_node(state: AgentState) -> dict:
         actual_load = max(0.0, baseline_load - actual_kw)
     elif action_taken == "charge":
         actual_load = baseline_load + actual_kw
+
+    logger.info(
+        "controller | action=%s power_kw=%.1f soc=%.2f->%.2f baseline=%.1f actual=%.1f",
+        action_taken, actual_kw, battery_soc, new_soc, baseline_load, actual_load,
+    )
 
     dispatch_action = DispatchAction(
         action=forced_action.get("action", "hold"),

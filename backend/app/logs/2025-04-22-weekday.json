@@ -1,0 +1,161 @@
+{
+  "ticks": [
+    {
+      "tick": 0,
+      "datetime": "2025-04-22T22:00:00",
+      "forecast_kw": 636.080322265625,
+      "forecast_confidence": 0.8,
+      "tariff_window": "OFF_PEAK",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.8,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.525,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": -0.005,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 935.0,
+      "within_limit": false,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 1,
+      "datetime": "2025-04-22T21:30:00",
+      "forecast_kw": 703.5759887695312,
+      "forecast_confidence": 0.8,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.8,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.525
+      },
+      "dispatch_result": {
+        "new_soc": 0.55,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": -0.005,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 892.0,
+      "within_limit": false,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 2,
+      "datetime": "2025-04-22T21:00:00",
+      "forecast_kw": 735.2011108398438,
+      "forecast_confidence": 0.8,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.8,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.55
+      },
+      "dispatch_result": {
+        "new_soc": 0.5750000000000001,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": -0.005,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 754.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 3,
+      "datetime": "2025-04-22T20:30:00",
+      "forecast_kw": 618.7376708984375,
+      "forecast_confidence": 0.8,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.8,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.575
+      },
+      "dispatch_result": {
+        "new_soc": 0.6000000000000001,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": -0.005,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 735.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    }
+  ],
+  "summary": {
+    "total_ticks": 8,
+    "within_limit_ticks": 2,
+    "total_savings_rm": 0.0,
+    "compliance_rate": 0.25,
+    "shave_percentage": 0.0,
+    "final_soc_percent": 60
+  },
+  "audit_report": "BESS SoC at 60%"
+}

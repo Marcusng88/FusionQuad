@@ -1,6 +1,5 @@
-"""LangGraph workflow - multi-agent orchestration with checkpointing."""
+"""LangGraph workflow - multi-agent orchestration."""
 
-from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import StateGraph, START, END
 
 from app.agents.state import AgentState
@@ -35,5 +34,4 @@ def create_workflow() -> StateGraph:
     builder.add_edge("controller", "auditor")
     builder.add_edge("auditor", END)
 
-    checkpointer = InMemorySaver()
-    return builder.compile(checkpointer=checkpointer)
+    return builder.compile()

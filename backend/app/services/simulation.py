@@ -164,10 +164,7 @@ class SimulationService:
                 "is_end_of_day": is_last_tick,
             }
 
-            result = self._workflow.invoke(
-                state,
-                config={"configurable": {"thread_id": session.session_id}},
-            )
+            result = self._workflow.invoke(state)
 
             agent_trace = list(session.state.get("agent_trace", []))
             agent_trace.extend(_build_agent_trace_entries(result))
@@ -245,7 +242,6 @@ class SimulationService:
                         state,
                         stream_mode=["updates", "values"],
                         version="v2",
-                        config={"configurable": {"thread_id": session.session_id}},
                     ):
                         if chunk["type"] == "updates":
                             for node_name, node_state in chunk["data"].items():
