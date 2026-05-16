@@ -41,7 +41,11 @@ async function requestSimulationState(
     throw new Error(detail || `Simulation request failed with ${response.status}.`);
   }
 
-  return (await response.json()) as SimulationApiState;
+  const data = await response.json();
+  if (!data?.session_id || !data?.status) {
+    throw new Error(`Invalid simulation response: missing required fields`);
+  }
+  return data as SimulationApiState;
 }
 
 export function startSimulation(

@@ -15,14 +15,12 @@ def _coerce_optional_float(value: Any) -> float | None:
 class TickLogger:
     def append_tick(
         self,
-        log_path: Path,
+        tick_buffer: list[dict[str, Any]],
         tick_index: int,
         result: dict[str, Any],
         current_time: datetime | None,
         md_limit_kw: float,
     ) -> None:
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-
         forecast = result.get("forecast") or {}
         forecast_conf = forecast.get("confidence") or {}
         first_conf = float(next(iter(forecast_conf.values()), 0.0)) if forecast_conf else 0.0
@@ -46,36 +44,25 @@ class TickLogger:
             ),
         }
 
-        if log_path.exists():
-            with open(log_path) as f:
-                log = json.load(f)
-        else:
-            log = {"ticks": [], "summary": {}}
-
-        log["ticks"].append(tick_data)
-        with open(log_path, "w") as f:
-            json.dump(log, f, indent=2)
+        tick_buffer.append(tick_data)
 
     def finalize(
         self,
         log_path: Path,
+        tick_buffer: list[dict[str, Any]],
         session_state: dict[str, Any],
         available_start: datetime | None,
         day_type: str,
     ) -> None:
-        if not log_path.exists():
-            return
-
-        with open(log_path) as f:
-            log = json.load(f)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
 
         battery = session_state.get("battery") or {}
         within_limit = int(session_state.get("within_limit_ticks", 0))
-        total = int(session_state.get("total_intervals", 0)) or len(log["ticks"])
+        total = int(session_state.get("total_intervals", 0)) or len(tick_buffer)
         decision_log = session_state.get("decision_log", [])
         last_auditor = decision_log[-1] if decision_log else {}
 
-        log["summary"] = {
+        summary = {
             "total_ticks": total,
             "within_limit_ticks": within_limit,
             "total_savings_rm": float(session_state.get("total_savings_rm", 0.0)),
@@ -88,9 +75,15 @@ class TickLogger:
         experience_path = log_path.parent.parent / "experience" / f"{date_str}-{day_type}.md"
         if experience_path.exists():
             with open(experience_path) as f:
-                log["audit_report"] = f.read()
+                audit_report = f.read()
         else:
-            log["audit_report"] = last_auditor.get("reason", "") or "No experience report available."
+            audit_report = last_auditor.get("reason", "") or "No experience report available."
+
+        log = {
+            "ticks": tick_buffer,
+            "summary": summary,
+            "audit_report": audit_report,
+        }
 
         with open(log_path, "w") as f:
             json.dump(log, f, indent=2)

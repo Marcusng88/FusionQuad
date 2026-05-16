@@ -50,6 +50,7 @@ class SimulationSession:
     selected_start_time: datetime | None = None
     selected_end_time: datetime | None = None
     log_path: Path | None = None
+    tick_buffer: list[dict[str, Any]] = field(default_factory=list)
 
 
 class SimulationService:
@@ -70,7 +71,8 @@ class SimulationService:
         start_time: datetime | None = None,
         end_time: datetime | None = None,
     ) -> SimulationStateResponse:
-        loaded = data_loader_node({"day_type": day_type})
+        loop = asyncio.get_event_loop()
+        loaded = await loop.run_in_executor(None, data_loader_node, {"day_type": day_type})
         current_facility = loaded["current_facility"]
         full_records = list(loaded["loaded_data"][current_facility]["data"])
         metadata = loaded["loaded_data"][current_facility].get("metadata") or {}
@@ -188,7 +190,7 @@ class SimulationService:
 
             if session.log_path is not None:
                 self._tick_logger.append_tick(
-                    session.log_path,
+                    session.tick_buffer,
                     session.current_interval - 1,
                     result,
                     current_time,
@@ -200,6 +202,7 @@ class SimulationService:
                 if session.log_path is not None:
                     self._tick_logger.finalize(
                         session.log_path,
+                        session.tick_buffer,
                         session.state,
                         session.available_start,
                         session.day_type,
@@ -278,7 +281,7 @@ class SimulationService:
 
                     if session.log_path is not None:
                         self._tick_logger.append_tick(
-                            session.log_path,
+                            session.tick_buffer,
                             session.current_interval - 1,
                             final_state,
                             current_time,
@@ -290,6 +293,7 @@ class SimulationService:
                         if session.log_path is not None:
                             self._tick_logger.finalize(
                                 session.log_path,
+                                session.tick_buffer,
                                 session.state,
                                 session.available_start,
                                 session.day_type,
