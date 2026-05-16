@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 
 from app.schemas.simulation import (
-    PlaySimulationRequest,
     SimulationSessionRequest,
     SimulationStateResponse,
     StartSimulationRequest,
@@ -37,20 +36,12 @@ async def step_simulation(
     return await service.step(payload.session_id)
 
 
-@router.post("/play", response_model=SimulationStateResponse, summary="Enable autoplay for a simulation")
-async def play_simulation(
-    payload: PlaySimulationRequest,
-    service: SimulationService = Depends(get_simulation_service),
-) -> SimulationStateResponse:
-    return await service.play(payload.session_id, interval_seconds=payload.interval_ms / 1000)
-
-
-@router.post("/pause", response_model=SimulationStateResponse, summary="Pause autoplay for a simulation")
-async def pause_simulation(
+@router.post("/run", response_model=SimulationStateResponse, summary="Run all simulation intervals to completion")
+async def run_simulation(
     payload: SimulationSessionRequest,
     service: SimulationService = Depends(get_simulation_service),
 ) -> SimulationStateResponse:
-    return await service.pause(payload.session_id)
+    return await service.run(payload.session_id)
 
 
 @router.get("/state", response_model=SimulationStateResponse, summary="Get current simulation state")

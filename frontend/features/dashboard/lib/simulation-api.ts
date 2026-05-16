@@ -64,35 +64,9 @@ export function startSimulation(
   );
 }
 
-export function stepSimulation(sessionId: string, baseUrl?: string) {
+export function runSimulation(sessionId: string, baseUrl?: string) {
   return requestSimulationState(
-    "/api/v1/simulation/step",
-    {
-      method: "POST",
-      body: JSON.stringify({ session_id: sessionId }),
-    },
-    baseUrl,
-  );
-}
-
-export function playSimulation(
-  sessionId: string,
-  intervalMs: number,
-  baseUrl?: string,
-) {
-  return requestSimulationState(
-    "/api/v1/simulation/play",
-    {
-      method: "POST",
-      body: JSON.stringify({ session_id: sessionId, interval_ms: intervalMs }),
-    },
-    baseUrl,
-  );
-}
-
-export function pauseSimulation(sessionId: string, baseUrl?: string) {
-  return requestSimulationState(
-    "/api/v1/simulation/pause",
+    "/api/v1/simulation/run",
     {
       method: "POST",
       body: JSON.stringify({ session_id: sessionId }),

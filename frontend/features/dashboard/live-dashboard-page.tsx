@@ -11,7 +11,6 @@ import { ACCENT_STYLES, AGENT_STYLES, type AccentStyle } from "./theme";
 import {
   DEFAULT_DEMAND_LIMIT_KW,
   MD_RATE,
-  PLAYBACK_SPEEDS,
 } from "./data/day-scenarios";
 import { useSimulationController } from "./hooks/use-simulation-controller";
 import { formatCurrencyValue } from "./lib/formatters";
@@ -23,8 +22,6 @@ export default function LiveDashboardPage() {
     selectedDayType,
     bessCapacityKwh,
     setBessCapacityKwh,
-    playbackSpeed,
-    setPlaybackSpeed,
     simulation,
     isBusy,
     errorMessage,
@@ -32,11 +29,7 @@ export default function LiveDashboardPage() {
     handleDayTypeChange,
     handleTimeRangeChange,
     runOptimization,
-    stepForward,
-    play,
-    pause,
     timeRange,
-    setTimeRange,
   } = useSimulationController();
 
   const accent = accentForDayType(selectedDayType);
@@ -205,59 +198,6 @@ export default function LiveDashboardPage() {
           >
             {isBusy ? "Working…" : "▶ Run Optimization"}
           </button>
-
-          {/* Playback controls */}
-          <div className="space-y-3">
-            <p className="font-label text-[10px] text-muted">Playback</p>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                disabled={isBusy || simulation.status === "playing"}
-                onClick={() => void play()}
-                className="rounded-lg border border-outline bg-surface px-3 py-2 text-xs text-foreground transition hover:bg-surface-3 disabled:opacity-50"
-              >
-                Play
-              </button>
-              <button
-                type="button"
-                disabled={isBusy || simulation.status !== "playing"}
-                onClick={() => void pause()}
-                className="rounded-lg border border-outline bg-surface px-3 py-2 text-xs text-foreground transition hover:bg-surface-3 disabled:opacity-50"
-              >
-                Pause
-              </button>
-              <button
-                type="button"
-                disabled={isBusy || simulation.status === "playing"}
-                onClick={() => void stepForward()}
-                className="rounded-lg border border-outline bg-surface px-3 py-2 text-xs text-foreground transition hover:bg-surface-3 disabled:opacity-50"
-              >
-                Step
-              </button>
-            </div>
-
-            {/* Speed selector */}
-            <div className="flex flex-wrap gap-1.5">
-              {PLAYBACK_SPEEDS.map((s) => {
-                const isActive = s.label === playbackSpeed;
-                return (
-                  <button
-                    key={s.label}
-                    type="button"
-                    disabled={isBusy}
-                    onClick={() => setPlaybackSpeed(s.label)}
-                    className={`rounded-lg border px-3 py-1 text-xs transition ${
-                      isActive
-                        ? "border-secondary/35 bg-secondary/10 text-secondary"
-                        : "border-outline bg-surface text-muted hover:bg-surface-3 hover:text-foreground"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           {/* Error */}
           {errorMessage ? (

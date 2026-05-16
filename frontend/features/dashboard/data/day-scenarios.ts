@@ -30,10 +30,3 @@ export const DAY_SCENARIOS: Array<{
   },
 ];
 
-export const PLAYBACK_SPEEDS = [
-  { label: "1x", intervalMs: 1000 },
-  { label: "10x", intervalMs: 250 },
-  { label: "60x", intervalMs: 75 },
-] as const;
-
-export type PlaybackSpeedLabel = (typeof PLAYBACK_SPEEDS)[number]["label"];

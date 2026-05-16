@@ -3,27 +3,17 @@
 import {
   startTransition,
   useCallback,
-  useEffect,
-  useEffectEvent,
-  useMemo,
   useState,
 } from "react";
 
-import {
-  DAY_SCENARIOS,
-  PLAYBACK_SPEEDS,
-  type PlaybackSpeedLabel,
-} from "../data/day-scenarios";
+import { DAY_SCENARIOS } from "../data/day-scenarios";
 import {
   createSimulationViewModel,
   mergeSimulationSnapshot,
 } from "../lib/live-simulation";
 import {
-  getSimulationState,
-  pauseSimulation,
-  playSimulation,
+  runSimulation,
   startSimulation,
-  stepSimulation,
 } from "../lib/simulation-api";
 import type {
   SimulationApiState,
@@ -42,8 +32,6 @@ export function useSimulationController() {
   const [selectedDayType, setSelectedDayType] =
     useState<SimulationDayType>("weekday");
   const [bessCapacityKwh, setBessCapacityKwh] = useState(1000);
-  const [playbackSpeed, setPlaybackSpeed] =
-    useState<PlaybackSpeedLabel>("10x");
   const [timeRange, setTimeRange] = useState<{ start: string | null; end: string | null }>({
     start: null,
     end: null,
@@ -55,13 +43,6 @@ export function useSimulationController() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const dayOptions = resolveDayOptions(simulation.scenarios);
-
-  const speed = useMemo(
-    () =>
-      PLAYBACK_SPEEDS.find((item) => item.label === playbackSpeed) ??
-      PLAYBACK_SPEEDS[1],
-    [playbackSpeed],
-  );
 
   const applySnapshot = useCallback(async (
     executor: () => Promise<SimulationApiState>,
@@ -92,14 +73,10 @@ export function useSimulationController() {
     }
   }, [selectedDayType]);
 
-  const pollSimulationState = useEffectEvent(async (sessionId: string) => {
-    await applySnapshot(() => getSimulationState(sessionId));
-  });
-
   async function bootstrapSimulation(
     dayType = selectedDayType,
     capacityKwh = bessCapacityKwh,
-    timeRange?: { start: string | null; end: string | null },
+    range?: { start: string | null; end: string | null },
   ) {
     const started = await applySnapshot(
       () =>
@@ -107,8 +84,8 @@ export function useSimulationController() {
           dayType,
           bessCapacityKwh: capacityKwh,
           batterySoc: 0.5,
-          startTime: timeRange?.start,
-          endTime: timeRange?.end,
+          startTime: range?.start,
+          endTime: range?.end,
         }),
       true,
       dayType,
@@ -118,13 +95,13 @@ export function useSimulationController() {
       return null;
     }
 
-    const stepped = await applySnapshot(
-      () => stepSimulation(started.session_id),
+    const result = await applySnapshot(
+      () => runSimulation(started.session_id),
       false,
       dayType,
     );
 
-    return stepped ?? started;
+    return result ?? started;
   }
 
   async function handleDayTypeChange(dayType: SimulationDayType) {
@@ -135,7 +112,7 @@ export function useSimulationController() {
   async function handleTimeRangeChange(range: { start: string | null; end: string | null }) {
     setTimeRange(range);
     if (simulation.sessionId) {
-      const snapshot = await applySnapshot(
+      await applySnapshot(
         () =>
           startSimulation({
             dayType: selectedDayType,
@@ -147,43 +124,11 @@ export function useSimulationController() {
         true,
         selectedDayType,
       );
-      void snapshot;
     }
   }
 
   async function runOptimization() {
     await bootstrapSimulation();
-  }
-
-  async function stepForward() {
-    if (!simulation.sessionId) {
-      await bootstrapSimulation();
-      return;
-    }
-
-    await applySnapshot(() => stepSimulation(simulation.sessionId!));
-  }
-
-  async function play() {
-    let sessionId = simulation.sessionId;
-    if (!sessionId) {
-      const snapshot = await bootstrapSimulation();
-      sessionId = snapshot?.session_id ?? null;
-    }
-
-    if (!sessionId) {
-      return;
-    }
-
-    await applySnapshot(() => playSimulation(sessionId!, speed.intervalMs));
-  }
-
-  async function pause() {
-    if (!simulation.sessionId) {
-      return;
-    }
-
-    await applySnapshot(() => pauseSimulation(simulation.sessionId!));
   }
 
   function applySizingRecommendation() {
@@ -194,25 +139,11 @@ export function useSimulationController() {
     }
   }
 
-  useEffect(() => {
-    if (simulation.status !== "playing" || !simulation.sessionId) {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      void pollSimulationState(simulation.sessionId!);
-    }, speed.intervalMs);
-
-    return () => window.clearInterval(intervalId);
-  }, [simulation.status, simulation.sessionId, speed.intervalMs]);
-
   return {
     dayOptions,
     selectedDayType,
     bessCapacityKwh,
     setBessCapacityKwh,
-    playbackSpeed,
-    setPlaybackSpeed,
     simulation,
     isBusy,
     errorMessage,
@@ -220,9 +151,6 @@ export function useSimulationController() {
     handleDayTypeChange,
     handleTimeRangeChange,
     runOptimization,
-    stepForward,
-    play,
-    pause,
     timeRange,
     setTimeRange,
   };

@@ -43,7 +43,6 @@ class SimulationSession:
     state: dict[str, Any]
     status: str = "paused"
     current_interval: int = 0
-    task: asyncio.Task[None] | None = None
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     available_start: datetime | None = None
     available_end: datetime | None = None
@@ -191,67 +190,17 @@ class SimulationService:
 
             return self._build_snapshot(session)
 
-    async def play(self, session_id: str, *, interval_seconds: float) -> SimulationStateResponse:
-        session = self._get_session(session_id)
-        async with session.lock:
-            if session.status == "completed":
-                return self._build_snapshot(session)
-            if session.task and not session.task.done():
-                session.status = "playing"
-                return self._build_snapshot(session)
-
-            session.status = "playing"
-            session.task = asyncio.create_task(self._autoplay(session_id, interval_seconds))
-            return self._build_snapshot(session)
-
-    async def pause(self, session_id: str) -> SimulationStateResponse:
-        session = self._get_session(session_id)
-        async with session.lock:
-            if session.status != "completed":
-                session.status = "paused"
-            task = session.task
-            session.task = None
-
-        if task and not task.done():
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-
-        return self._build_snapshot(session)
+    async def run(self, session_id: str) -> SimulationStateResponse:
+        while True:
+            snapshot = await self.step(session_id)
+            if snapshot.status == "completed":
+                return snapshot
 
     async def get_state(self, session_id: str) -> SimulationStateResponse:
         return self._build_snapshot(self._get_session(session_id))
 
     async def shutdown(self) -> None:
-        tasks = [session.task for session in self._sessions.values() if session.task and not session.task.done()]
-        for task in tasks:
-            task.cancel()
-        for task in tasks:
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-
-    async def _autoplay(self, session_id: str, interval_seconds: float) -> None:
-        try:
-            while True:
-                snapshot = await self.step(session_id)
-                if snapshot.status == "completed":
-                    return
-
-                session = self._get_session(session_id)
-                if session.status != "playing":
-                    return
-
-                await asyncio.sleep(interval_seconds)
-        except asyncio.CancelledError:
-            raise
-        finally:
-            session = self._sessions.get(session_id)
-            if session and session.status == "playing" and session.current_interval < len(session.records):
-                session.status = "paused"
+        pass
 
     def _get_session(self, session_id: str) -> SimulationSession:
         session = self._sessions.get(session_id)

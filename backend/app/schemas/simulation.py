@@ -18,10 +18,6 @@ class SimulationSessionRequest(BaseModel):
     session_id: str
 
 
-class PlaySimulationRequest(BaseModel):
-    session_id: str
-    interval_ms: int = Field(default=250, ge=1, le=60_000)
-
 
 class SizingRecommendation(BaseModel):
     recommended_bess_capacity_kwh: float
@@ -49,7 +45,7 @@ class ScenarioMeta(BaseModel):
 
 class SimulationStateResponse(BaseModel):
     session_id: str
-    status: Literal["paused", "playing", "completed"]
+    status: Literal["paused", "completed"]
     day_type: str
     current_interval: int
     total_intervals: int
