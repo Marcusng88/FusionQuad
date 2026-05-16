@@ -44,7 +44,11 @@
       "mcp__docs-langchain__search_docs_by_lang_chain",
       "mcp__docs-langchain__query_docs_filesystem_docs_by_lang_chain",
       "Bash(uv pip *)",
-      "Bash(python -c \"from app.services.sizing_advisor import SizingAdvisor; print\\('ok'\\)\")"
+      "Bash(python -c \"from app.services.sizing_advisor import SizingAdvisor; print\\('ok'\\)\")",
+      "Skill(vercel-react-best-practices)",
+      "Skill(vercel-react-best-practices:*)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm install *)"
     ]
   }
 }

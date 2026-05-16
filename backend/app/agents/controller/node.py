@@ -107,19 +107,20 @@ def mock_inverter_dispatch(
         temperature_c: Current BESS temperature
     """
     efficiency_loss_pct = 0.05
+    charge_efficiency = 0.95
 
     if action == "discharge":
         energy_kwh = power_kw * (duration_min / 60)
         actual_discharge = energy_kwh * (1 - efficiency_loss_pct)
-        new_soc = current_soc - (actual_discharge / bess_capacity_kwh)
+        new_soc = max(0.0, current_soc - (actual_discharge / bess_capacity_kwh))
         temp_increase = 0.5 * (power_kw / 100)
-        cycle_increment = energy_kwh / bess_capacity_kwh
+        cycle_increment = energy_kwh / (2 * bess_capacity_kwh)
         actual_kw = power_kw
     elif action == "charge":
         energy_kwh = power_kw * (duration_min / 60)
-        new_soc = min(current_soc + (energy_kwh / bess_capacity_kwh), 0.95)
+        new_soc = min(current_soc + (energy_kwh * charge_efficiency / bess_capacity_kwh), 0.95)
         temp_increase = 0.2 * (power_kw / 100)
-        cycle_increment = -0.005
+        cycle_increment = 0.0
         actual_kw = power_kw
     else:
         new_soc = current_soc
@@ -136,6 +137,9 @@ def mock_inverter_dispatch(
         "efficiency_loss_pct": efficiency_loss_pct,
     }
 
+
+_AMBIENT_TEMP_C = 25.0
+_COOLING_RATE = 0.05  # fraction of (T - ambient) dissipated per 30-min tick
 
 _CONTROLLER_AGENT: Any | None = None
 
@@ -244,7 +248,11 @@ def controller_node(state: AgentState) -> dict:
     )
 
     new_soc = raw_result.get("new_soc", battery_soc)
-    new_temp = temperature_c + raw_result.get("temp_increase_c", 0.0)
+    heat_gain = raw_result.get("temp_increase_c", 0.0)
+    cooling = _COOLING_RATE * max(0.0, temperature_c - _AMBIENT_TEMP_C)
+    new_temp = temperature_c + heat_gain - cooling
+    if new_temp >= 45.0:
+        logger.warning("controller | battery temp=%.1f°C — thermal derating threshold reached", new_temp)
     new_cycle = cycle_count + raw_result.get("cycle_count_increment", 0.0)
     action_taken = raw_result.get("action_taken", "hold")
     actual_kw = raw_result.get("actual_discharge_kw", 0.0)

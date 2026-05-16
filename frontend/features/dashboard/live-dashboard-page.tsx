@@ -355,7 +355,6 @@ export default function LiveDashboardPage() {
             ) : (
               <div className="rounded-xl border border-dashed border-outline bg-surface px-4 py-8 text-center">
                 <p className="text-xs text-muted">No agent steps yet.</p>
-                <p className="mt-1 text-[11px] text-muted/70">Step or play the simulation to see AI reasoning.</p>
               </div>
             )}
           </div>

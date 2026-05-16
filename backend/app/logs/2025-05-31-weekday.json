@@ -1,0 +1,820 @@
+{
+  "ticks": [
+    {
+      "tick": 0,
+      "datetime": "2025-05-31T23:30:00",
+      "forecast_kw": 90.26861572265625,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 50.0,
+        "target_soc_end": 0.92,
+        "rationale": "Tariff window is OFF_PEAK (weekend typically treated as low-rate valley hours) and current time (23:30) falls within the overnight 22:00\u201306:00 charging window. Battery SOC is ~0.5%? (given as 0.5% in input), which is well below the OFF_PEAK charging requirement (<85%) and above the hard minimum SOC constraint, so the optimal action is to charge to prepare for the next higher-rate period. Load forecast is ~89\u201390 kW with low confidence (0.5), so a conservative charge target in the 90\u201395% band is chosen to avoid over-charging under forecast uncertainty.",
+        "confidence": 0.42,
+        "md_limit_kw": 100.0,
+        "constraints": [
+          "overnight_charge_window (22:00-06:00)",
+          "charge_rate_50_80kW per 15-min interval",
+          "max_charge_95pct_soc (do not exceed 95% SOC)",
+          "never discharge below 10% SOC (not applicable since charging)",
+          "never charge above 100% SOC"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 845.0,
+      "within_limit": false,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 1,
+      "datetime": "2025-05-31T23:00:00",
+      "forecast_kw": 91.28862762451172,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 90.0,
+        "target_soc_end": 0.92,
+        "rationale": "Tariff window is OFF_PEAK (weekend context) and current time 23:00 falls within the typical overnight charging window. Battery SOC is extremely low (~0.5%), so aggressive discharge strategies are not viable due to reserve SOC requirements and hard minimum protections. With low confidence (0.5) and SOC << 85%, the optimal action is to charge at a controlled rate to reach a high SOC target (90\u201395%) by the next peak window while respecting the guideline\u2019s uncertainty handling by choosing a conservative upper target (~92%).",
+        "confidence": 0.62,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Never charge above 100% SOC (emergency rule)",
+          "Do not discharge below hard minimum 10% SOC (emergency rule)",
+          "Use overnight/off-peak charging (typically 22:00\u201306:00)",
+          "Respect off-peak charge rate guidance (50\u201380 kW per 15-minute interval)",
+          "Do not exceed ~95% SOC charging ceiling per offpeak strategy"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 798.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 2,
+      "datetime": "2025-05-31T22:30:00",
+      "forecast_kw": 91.47130584716797,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 85.0,
+        "target_soc_end": 95.0,
+        "rationale": "Tariff window is WEEKEND, and no weekday PEAK discharge trigger can apply. With current time at 22:30 (overnight period) and very low SOC (0.5%), the optimal move is to charge during the valley period rather than attempt peak shaving. Low forecast confidence (0.5) also supports not aiming for an overly aggressive SOC target above the standard charging ceiling; target 90\u201395% is preferred to prepare for the next higher-tariff window.",
+        "confidence": 0.62,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_charge_95pct_soc",
+          "charge_rate_50_80kW",
+          "overnight_charge_window",
+          "grid_capacity_respect",
+          "never_charge_above_100pct_SOC",
+          "never_discharge_below_10pct_SOC"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 645.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 3,
+      "datetime": "2025-05-31T22:00:00",
+      "forecast_kw": 91.07093048095703,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 90.0,
+        "target_soc_end": 0.9,
+        "rationale": "Tariff window is WEEKEND (treated as non-PEAK), and current time 22:00 falls in the typical overnight valley-fill window (22:00\u201306:00). Battery SOC is only 0.5% (<85%), so charging is preferred to restore headroom for the next high-tariff period. Load forecast (~89\u201391 kW) is high, but it does not trigger PEAK discharge because the tariff window is not PEAK and PEAK strategy requires SOC > 40% and no discharge logic applies. Therefore use Off-Peak Valley Fill to charge toward the 90\u201395% SOC target; set reserve at ~90% end-of-horizon target.",
+        "confidence": 0.72,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Charge only during OFF_PEAK/overnight valley window (22:00\u201306:00)",
+          "Do not exceed 95% SOC (target 90\u201395%)",
+          "Battery protection: never charge/discharge beyond hard SOC limits (10%\u2013100%)",
+          "Respect inverter/grid capacity limits",
+          "If overnight window ends before target SOC is reached, charge as much as allowed within rate constraints (50\u201380 kW per 15-min)"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 694.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 4,
+      "datetime": "2025-05-31T21:30:00",
+      "forecast_kw": 91.50516510009766,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill (override: weekend tariff)",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 50.0,
+        "target_soc_end": 0.9,
+        "rationale": "Tariff window is WEEKEND, so weekday PEAK and OFF_PEAK valley-fill triggers do not cleanly apply. With battery SOC at ~0.5% (effectively near-empty per provided state) and forecast load ~90 kW with low confidence (0.5), discharging is not justifiable. Therefore select a non-discharge/charge-prep approach: set no shaving now (shave_kw=0) and preserve SOC for reliability (reserve well above hard minimum; target to build toward ~90% by next high-rate window).",
+        "confidence": 0.62,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Do not discharge below hard minimum SOC (10%).",
+          "No peak-shaving trigger satisfied because tariff_window is WEEKEND and aggress. rule requires PEAK.",
+          "Low forecast confidence: avoid committing to discharge/shave; preserve energy capacity.",
+          "Respect MD limit of 800 kW (keep total demand under limit)."
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 816.0,
+      "within_limit": false,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 5,
+      "datetime": "2025-05-31T21:00:00",
+      "forecast_kw": 91.3245849609375,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 50.0,
+        "target_soc_end": 0.9,
+        "rationale": "Current tariff window is WEEKEND (treated as non-PEAK for dispatch), and time is 21:00 (within the typical overnight charging period starting ~22:00). Battery SOC is extremely low (~0.5%), so discharging is not feasible under any reserve constraints; instead, the highest-value action is to charge in the off-peak/valley window to restore SOC for future peak shaving. Forecast confidence is low, so a conservative target within the off-peak guidance (90\u201395%) is used to avoid over-commitment under uncertainty.",
+        "confidence": 0.62,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Do not discharge below hard minimum SOC (10%)",
+          "Respect charging ceiling: never charge above 100% SOC",
+          "Charge only within overnight valley-fill window (typically 22:00\u201306:00)",
+          "Charge rate limited to 50\u201380 kW per 15-min interval",
+          "Target SOC set to 90\u201395% to prepare for upcoming PEAK while controlling uncertainty"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 837.0,
+      "within_limit": false,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 6,
+      "datetime": "2025-05-31T20:30:00",
+      "forecast_kw": 91.52932739257812,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 80.0,
+        "target_soc_end": 90.0,
+        "rationale": "Tariff window is WEEKEND (treated as OFF_PEAK for charging-prep), current time 20:30 is before typical overnight valley-fill window but with very low battery SOC (0.5%/\u2248near-empty) and low forecast confidence (0.5). With SOC far below charging thresholds (<85%) the optimal policy is to charge to prepare for next PEAK period rather than discharge. Set a conservative SOC target (90%) due to low confidence to avoid unnecessary over-charging risk while still restoring capacity for future peak shaving.",
+        "confidence": 0.42,
+        "md_limit_kw": 80.0,
+        "constraints": [
+          "max_charge_95pct_soc",
+          "charge_rate_50_80kW_per_15min",
+          "overnight_charge_window_typically_22:00_06:00"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 643.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 7,
+      "datetime": "2025-05-31T20:00:00",
+      "forecast_kw": 90.83731079101562,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 90.0,
+        "target_soc_end": 0.9,
+        "rationale": "Current tariff_window is WEEKEND and current time is 20:00 (not the typical 22:00\u201306:00 OFF_PEAK valley-fill window). Given battery SOC is critically low (~0.5%), aggressive peak-shaving triggers require SOC > 40% but the system should preserve capacity; there is also no PEAK-shaving rule applicable from the provided guidelines for WEEKEND. Therefore the optimal action per available guidance is to avoid discharging and instead plan to charge toward the valley-fill target (90\u201395%); with low forecast confidence (0.5), bias to the safer 90% end target.",
+        "confidence": 0.42,
+        "md_limit_kw": 80.0,
+        "constraints": [
+          "Avoid discharge at very low SOC (preserve capacity).",
+          "Charge target capped to <=95% SOC per valley-fill rule; using 90% due to low forecast confidence.",
+          "Use valley-fill charging behavior only when tariff/time window aligns; otherwise default to not shaving and conserving SOC."
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 616.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 8,
+      "datetime": "2025-05-31T19:30:00",
+      "forecast_kw": 91.81666564941406,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "offpeak_valley_fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 80.0,
+        "target_soc_end": 0.85,
+        "rationale": "Tariff window provided is WEEKEND (no weekend/holiday surge guideline matched), and current time (19:30) is not within the typical overnight OFF_PEAK valley-fill window (22:00\u201306:00). With battery SOC at ~0.5% (far below the 20\u201330% reserves required for any discharge/peak-shaving strategy) the controller should avoid discharge. The only safe action is to hold/IDLE until a valid OFF_PEAK charging window begins; SOC should be rebuilt to enable future PEAK shaving. SOC reserve is set conservatively (80%) to avoid any premature discharge attempt on low SOC.",
+        "confidence": 0.42,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "SOC too low for any discharge-based strategy (must not violate 10% hard minimum / 20% recommended reserve)",
+          "No matched WEEKEND tariff guideline for discharge",
+          "Valley-fill charging rule is only intended for 22:00\u201306:00; outside that window plan to hold until next charging window"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 611.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 9,
+      "datetime": "2025-05-31T19:00:00",
+      "forecast_kw": 91.24942779541016,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.0,
+        "target_soc_end": 0.9,
+        "rationale": "Current tariff window is WEEKEND but the provided guideline triggers for discharge require PEAK (aggressive peak shaving) or holiday day_type (holiday_surge). Since day_type is weekday and no PEAK/holiday trigger is satisfied, the optimal cost strategy is to prepare for the next PEAK period by charging during the low-rate/off-peak window. With SOC at 0.5% (below 20% and well below the recommended reserve/target), dispatch should prioritize charging (not discharging). Forecast confidence is low (0.5), so avoid overshooting; target end SOC at ~90% (lower end of the 90\u201395% range).",
+        "confidence": 0.62,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Emergency SOC floor: never discharge below 10% SOC",
+          "End SOC target capped at <= 100%",
+          "Do not exceed OFF_PEAK charging envelope (use 50\u201380 kW per 15-minute interval per guideline)",
+          "Respect inverter/grid capacity limits (grid_capacity_respect)"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 616.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 10,
+      "datetime": "2025-05-31T18:30:00",
+      "forecast_kw": 91.17706298828125,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 20.0,
+        "target_soc_end": 90.0,
+        "rationale": "Current tariff window is WEEKEND/likely OFF_PEAK conditions (not PEAK). With SOC at 0.5% (<85%), the correct cost-optimization action is to charge during low-rate periods to prepare for the next PEAK. The OFF_PEAK Valley Fill strategy targets 90\u201395% SOC by the start of the next PEAK window; with low forecast confidence (0.5), use the safer lower end (90%). No peak shaving discharge is planned at this SOC level, and reserve SOC is respected via target SOC and soft-minimum guidance.",
+        "confidence": 0.58,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Do not discharge below hard minimum 10% SOC",
+          "Do not exceed 100% SOC when charging",
+          "OFF_PEAK charging only applies during OFF_PEAK window (typically overnight)",
+          "Charge rate should respect inverter/interval limits (50\u201380 kW per 15-min per guideline)",
+          "With low forecast confidence, bias toward 80% SOC target rather than 95% if required by implementation"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 573.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 11,
+      "datetime": "2025-05-31T18:00:00",
+      "forecast_kw": 90.47273254394531,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 50.0,
+        "target_soc_end": 90.0,
+        "rationale": "Tariff window is WEEKEND (not PEAK) while the day type is mislabelled as weekday in the prompt; the only strategy explicitly tied to charging is OFF_PEAK Valley Fill, which also fits the current very low battery SOC (0.5%)\u2014discharge is unsafe versus the 20% soft minimum. With low forecast confidence (0.5), we prioritize recharging rather than attempting any peak-shaving discharge that would risk SOC violations.",
+        "confidence": 0.32,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Never discharge below 10% SOC (hard minimum).",
+          "Do not charge above 100% SOC (hard maximum).",
+          "Because SOC is ~0.5% (far below soft minimum), prefer charge-mode dispatch.",
+          "Respect OFF_PEAK charging rate/inverter limits (50\u201380 kW per 15-minute interval per guideline).",
+          "Aim for 90\u201395% SOC by next PEAK window start (use 90% target given weekend/uncertain timing)."
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 575.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 12,
+      "datetime": "2025-05-31T17:30:00",
+      "forecast_kw": 90.89082336425781,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 50.0,
+        "target_soc_end": 0.9,
+        "rationale": "Tariff window is WEEKEND (treated as non-PEAK), and current time (17:30) is not within the weekend PEAK discharge window. With SOC at 0.5% (essentially depleted), discharging is not viable; instead the appropriate guideline behavior is to prioritize charging during low-rate/off-peak conditions to reach 90\u201395% SOC before the next PEAK window.",
+        "confidence": 0.62,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Hard minimum SOC 10% (never discharge below)",
+          "No discharge given SOC ~0.5%",
+          "Charge ceiling 100% SOC",
+          "Respect max charge rate limits (50\u201380 kW per 15-min)",
+          "Reach 90\u201395% SOC by next PEAK start if OFF_PEAK conditions permit"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 566.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 13,
+      "datetime": "2025-05-31T17:00:00",
+      "forecast_kw": 90.95064544677734,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Aggressive Peak Shaving (Weekday PEAK)",
+        "shave_kw": 40.0,
+        "reserve_soc_pct": 20.0,
+        "target_soc_end": 20.0,
+        "rationale": "Given tariff_window=Weekend with day_type=weekday, the provided guideline that best matches the intent is weekday PEAK peak-shaving. Battery SOC=0.5% is far below the PEAK trigger condition (>40%), and discharge rules require maintaining minimum 20% SOC after discharge, so shaving capacity must be limited to avoid breaching reserve. With load_forecast ~90 kW (>50 kW), prioritize protecting SOC (no aggressive discharge) and set a conservative shave target while respecting the 20% reserve; this effectively results in minimal discharge near SOC floor rather than full aggressive utilization.",
+        "confidence": 0.42,
+        "md_limit_kw": 100.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_100kW_interval",
+          "no_discharge_before_2PM"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.525,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": -0.005,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 767.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 14,
+      "datetime": "2025-05-31T16:30:00",
+      "forecast_kw": 91.63145446777344,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "OffPeak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 25.0,
+        "target_soc_end": 90.0,
+        "rationale": "Tariff window is WEEKEND, which does not meet the PEAK/weekend-peak trigger for aggressive weekday peak shaving. Given current time (16:30) is outside the typical 22:00-06:00 off-peak valley-fill window, but the most appropriate available guideline-action (non-PEAK) is to avoid discharging and preserve SOC for future peak coverage. With SOC ~52.5% (>20% soft minimum), the safest choice is to not shave now and aim for a higher SOC target to enable later peak shaving; cycle count is essentially neutral and well below any conservative cycle-budget thresholds.",
+        "confidence": 0.42,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Never discharge below 10% SOC (emergency rule)",
+          "Respect soft minimum / reserve SOC (>=20% recommended)",
+          "Do not exceed 100% SOC when charging (if/when off-peak window begins)",
+          "No aggressive weekday PEAK shaving trigger met (tariff_window is not PEAK; forecast confidence is low 0.5)"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.525
+      },
+      "dispatch_result": {
+        "new_soc": 0.525,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 785.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 15,
+      "datetime": "2025-05-31T16:00:00",
+      "forecast_kw": 91.537841796875,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 20.0,
+        "target_soc_end": 0.85,
+        "rationale": "Given tariff_window=WEEKEND (not PEAK) and day_type is weekday, the Aggressive Peak Shaving (weekday PEAK) trigger conditions are not met. With SOC=0.525 (>20% reserve) and current time 16:00 (not within the typical 22:00\u201306:00 charging valley-fill window), the next-best guideline-consistent action is to avoid discharge and instead prepare for upcoming higher-rate periods by planning a controlled charge toward a moderate target SOC (below full to reduce uncertainty and cycle stress). Cycle count is slightly negative (no lifecycle penalty). Forecast confidence is low (0.5), further favoring conservative charging rather than aggressive discharge.",
+        "confidence": 0.46,
+        "md_limit_kw": 100.0,
+        "constraints": [
+          "Never discharge below 10% SOC (emergency hard limit)",
+          "Maintain >=20% SOC reserve after any discharge (general guideline)",
+          "Do not exceed 100% SOC",
+          "Avoid aggressive PEAK-shaving actions because tariff_window is not PEAK",
+          "Respect max interval discharge/charge limits from relevant strategy (no discharge target used here)"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.525
+      },
+      "dispatch_result": {
+        "new_soc": 0.525,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 590.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 16,
+      "datetime": "2025-05-31T15:30:00",
+      "forecast_kw": 91.1135482788086,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Aggressive Peak Shaving (Weekday PEAK)",
+        "shave_kw": 40.0,
+        "reserve_soc_pct": 20.0,
+        "target_soc_end": 0.2,
+        "rationale": "Although the tariff_window is labeled WEEKEND while day_type is weekday, the only applicable weekday-focused peak rule provided is Aggressive Peak Shaving. Current SOC is ~0.525 (>40%), cycle count delta is slightly negative (within normal range), and current time (15:30) is after the 14:00 no-discharge cutoff for this strategy. Load forecast is ~90 kW (>50 kW trigger), so deploy aggressive discharge sized to reduce the forecast peak by 30\u201350 kW while respecting the 20% minimum reserve SOC.",
+        "confidence": 0.34,
+        "md_limit_kw": 100.0,
+        "constraints": [
+          "Only discharge if tariff window effectively corresponds to PEAK behavior; otherwise consider IDLE to avoid unintended weekday PEAK actions",
+          "No discharge before 14:00 satisfied (current time 15:30)",
+          "Maintain minimum 20% SOC reserve after discharge",
+          "Max interval discharge: 100 kW per 15-minute interval (md_limit_kw)",
+          "Respect cycle budget thresholds (cycle_count >3000 would require halved discharge; not indicated here"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.525
+      },
+      "dispatch_result": {
+        "new_soc": 0.55,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": -0.005,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 687.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 17,
+      "datetime": "2025-05-31T15:00:00",
+      "forecast_kw": 90.47443389892578,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Aggressive Peak Shaving (Weekday PEAK)",
+        "shave_kw": 40.0,
+        "reserve_soc_pct": 20.0,
+        "target_soc_end": 0.2,
+        "rationale": "Weekend tariff window conflicts with the weekday PEAK peak-shaving trigger, but day_type is provided as weekday and current time (15:00) is after the Aggressive Peak Shaving cutoff (no discharge before 14:00). Load forecast is not clearly >50 kW from the provided (weekday) series and forecast confidence is low (0.5), so use a conservative end of the 30\u201350 kW target range (40 kW shave) and preserve the guideline-mandated soft reserve of 20% SOC. Battery SOC is 0.55 (>40%), so discharge is permissible without violating the 10% hard minimum. Cycle count delta is near zero, so no cycle-budget reduction is needed.",
+        "confidence": 0.42,
+        "md_limit_kw": 100.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "no_discharge_before_2PM (satisfied at 15:00)",
+          "max_100kW_interval (use <=100 kW for the 15-min interval)",
+          "never discharge below 10% SOC (hard minimum)",
+          "forecast_confidence_low => reduce shave target toward lower bound"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.55
+      },
+      "dispatch_result": {
+        "new_soc": 0.5750000000000001,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": -0.005,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 729.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 18,
+      "datetime": "2025-05-31T14:30:00",
+      "forecast_kw": 91.15486145019531,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 80.0,
+        "target_soc_end": 0.65,
+        "rationale": "Tariff window is WEEKEND (i.e., not the defined WEEKDAY PEAK case that triggers Aggressive Peak Shaving), and current time (14:30) is outside the typical OFF_PEAK overnight charging window. With SOC only ~57.5% (well above the 20% soft minimum) but without a PEAK trigger, the optimal guideline-aligned action is to preserve energy capacity and avoid unnecessary discharge/peak-shaving. Set a conservative reserve and aim for a modest SOC end target rather than aggressive cycling under low forecast confidence (0.5) and low forecast magnitude (~90 kW for only two intervals).",
+        "confidence": 0.41,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Respect soft minimum SOC (>=20%) and hard minimum SOC (>=10%)",
+          "Avoid discharging when PEAK trigger conditions are not met",
+          "Avoid unnecessary cycling given low forecast confidence (0.5)"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.575
+      },
+      "dispatch_result": {
+        "new_soc": 0.5750000000000001,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 713.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 19,
+      "datetime": "2025-05-31T14:00:00",
+      "forecast_kw": 91.11135864257812,
+      "forecast_confidence": 0.5,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 80.0,
+        "target_soc_end": 92.0,
+        "rationale": "Tariff window is WEEKEND, not PEAK. With day type marked weekday and a modest forecast load (~91 kW) with low confidence (0.5), peak-shaving discharge is not strongly justified. Given current SOC is ~57.5% (above hard minimum and below full-charge ceiling), the best next action is to prepare for upcoming higher-tariff periods by charging during the lowest-rate window. Aim for an end-of-horizon SOC in the 90\u201395% range to enable future PEAK shaving while maintaining lifecycle-friendly depth of discharge.",
+        "confidence": 0.66,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "Respect hard minimum SOC: never discharge below 10% (emergency rule)",
+          "If SOC < 85% and window is low-tariff, prefer charging up to 90\u201395% target",
+          "Do not exceed 100% SOC ceiling",
+          "Maintain conservative cycling given low forecast confidence; avoid unnecessary discharge"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.575
+      },
+      "dispatch_result": {
+        "new_soc": 0.5750000000000001,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 753.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    }
+  ],
+  "summary": {
+    "total_ticks": 40,
+    "within_limit_ticks": 17,
+    "total_savings_rm": 0.0,
+    "compliance_rate": 0.425,
+    "shave_percentage": 0.0,
+    "final_soc_percent": 57
+  },
+  "audit_report": "BESS SoC at 58%, sufficient for 0kW discharge"
+}

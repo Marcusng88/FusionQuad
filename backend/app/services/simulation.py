@@ -87,6 +87,13 @@ class SimulationService:
             start_time=start_time,
             end_time=end_time,
         )
+        if not records and (start_time is not None or end_time is not None):
+            import logging as _log
+            _log.getLogger(__name__).warning(
+                "simulation | no records in user-selected range [%s, %s] for %s — falling back to auto-window",
+                start_time, end_time, day_type,
+            )
+            record_offset, records = self._select_simulation_window(full_records)
         if not records:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

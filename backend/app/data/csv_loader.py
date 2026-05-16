@@ -45,7 +45,7 @@ class CSVLoader:
         df = df.dropna(how="all")
         if "kw_import" not in df.columns:
             raise ValueError("CSV missing required 'kw_import' column")
-        return df
+        return df.sort_values("datetime").reset_index(drop=True)
 
     def _load_old_format(self, file_path: Path) -> pd.DataFrame:
         """Load old format CSV with 'Date / End Time' column, skipping metadata rows."""
@@ -79,11 +79,11 @@ class CSVLoader:
         if df["datetime"].isna().all():
             df["datetime"] = pd.to_datetime(df[datetime_col], yearfirst=True, errors="coerce")
 
-        df = df.dropna(how="all")
+        df = df.dropna(subset=["datetime"])
         if "kw_import" not in df.columns:
             raise ValueError("CSV missing required 'kw_import' column")
 
-        return df
+        return df.sort_values("datetime").reset_index(drop=True)
 
     def extract_metadata(self, file_path: Path) -> ScenarioMetadata:
         """Extract scenario metadata from CSV file headers."""

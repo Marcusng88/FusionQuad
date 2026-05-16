@@ -72,7 +72,11 @@ def evaluate_delta(
         forecast_error_pct = 0.0
 
     rate = _get_central_rate("C2", tariff_window)
-    interval_savings_rm = shave_kw * (duration_min / 60) * rate
+    energy_savings_rm = shave_kw * (duration_min / 60) * rate
+    # MD charge billed on monthly peak at RM97.06/kW — amortize over 1440 intervals/month
+    _MD_RATE_RM_PER_KW = 97.06
+    md_shave_kw = max(0.0, min(shave_kw, baseline_load - md_limit_kw)) if baseline_load > md_limit_kw else 0.0
+    interval_savings_rm = energy_savings_rm + md_shave_kw * _MD_RATE_RM_PER_KW / 1440
 
     # Delta score: weighted combination of metrics
     # Higher shave = better, lower forecast error = better

@@ -13,10 +13,24 @@ from app.ml.forecast_model import ForecastModel
 
 logger = logging.getLogger(__name__)
 
+_MODEL_PATH = Path(__file__).parent.parent.parent / "models" / "forecast_weights.pt"
+_FORECAST_MODEL: ForecastModel | None = None
+
+
+def _get_model() -> ForecastModel:
+    global _FORECAST_MODEL
+    if _FORECAST_MODEL is None:
+        _FORECAST_MODEL = ForecastModel()
+        if _MODEL_PATH.exists():
+            _FORECAST_MODEL.load(_MODEL_PATH)
+        else:
+            logger.critical("forecast | weights not found at %s — predictions are random", _MODEL_PATH)
+    return _FORECAST_MODEL
+
 
 def forecast_node(state: AgentState) -> dict:
     """Generate rolling forecasts using only history available up to this tick."""
-    model_path = Path(__file__).parent.parent.parent / "models" / "forecast_weights.pt"
+    model = _get_model()
 
     forecasts: dict[str, list[float]] = {}
     confidences: dict[str, float] = {}
@@ -35,10 +49,6 @@ def forecast_node(state: AgentState) -> dict:
             forecasts[facility] = []
             confidences[facility] = 0.0
             continue
-
-        model = ForecastModel()
-        if model_path.exists():
-            model.load(model_path)
 
         try:
             history = _historical_window(df, current_index, model.config.seq_len)
@@ -109,6 +119,7 @@ def _predict_horizon(model: ForecastModel, history: pd.DataFrame, horizon: int) 
     seq = X[-1:].clone()
     scale = getattr(model, "_max_val", 0.0) - getattr(model, "_min_val", 0.0)
 
+    model.model.eval()
     predictions: list[float] = []
     for _ in range(horizon):
         with torch.no_grad():
