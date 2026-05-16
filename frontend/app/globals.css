@@ -140,3 +140,29 @@ a {
     linear-gradient(135deg, rgba(173, 198, 255, 0.05), transparent 45%),
     linear-gradient(315deg, rgba(78, 222, 163, 0.04), transparent 50%);
 }
+
+.panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 153, 184, 0.6) transparent;
+}
+
+.panel-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(138, 153, 184, 0.45);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(173, 198, 255, 0.6);
+  background-clip: padding-box;
+}

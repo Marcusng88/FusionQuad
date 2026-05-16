@@ -103,19 +103,26 @@ export default function LiveDashboardPage() {
 
   return (
     <div
-      className="flex flex-col -mx-4 sm:-mx-6 xl:-mx-8 -my-6 overflow-hidden"
+      className="flex flex-col gap-4 overflow-hidden px-4 py-4 sm:px-6 xl:px-8"
       style={{ height: "calc(100vh - var(--header-h))" }}
     >
       {/* ── TOP ROW: Left + Center + Right ── */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex flex-1 min-h-0 gap-4 overflow-hidden">
 
         {/* ── LEFT PANEL ── */}
         <div
-          className={`relative flex-shrink-0 hidden xl:block transition-[width] duration-300 ease-in-out ${leftOpen ? "xl:w-[300px]" : "xl:w-12"}`}
+          className={`relative flex-shrink-0 hidden xl:block transition-[width] duration-300 ease-in-out ${leftOpen ? "xl:w-[280px]" : "xl:w-14"}`}
         >
           {/* Inner clip — separates overflow from chevron button */}
-          <div className="h-full overflow-hidden border-r border-outline bg-surface-2/60">
-            <div className={`h-full overflow-y-auto ${leftOpen ? "w-[300px]" : "w-12"}`}>
+          <div className="h-full overflow-hidden rounded-3xl border border-outline bg-surface-2/80 panel-shadow">
+            <div className={`h-full ${leftOpen ? "w-[280px]" : "w-14"}`}>
+              <div className="sticky top-0 z-10 border-b border-outline bg-surface-2/90 px-4 py-3 backdrop-blur">
+                <p className="font-label text-[10px] text-muted">Controls</p>
+                <p className="font-display text-sm font-semibold text-foreground">
+                  Scenario Setup
+                </p>
+              </div>
+              <div className="h-[calc(100%-52px)] overflow-y-auto panel-scroll">
               {leftOpen ? (
                 <div className="space-y-5 p-5">
                   {/* Scenario selector */}
@@ -286,6 +293,7 @@ export default function LiveDashboardPage() {
                   />
                 </div>
               )}
+              </div>
             </div>
           </div>
 
@@ -301,7 +309,17 @@ export default function LiveDashboardPage() {
         </div>
 
         {/* ── CENTER ── */}
-        <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <main className="flex-1 min-w-0 flex flex-col overflow-hidden rounded-3xl border border-outline bg-surface-2/70 panel-shadow">
+          <div className="flex items-center gap-3 px-5 py-3 border-b border-outline bg-surface-2/90 backdrop-blur">
+            <p className="font-label text-[10px] text-muted">Overview</p>
+            <p className="font-display text-sm font-semibold text-foreground">Live Simulation</p>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="rounded-full border border-outline bg-surface px-2.5 py-1 text-[10px] text-muted">
+                {activeDay.label}
+              </span>
+            </div>
+          </div>
+
           {/* Mobile toolbar */}
           <div className="xl:hidden flex items-center gap-3 px-4 py-2.5 border-b border-outline bg-surface-2/60 flex-shrink-0">
             <button
@@ -322,10 +340,10 @@ export default function LiveDashboardPage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto panel-scroll">
             <div className="space-y-5 p-5 xl:p-6">
               {/* Day title + status row */}
-              <div className="panel-shadow panel-noise rounded-2xl border border-outline bg-surface-2 px-6 py-5">
+              <div className="panel-shadow panel-noise rounded-3xl border border-outline bg-surface-2 px-6 py-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <p className="font-label text-[10px] text-muted">Live simulation</p>
@@ -391,7 +409,7 @@ export default function LiveDashboardPage() {
               </div>
 
               {/* Main simulation chart */}
-              <div className="panel-shadow rounded-2xl border border-outline bg-surface-2 p-5">
+              <div className="panel-shadow rounded-3xl border border-outline bg-surface-2 p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
                     <p className="font-label text-[10px] text-primary">Simulation</p>
@@ -463,13 +481,18 @@ export default function LiveDashboardPage() {
 
         {/* ── RIGHT PANEL ── */}
         <div
-          className={`relative flex-shrink-0 hidden xl:block transition-[width] duration-300 ease-in-out ${rightOpen ? "xl:w-[320px]" : "xl:w-0"}`}
+          className={`relative flex-shrink-0 hidden xl:block transition-[width] duration-300 ease-in-out ${rightOpen ? "xl:w-[300px]" : "xl:w-0"}`}
         >
-          <div className="h-full overflow-hidden border-l border-outline bg-surface-2/60">
-            <div className="w-[320px] h-full overflow-y-auto">
-              <div className="space-y-5 p-5">
-                <p className="font-label text-[10px] text-muted mb-3">Live State</p>
-                <div className="space-y-3">
+          <div className="h-full overflow-hidden rounded-3xl border border-outline bg-surface-2/80 panel-shadow">
+            <div className="w-[300px] h-full">
+              <div className="sticky top-0 z-10 border-b border-outline bg-surface-2/90 px-4 py-3 backdrop-blur">
+                <p className="font-label text-[10px] text-muted">Live State</p>
+                <p className="font-display text-sm font-semibold text-foreground">
+                  Battery + Dispatch
+                </p>
+              </div>
+              <div className="h-[calc(100%-52px)] overflow-y-auto panel-scroll">
+                <div className="space-y-3 p-5">
                   <KpiCard
                     title="Battery SoC"
                     value={String(simulation.batterySocPercent)}
@@ -510,7 +533,7 @@ export default function LiveDashboardPage() {
 
       {/* ── BOTTOM DRAWER: Agent Trace ── */}
       <div
-        className="flex-shrink-0 border-t border-outline bg-surface-2/80 backdrop-blur overflow-hidden transition-[height] duration-300 ease-in-out"
+        className="flex-shrink-0 overflow-hidden rounded-3xl border border-outline bg-surface-2/80 backdrop-blur panel-shadow transition-[height] duration-300 ease-in-out"
         style={{ height: drawerOpen ? 260 : 40 }}
       >
         {/* Tab / header */}
@@ -536,7 +559,7 @@ export default function LiveDashboardPage() {
           <div
             ref={traceRef}
             onScroll={handleTraceScroll}
-            className="h-full overflow-x-auto overflow-y-hidden px-5 pt-2 pb-4 flex items-start gap-3"
+            className="h-full overflow-x-auto overflow-y-hidden px-5 pt-2 pb-4 flex items-start gap-3 panel-scroll"
           >
             {simulation.agentTrace.length > 0 ? (
               simulation.agentTrace.map((log, i) => (
