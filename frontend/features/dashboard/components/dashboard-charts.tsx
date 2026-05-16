@@ -261,9 +261,10 @@ function renderBars(values: number[], min: number, max: number, positive: string
 }
 
 function linePath(values: number[], min: number, max: number) {
+  if (values.length === 0) return "";
   return values
     .map((value, index) => {
-      const x = (index / (values.length - 1)) * 1000;
+      const x = values.length === 1 ? 500 : (index / (values.length - 1)) * 1000;
       const y = scaleValue(value, min, max);
 
       return `${index === 0 ? "M" : "L"} ${x} ${y}`;
@@ -273,6 +274,7 @@ function linePath(values: number[], min: number, max: number) {
 
 function areaPath(values: number[], min: number, max: number) {
   const line = linePath(values, min, max);
+  if (!line) return "";
   return `${line} L 1000 280 L 0 280 Z`;
 }
 

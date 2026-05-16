@@ -50,6 +50,7 @@ def _get_planner_agent() -> Any:
             system_prompt=_PLANNER_PROMPT,
             tools=[get_forecast_context_tool],
             backend=_build_planner_backend(),
+            response_format=OptimizationStrategy,
         )
     return _PLANNER_AGENT
 
@@ -124,9 +125,13 @@ def planner_node(state: AgentState) -> dict:
             {"messages": [{"role": "user", "content": prompt}]},
             config={"configurable": {"thread_id": "planner"}},
         )
-        messages = result.get("messages", []) if isinstance(result, dict) else []
-        last = messages[-1].content if messages else ""
-        strategy = _parse_strategy_payload(last) or _fallback_strategy(state)
+        structured = result.get("structured_response") if isinstance(result, dict) else None
+        if isinstance(structured, dict):
+            strategy = _parse_strategy_payload(structured) or _fallback_strategy(state)
+        else:
+            messages = result.get("messages", []) if isinstance(result, dict) else []
+            last = messages[-1].content if messages else ""
+            strategy = _parse_strategy_payload(last) or _fallback_strategy(state)
     except Exception:
         strategy = _fallback_strategy(state)
 

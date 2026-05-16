@@ -134,9 +134,9 @@ export function useSimulationController() {
     });
   }
 
-  async function handleDayTypeChange(dayType: SimulationDayType) {
+  function handleDayTypeChange(dayType: SimulationDayType) {
     setSelectedDayType(dayType);
-    await bootstrapSimulation(dayType, bessCapacityKwh, timeRange);
+    setTimeRange({ start: null, end: null });
   }
 
   async function handleTimeRangeChange(range: { start: string | null; end: string | null }) {
@@ -158,7 +158,7 @@ export function useSimulationController() {
   }
 
   async function runOptimization() {
-    await bootstrapSimulation();
+    await bootstrapSimulation(selectedDayType, bessCapacityKwh, timeRange);
   }
 
   function applySizingRecommendation() {

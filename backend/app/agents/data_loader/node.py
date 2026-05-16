@@ -53,8 +53,11 @@ def load_facility_data(day_type: str) -> dict[str, Any]:
     }
 
     datetime_col = df["datetime"]
-    available_start = datetime_col.min()
-    available_end = datetime_col.max()
+    available_start = datetime_col.min().to_pydatetime()
+    available_end = datetime_col.max().to_pydatetime()
+    df["datetime"] = df["datetime"].apply(
+        lambda x: x.to_pydatetime() if hasattr(x, "to_pydatetime") else x
+    )
 
     return {
         "data": df.to_dict(orient="records"),

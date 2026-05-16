@@ -132,8 +132,9 @@ def _build_controller_agent() -> Any:
         name="controller-agent",
         model=model,
         system_prompt=_CONTROLLER_PROMPT,
-        tools=[milp_optimizer, mock_inverter_dispatch],
+        tools=[milp_optimizer],
         middleware=[DispatchValidationMiddleware(max_retries=2)],
+        response_format=DispatchAction,
     )
 
 
@@ -193,19 +194,21 @@ def controller_node(state: AgentState) -> dict:
             {"messages": [{"role": "user", "content": prompt}]},
             config={"configurable": {"thread_id": "controller"}},
         )
+        structured = result.get("structured_response") if isinstance(result, dict) else None
+        if isinstance(structured, dict) and structured.get("action"):
+            forced_action = {
+                "action": structured.get("action", "hold"),
+                "discharge_kw": structured.get("discharge_kw"),
+                "charge_kw": structured.get("charge_kw"),
+                "duration_min": int(structured.get("duration_min") or 30),
+                "expected_soc_after": structured.get("expected_soc_after"),
+            }
         if isinstance(result, dict):
             response = result.get("messages", [])
             if response:
                 messages.append({"role": "assistant", "content": str(response[-1].content)})
     except Exception:
-        forced_action = forced_action or _local_milp_fallback(
-            forecast_values=forecast_values,
-            tariff_window=tariff_window,
-            battery_soc=battery_soc,
-            bess_capacity_kwh=bess_capacity_kwh,
-            md_limit_kw=md_limit_kw,
-            optimization_strategy=dict(optimization_strategy),
-        )
+        forced_action = forced_action or None
 
     if forced_action is None:
         forced_action = _local_milp_fallback(
@@ -303,13 +306,12 @@ OPTIMIZATION STRATEGY (from Planner):
 YOUR TASK:
 1. Call milp_optimizer with the state parameters above
 2. Extract the dispatch_action from the result
-3. Call mock_inverter_dispatch with the dispatch_action parameters
-4. Return dispatch_result with new_soc, temp_increase_c, cycle_count_increment
+3. Respond with the dispatch action fields (action, discharge_kw, charge_kw, duration_min, expected_soc_after)
 
 IMPORTANT:
-- If SOC < 20%, force action="hold" and skip milp_optimizer
-- Always call mock_inverter_dispatch after getting dispatch_action
-- Return the final dispatch_result
+- If SOC < 20%, respond with action="hold" and skip milp_optimizer
+- Do NOT call mock_inverter_dispatch — hardware simulation is handled externally
+- Respond ONLY with the structured dispatch action
 """
 
 

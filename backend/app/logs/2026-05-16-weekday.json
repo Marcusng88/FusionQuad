@@ -1,1543 +1,7 @@
 {
   "ticks": [
     {
-      "tick": 1,
-      "datetime": "2025-05-25T00:00:00",
-      "forecast_kw": 256.4797058105469,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.525,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1392.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 2,
-      "datetime": "2025-05-24T23:30:00",
-      "forecast_kw": 178.5946044921875,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.55,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1261.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 3,
-      "datetime": "2025-05-24T23:00:00",
-      "forecast_kw": 141.0552520751953,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.5750000000000001,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1233.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 4,
-      "datetime": "2025-05-24T22:30:00",
-      "forecast_kw": 127.71994018554688,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.6000000000000001,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1226.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 5,
-      "datetime": "2025-05-24T22:00:00",
-      "forecast_kw": 128.66453552246094,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.6250000000000001,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1355.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 6,
-      "datetime": "2025-05-24T21:30:00",
-      "forecast_kw": 137.0022430419922,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.6500000000000001,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1468.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 7,
-      "datetime": "2025-05-24T21:00:00",
-      "forecast_kw": 123.14936828613281,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.6750000000000002,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1493.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 8,
-      "datetime": "2025-05-24T20:30:00",
-      "forecast_kw": 123.61640930175781,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.7000000000000002,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1370.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 9,
-      "datetime": "2025-05-24T20:00:00",
-      "forecast_kw": 123.64747619628906,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.7250000000000002,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1179.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 10,
-      "datetime": "2025-05-24T19:30:00",
-      "forecast_kw": 129.20159912109375,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.7500000000000002,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1109.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 11,
-      "datetime": "2025-05-24T19:00:00",
-      "forecast_kw": 131.2799072265625,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.7750000000000002,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1165.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 12,
-      "datetime": "2025-05-24T18:30:00",
-      "forecast_kw": 128.49325561523438,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8000000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1307.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 13,
-      "datetime": "2025-05-24T18:00:00",
-      "forecast_kw": 130.35012817382812,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8250000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1437.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 14,
-      "datetime": "2025-05-24T17:30:00",
-      "forecast_kw": 128.85708618164062,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1498.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 15,
-      "datetime": "2025-05-24T17:00:00",
-      "forecast_kw": 126.79017639160156,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1263.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 16,
-      "datetime": "2025-05-24T16:30:00",
-      "forecast_kw": 138.13796997070312,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1093.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 17,
-      "datetime": "2025-05-24T16:00:00",
-      "forecast_kw": 173.777099609375,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1212.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 18,
-      "datetime": "2025-05-24T15:30:00",
-      "forecast_kw": 165.23446655273438,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1299.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 19,
-      "datetime": "2025-05-24T15:00:00",
-      "forecast_kw": 171.92849731445312,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1202.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 20,
-      "datetime": "2025-05-24T14:30:00",
-      "forecast_kw": 167.32525634765625,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1436.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 21,
-      "datetime": "2025-05-24T14:00:00",
-      "forecast_kw": 157.49099731445312,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1313.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 22,
-      "datetime": "2025-05-24T13:30:00",
-      "forecast_kw": 146.98104858398438,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1277.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 23,
-      "datetime": "2025-05-24T13:00:00",
-      "forecast_kw": 145.49449157714844,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1346.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 24,
-      "datetime": "2025-05-24T12:30:00",
-      "forecast_kw": 154.78854370117188,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1124.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 25,
-      "datetime": "2025-05-24T12:00:00",
-      "forecast_kw": 157.7829132080078,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1077.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 26,
-      "datetime": "2025-05-24T11:30:00",
-      "forecast_kw": 162.24444580078125,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1424.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 27,
-      "datetime": "2025-05-24T11:00:00",
-      "forecast_kw": 209.06787109375,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1534.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 28,
-      "datetime": "2025-05-24T10:30:00",
-      "forecast_kw": 276.3199768066406,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1362.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 29,
-      "datetime": "2025-05-24T10:00:00",
-      "forecast_kw": 233.67434692382812,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1088.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 30,
-      "datetime": "2025-05-24T09:30:00",
-      "forecast_kw": 229.64329528808594,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1078.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 31,
-      "datetime": "2025-05-24T09:00:00",
-      "forecast_kw": 238.25811767578125,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1184.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 32,
-      "datetime": "2025-05-24T08:30:00",
-      "forecast_kw": 226.62477111816406,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1516.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 33,
-      "datetime": "2025-05-24T08:00:00",
-      "forecast_kw": 219.55203247070312,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1437.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 34,
-      "datetime": "2025-05-24T07:30:00",
-      "forecast_kw": 212.6038055419922,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1209.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 35,
-      "datetime": "2025-05-24T07:00:00",
-      "forecast_kw": 191.3714141845703,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1030.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 36,
-      "datetime": "2025-05-24T06:30:00",
-      "forecast_kw": 204.6932373046875,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1029.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 37,
-      "datetime": "2025-05-24T06:00:00",
-      "forecast_kw": 178.67994689941406,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1012.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 38,
-      "datetime": "2025-05-24T05:30:00",
-      "forecast_kw": 143.56639099121094,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1041.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 39,
-      "datetime": "2025-05-24T05:00:00",
-      "forecast_kw": 150.8036346435547,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1331.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 40,
-      "datetime": "2025-05-24T04:30:00",
-      "forecast_kw": 146.20660400390625,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1140.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 41,
-      "datetime": "2025-05-24T04:00:00",
-      "forecast_kw": 159.772216796875,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1127.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 42,
-      "datetime": "2025-05-24T03:30:00",
-      "forecast_kw": 159.24732971191406,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1024.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 43,
-      "datetime": "2025-05-24T03:00:00",
-      "forecast_kw": 163.01730346679688,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8500000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 954.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 44,
-      "datetime": "2025-05-24T02:30:00",
-      "forecast_kw": 169.1452178955078,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.8750000000000003,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1040.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 45,
-      "datetime": "2025-05-24T02:00:00",
-      "forecast_kw": 166.52996826171875,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.9000000000000004,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1244.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 46,
-      "datetime": "2025-05-24T01:30:00",
-      "forecast_kw": 173.4630889892578,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.9250000000000004,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1285.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 47,
-      "datetime": "2025-05-24T01:00:00",
-      "forecast_kw": 173.7056884765625,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.95,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1413.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 48,
-      "datetime": "2025-05-24T00:30:00",
-      "forecast_kw": 176.18971252441406,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "targets": {
-          "shave_kw": 50.0,
-          "reserve_soc_pct": 0.3
-        },
-        "constraints": [
-          "max_100kW_interval"
-        ],
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "md_limit_kw": 800.0,
-        "confidence": 0.8
-      },
-      "dispatch_action": null,
-      "dispatch_result": {
-        "new_soc": 0.95,
-        "temp_increase_c": 0.1,
-        "cycle_count_increment": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1376.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 1,
+      "tick": 0,
       "datetime": "2025-05-25T00:00:00",
       "forecast_kw": 256.479736328125,
       "forecast_confidence": 0.8,
@@ -1575,117 +39,6 @@
     },
     {
       "tick": 1,
-      "datetime": "2025-05-25T00:00:00",
-      "forecast_kw": 256.479736328125,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "shave_kw": 50.0,
-        "reserve_soc_pct": 0.3,
-        "target_soc_end": 0.5,
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "confidence": 0.8,
-        "md_limit_kw": 800.0,
-        "constraints": [
-          "max_100kW_interval"
-        ]
-      },
-      "dispatch_action": {
-        "action": "charge",
-        "discharge_kw": null,
-        "charge_kw": 50.0,
-        "duration_min": 30,
-        "expected_soc_after": 0.5
-      },
-      "dispatch_result": {
-        "new_soc": 0.525,
-        "temp_increase_c": 0.1,
-        "cycle_count_delta": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1392.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 1,
-      "datetime": "2025-05-25T00:00:00",
-      "forecast_kw": 256.479736328125,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "shave_kw": 50.0,
-        "reserve_soc_pct": 0.3,
-        "target_soc_end": 0.5,
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "confidence": 0.8,
-        "md_limit_kw": 800.0,
-        "constraints": [
-          "max_100kW_interval"
-        ]
-      },
-      "dispatch_action": {
-        "action": "charge",
-        "discharge_kw": null,
-        "charge_kw": 50.0,
-        "duration_min": 30,
-        "expected_soc_after": 0.5
-      },
-      "dispatch_result": {
-        "new_soc": 0.525,
-        "temp_increase_c": 0.1,
-        "cycle_count_delta": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1392.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 1,
-      "datetime": "2025-05-25T00:00:00",
-      "forecast_kw": 256.479736328125,
-      "forecast_confidence": 0.8,
-      "tariff_window": "WEEKEND",
-      "optimization_strategy": {
-        "strategy_name": "conservative_shaving",
-        "shave_kw": 50.0,
-        "reserve_soc_pct": 0.3,
-        "target_soc_end": 0.5,
-        "rationale": "Fallback strategy used due to missing or invalid planner output.",
-        "confidence": 0.8,
-        "md_limit_kw": 800.0,
-        "constraints": [
-          "max_100kW_interval"
-        ]
-      },
-      "dispatch_action": {
-        "action": "charge",
-        "discharge_kw": null,
-        "charge_kw": 50.0,
-        "duration_min": 30,
-        "expected_soc_after": 0.5
-      },
-      "dispatch_result": {
-        "new_soc": 0.525,
-        "temp_increase_c": 0.1,
-        "cycle_count_delta": -0.005,
-        "action_taken": "charge",
-        "actual_discharge_kw": 50.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 1392.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 2,
       "datetime": "2025-05-24T23:30:00",
       "forecast_kw": 178.59463500976562,
       "forecast_confidence": 0.8,
@@ -1722,7 +75,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 3,
+      "tick": 2,
       "datetime": "2025-05-24T23:00:00",
       "forecast_kw": 141.05526733398438,
       "forecast_confidence": 0.8,
@@ -1759,7 +112,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 4,
+      "tick": 3,
       "datetime": "2025-05-24T22:30:00",
       "forecast_kw": 127.71993255615234,
       "forecast_confidence": 0.8,
@@ -1796,7 +149,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 5,
+      "tick": 4,
       "datetime": "2025-05-24T22:00:00",
       "forecast_kw": 128.66452026367188,
       "forecast_confidence": 0.8,
@@ -1833,7 +186,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 6,
+      "tick": 5,
       "datetime": "2025-05-24T21:30:00",
       "forecast_kw": 137.00222778320312,
       "forecast_confidence": 0.8,
@@ -1870,7 +223,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 7,
+      "tick": 6,
       "datetime": "2025-05-24T21:00:00",
       "forecast_kw": 123.14938354492188,
       "forecast_confidence": 0.8,
@@ -1907,7 +260,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 8,
+      "tick": 7,
       "datetime": "2025-05-24T20:30:00",
       "forecast_kw": 123.61639404296875,
       "forecast_confidence": 0.8,
@@ -1944,7 +297,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 9,
+      "tick": 8,
       "datetime": "2025-05-24T20:00:00",
       "forecast_kw": 123.6474609375,
       "forecast_confidence": 0.8,
@@ -1981,7 +334,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 10,
+      "tick": 9,
       "datetime": "2025-05-24T19:30:00",
       "forecast_kw": 129.2016143798828,
       "forecast_confidence": 0.8,
@@ -2018,7 +371,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 11,
+      "tick": 10,
       "datetime": "2025-05-24T19:00:00",
       "forecast_kw": 131.27989196777344,
       "forecast_confidence": 0.8,
@@ -2055,7 +408,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 12,
+      "tick": 11,
       "datetime": "2025-05-24T18:30:00",
       "forecast_kw": 128.4932403564453,
       "forecast_confidence": 0.8,
@@ -2092,7 +445,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 13,
+      "tick": 12,
       "datetime": "2025-05-24T18:00:00",
       "forecast_kw": 130.35012817382812,
       "forecast_confidence": 0.8,
@@ -2129,7 +482,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 14,
+      "tick": 13,
       "datetime": "2025-05-24T17:30:00",
       "forecast_kw": 128.85708618164062,
       "forecast_confidence": 0.8,
@@ -2166,7 +519,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 15,
+      "tick": 14,
       "datetime": "2025-05-24T17:00:00",
       "forecast_kw": 126.79017639160156,
       "forecast_confidence": 0.8,
@@ -2203,7 +556,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 16,
+      "tick": 15,
       "datetime": "2025-05-24T16:30:00",
       "forecast_kw": 138.13796997070312,
       "forecast_confidence": 0.8,
@@ -2240,7 +593,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 17,
+      "tick": 16,
       "datetime": "2025-05-24T16:00:00",
       "forecast_kw": 173.77708435058594,
       "forecast_confidence": 0.8,
@@ -2277,7 +630,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 18,
+      "tick": 17,
       "datetime": "2025-05-24T15:30:00",
       "forecast_kw": 165.23446655273438,
       "forecast_confidence": 0.8,
@@ -2314,7 +667,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 19,
+      "tick": 18,
       "datetime": "2025-05-24T15:00:00",
       "forecast_kw": 171.92852783203125,
       "forecast_confidence": 0.8,
@@ -2351,7 +704,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 20,
+      "tick": 19,
       "datetime": "2025-05-24T14:30:00",
       "forecast_kw": 167.3252716064453,
       "forecast_confidence": 0.8,
@@ -2388,7 +741,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 21,
+      "tick": 20,
       "datetime": "2025-05-24T14:00:00",
       "forecast_kw": 157.49099731445312,
       "forecast_confidence": 0.8,
@@ -2425,7 +778,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 22,
+      "tick": 21,
       "datetime": "2025-05-24T13:30:00",
       "forecast_kw": 146.98104858398438,
       "forecast_confidence": 0.8,
@@ -2462,7 +815,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 23,
+      "tick": 22,
       "datetime": "2025-05-24T13:00:00",
       "forecast_kw": 145.49447631835938,
       "forecast_confidence": 0.8,
@@ -2499,7 +852,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 24,
+      "tick": 23,
       "datetime": "2025-05-24T12:30:00",
       "forecast_kw": 154.78855895996094,
       "forecast_confidence": 0.8,
@@ -2536,7 +889,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 25,
+      "tick": 24,
       "datetime": "2025-05-24T12:00:00",
       "forecast_kw": 157.78292846679688,
       "forecast_confidence": 0.8,
@@ -2573,7 +926,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 26,
+      "tick": 25,
       "datetime": "2025-05-24T11:30:00",
       "forecast_kw": 162.24444580078125,
       "forecast_confidence": 0.8,
@@ -2610,7 +963,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 27,
+      "tick": 26,
       "datetime": "2025-05-24T11:00:00",
       "forecast_kw": 209.06787109375,
       "forecast_confidence": 0.8,
@@ -2647,7 +1000,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 28,
+      "tick": 27,
       "datetime": "2025-05-24T10:30:00",
       "forecast_kw": 276.3199768066406,
       "forecast_confidence": 0.8,
@@ -2684,7 +1037,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 29,
+      "tick": 28,
       "datetime": "2025-05-24T10:00:00",
       "forecast_kw": 233.6743621826172,
       "forecast_confidence": 0.8,
@@ -2721,7 +1074,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 30,
+      "tick": 29,
       "datetime": "2025-05-24T09:30:00",
       "forecast_kw": 229.643310546875,
       "forecast_confidence": 0.8,
@@ -2758,7 +1111,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 31,
+      "tick": 30,
       "datetime": "2025-05-24T09:00:00",
       "forecast_kw": 238.25811767578125,
       "forecast_confidence": 0.8,
@@ -2795,7 +1148,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 32,
+      "tick": 31,
       "datetime": "2025-05-24T08:30:00",
       "forecast_kw": 226.624755859375,
       "forecast_confidence": 0.8,
@@ -2832,7 +1185,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 33,
+      "tick": 32,
       "datetime": "2025-05-24T08:00:00",
       "forecast_kw": 219.55203247070312,
       "forecast_confidence": 0.8,
@@ -2869,7 +1222,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 34,
+      "tick": 33,
       "datetime": "2025-05-24T07:30:00",
       "forecast_kw": 212.60382080078125,
       "forecast_confidence": 0.8,
@@ -2906,7 +1259,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 35,
+      "tick": 34,
       "datetime": "2025-05-24T07:00:00",
       "forecast_kw": 191.3714141845703,
       "forecast_confidence": 0.8,
@@ -2943,7 +1296,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 36,
+      "tick": 35,
       "datetime": "2025-05-24T06:30:00",
       "forecast_kw": 204.69325256347656,
       "forecast_confidence": 0.8,
@@ -2980,7 +1333,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 37,
+      "tick": 36,
       "datetime": "2025-05-24T06:00:00",
       "forecast_kw": 178.67999267578125,
       "forecast_confidence": 0.8,
@@ -3017,7 +1370,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 38,
+      "tick": 37,
       "datetime": "2025-05-24T05:30:00",
       "forecast_kw": 143.56640625,
       "forecast_confidence": 0.8,
@@ -3054,7 +1407,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 39,
+      "tick": 38,
       "datetime": "2025-05-24T05:00:00",
       "forecast_kw": 150.80361938476562,
       "forecast_confidence": 0.8,
@@ -3091,7 +1444,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 40,
+      "tick": 39,
       "datetime": "2025-05-24T04:30:00",
       "forecast_kw": 146.20660400390625,
       "forecast_confidence": 0.8,
@@ -3128,7 +1481,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 41,
+      "tick": 40,
       "datetime": "2025-05-24T04:00:00",
       "forecast_kw": 159.77223205566406,
       "forecast_confidence": 0.8,
@@ -3165,7 +1518,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 42,
+      "tick": 41,
       "datetime": "2025-05-24T03:30:00",
       "forecast_kw": 159.24734497070312,
       "forecast_confidence": 0.8,
@@ -3202,7 +1555,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 43,
+      "tick": 42,
       "datetime": "2025-05-24T03:00:00",
       "forecast_kw": 163.01730346679688,
       "forecast_confidence": 0.8,
@@ -3239,7 +1592,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 44,
+      "tick": 43,
       "datetime": "2025-05-24T02:30:00",
       "forecast_kw": 169.1452178955078,
       "forecast_confidence": 0.8,
@@ -3276,7 +1629,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 45,
+      "tick": 44,
       "datetime": "2025-05-24T02:00:00",
       "forecast_kw": 166.52996826171875,
       "forecast_confidence": 0.8,
@@ -3313,7 +1666,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 46,
+      "tick": 45,
       "datetime": "2025-05-24T01:30:00",
       "forecast_kw": 173.46307373046875,
       "forecast_confidence": 0.8,
@@ -3350,7 +1703,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 47,
+      "tick": 46,
       "datetime": "2025-05-24T01:00:00",
       "forecast_kw": 173.7056884765625,
       "forecast_confidence": 0.8,
@@ -3387,7 +1740,7 @@
       "savings_rm": 0.0
     },
     {
-      "tick": 48,
+      "tick": 47,
       "datetime": "2025-05-24T00:30:00",
       "forecast_kw": 176.18971252441406,
       "forecast_confidence": 0.8,
