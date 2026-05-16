@@ -1,4 +1,7 @@
+import json
+
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import StreamingResponse
 
 from app.schemas.simulation import (
     SimulationSessionRequest,
@@ -50,3 +53,21 @@ async def get_simulation_state(
     service: SimulationService = Depends(get_simulation_service),
 ) -> SimulationStateResponse:
     return await service.get_state(session_id)
+
+
+@router.get("/stream/{session_id}", summary="Stream full simulation run via SSE")
+async def stream_simulation(
+    session_id: str,
+    service: SimulationService = Depends(get_simulation_service),
+) -> StreamingResponse:
+    async def event_generator():
+        async for chunk in service.run_stream(session_id):
+            event = chunk["event"]
+            data = json.dumps(chunk["data"], default=str)
+            yield f"event: {event}\ndata: {data}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

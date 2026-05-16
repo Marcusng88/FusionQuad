@@ -3,6 +3,7 @@
 import {
   startTransition,
   useCallback,
+  useRef,
   useState,
 } from "react";
 
@@ -12,8 +13,8 @@ import {
   mergeSimulationSnapshot,
 } from "../lib/live-simulation";
 import {
-  runSimulation,
   startSimulation,
+  subscribeSimulationStream,
 } from "../lib/simulation-api";
 import type {
   SimulationApiState,
@@ -41,6 +42,8 @@ export function useSimulationController() {
   );
   const [isBusy, setIsBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeAgentNode, setActiveAgentNode] = useState<string | null>(null);
+  const streamCleanupRef = useRef<(() => void) | null>(null);
 
   const dayOptions = resolveDayOptions(simulation.scenarios);
 
@@ -78,6 +81,10 @@ export function useSimulationController() {
     capacityKwh = bessCapacityKwh,
     range?: { start: string | null; end: string | null },
   ) {
+    // Cancel any in-flight stream before starting a new one
+    streamCleanupRef.current?.();
+    streamCleanupRef.current = null;
+
     const started = await applySnapshot(
       () =>
         startSimulation({
@@ -95,13 +102,36 @@ export function useSimulationController() {
       return null;
     }
 
-    const result = await applySnapshot(
-      () => runSimulation(started.session_id),
-      false,
-      dayType,
-    );
+    setIsBusy(true);
+    setErrorMessage(null);
 
-    return result ?? started;
+    return new Promise<SimulationApiState | null>((resolve) => {
+      const cleanup = subscribeSimulationStream(
+        started.session_id,
+        (node) => {
+          setActiveAgentNode(node);
+        },
+        (snapshot) => {
+          startTransition(() => {
+            setSimulation((current) => mergeSimulationSnapshot(current, snapshot));
+          });
+        },
+        (message) => {
+          setErrorMessage(message);
+          setActiveAgentNode(null);
+          setIsBusy(false);
+          streamCleanupRef.current = null;
+          resolve(null);
+        },
+        () => {
+          setActiveAgentNode(null);
+          setIsBusy(false);
+          streamCleanupRef.current = null;
+          resolve(started);
+        },
+      );
+      streamCleanupRef.current = cleanup;
+    });
   }
 
   async function handleDayTypeChange(dayType: SimulationDayType) {
@@ -147,6 +177,7 @@ export function useSimulationController() {
     simulation,
     isBusy,
     errorMessage,
+    activeAgentNode,
     applySizingRecommendation,
     handleDayTypeChange,
     handleTimeRangeChange,

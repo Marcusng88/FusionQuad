@@ -83,3 +83,44 @@ export function getSimulationState(sessionId: string, baseUrl?: string) {
     baseUrl,
   );
 }
+
+export function subscribeSimulationStream(
+  sessionId: string,
+  onAgentUpdate: (node: string, state: unknown) => void,
+  onStepComplete: (snapshot: SimulationApiState) => void,
+  onError: (message: string) => void,
+  onDone: () => void,
+  baseUrl?: string,
+): () => void {
+  const url = `${resolveBaseUrl(baseUrl)}/api/v1/simulation/stream/${sessionId}`;
+  const es = new EventSource(url);
+
+  es.addEventListener("agent_update", (e: MessageEvent) => {
+    const parsed = JSON.parse(e.data) as { node: string; state: unknown };
+    onAgentUpdate(parsed.node, parsed.state);
+  });
+
+  es.addEventListener("step_complete", (e: MessageEvent) => {
+    onStepComplete(JSON.parse(e.data) as SimulationApiState);
+  });
+
+  es.addEventListener("simulation_done", () => {
+    es.close();
+    onDone();
+  });
+
+  es.addEventListener("error", (e: Event) => {
+    if (e instanceof MessageEvent) {
+      const parsed = JSON.parse(e.data) as { message: string };
+      onError(parsed.message);
+    }
+    es.close();
+  });
+
+  es.onerror = () => {
+    es.close();
+    onError("Stream connection lost.");
+  };
+
+  return () => es.close();
+}

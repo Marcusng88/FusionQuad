@@ -4,20 +4,21 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from math import ceil
 from typing import Any
 from uuid import uuid4
 
 from fastapi import HTTPException, status
 
 from app.agents.data_loader.node import DEFAULT_MD_LIMIT_KW, data_loader_node
-from app.agents.state import AgentState, BatteryState
+from app.agents.state import BatteryState
 from app.agents.workflow import create_workflow
 from app.schemas.simulation import (
     AgentTraceEntry,
     SimulationStateResponse,
     SizingRecommendation,
 )
+from app.services.sizing_advisor import SizingAdvisor
+from app.services.tick_logger import TickLogger
 
 
 SIMULATION_WINDOW_INTERVALS = 48
@@ -57,6 +58,8 @@ class SimulationService:
     def __init__(self) -> None:
         self._sessions: dict[str, SimulationSession] = {}
         self._workflow = create_workflow()
+        self._sizing_advisor = SizingAdvisor()
+        self._tick_logger = TickLogger()
 
     async def start(
         self,
@@ -90,10 +93,11 @@ class SimulationService:
                 detail=f"Unable to derive a simulation window for {day_type}.",
             )
 
-        sizing_recommendation = self._build_sizing_recommendation(
+        sizing_recommendation = self._sizing_advisor.compute(
             full_records=full_records,
             metadata=metadata,
             md_limit_kw=DEFAULT_MD_LIMIT_KW,
+            md_rate=MD_RATE,
         )
 
         session_id = str(uuid4())
@@ -182,11 +186,24 @@ class SimulationService:
             session.state["current_interval"] = session.current_interval
             session.state["current_record_index"] = absolute_index
 
-            self._append_tick_log(session, result, current_time)
+            if session.log_path is not None:
+                self._tick_logger.append_tick(
+                    session.log_path,
+                    session.current_interval - 1,
+                    result,
+                    current_time,
+                    float(result.get("md_limit_kw", 800.0)),
+                )
 
             if session.current_interval >= len(session.records):
                 session.status = "completed"
-                self._finalize_log(session)
+                if session.log_path is not None:
+                    self._tick_logger.finalize(
+                        session.log_path,
+                        session.state,
+                        session.available_start,
+                        session.day_type,
+                    )
 
             return self._build_snapshot(session)
 
@@ -195,6 +212,94 @@ class SimulationService:
             snapshot = await self.step(session_id)
             if snapshot.status == "completed":
                 return snapshot
+
+    async def run_stream(self, session_id: str):
+        """Async generator yielding SSE-ready dicts for a full simulation run."""
+        _SKIP_NODES = {"data_loader"}
+        session = self._get_session(session_id)
+
+        try:
+            while True:
+                if session.current_interval >= len(session.records):
+                    session.status = "completed"
+                    yield {"event": "simulation_done", "data": {"status": "completed"}}
+                    return
+
+                async with session.lock:
+                    record = session.records[session.current_interval]
+                    current_time = _coerce_datetime(record.get("datetime"))
+                    baseline_load = float(record.get("kw_import", 0.0) or 0.0)
+                    absolute_index = session.record_offset + session.current_interval
+                    is_last_tick = session.current_interval + 1 >= len(session.records)
+
+                    state = {
+                        **session.state,
+                        "current_interval": session.current_interval,
+                        "current_record_index": absolute_index,
+                        "current_time": current_time,
+                        "baseline_load": baseline_load,
+                        "actual_load": baseline_load,
+                        "forecast_window": min(
+                            FORECAST_WINDOW_INTERVALS,
+                            max(len(session.records) - session.current_interval, 1),
+                        ),
+                        "is_end_of_day": is_last_tick,
+                    }
+
+                    final_state: dict | None = None
+
+                    async for chunk in self._workflow.astream(
+                        state,
+                        stream_mode=["updates", "values"],
+                        version="v2",
+                        config={"configurable": {"thread_id": session.session_id}},
+                    ):
+                        if chunk["type"] == "updates":
+                            for node_name, node_state in chunk["data"].items():
+                                if node_name not in _SKIP_NODES:
+                                    yield {
+                                        "event": "agent_update",
+                                        "data": {"node": node_name, "state": node_state},
+                                    }
+                        elif chunk["type"] == "values":
+                            final_state = chunk["data"]
+
+                    if final_state is None:
+                        raise RuntimeError("astream ended without values chunk")
+
+                    agent_trace = list(session.state.get("agent_trace", []))
+                    agent_trace.extend(_build_agent_trace_entries(final_state))
+                    final_state["agent_trace"] = agent_trace
+
+                    session.state = final_state
+                    session.current_interval += 1
+                    session.state["current_interval"] = session.current_interval
+                    session.state["current_record_index"] = absolute_index
+
+                    if session.log_path is not None:
+                        self._tick_logger.append_tick(
+                            session.log_path,
+                            session.current_interval - 1,
+                            final_state,
+                            current_time,
+                            float(final_state.get("md_limit_kw", 800.0)),
+                        )
+
+                    if session.current_interval >= len(session.records):
+                        session.status = "completed"
+                        if session.log_path is not None:
+                            self._tick_logger.finalize(
+                                session.log_path,
+                                session.state,
+                                session.available_start,
+                                session.day_type,
+                            )
+
+                    snapshot = self._build_snapshot(session)
+                    yield {"event": "step_complete", "data": snapshot.model_dump(mode="json")}
+
+        except Exception as exc:
+            yield {"event": "error", "data": {"message": str(exc)}}
 
     async def get_state(self, session_id: str) -> SimulationStateResponse:
         return self._build_snapshot(self._get_session(session_id))
@@ -250,138 +355,6 @@ class SimulationService:
             selected_end_time=session.selected_end_time,
             scenarios=SCENARIO_META,
         )
-
-    # ------------------------------------------------------------------
-    # Execution Logging
-    # ------------------------------------------------------------------
-
-    def _append_tick_log(self, session: SimulationSession, result: dict, current_time: datetime | None) -> None:
-        if session.log_path is None:
-            return
-        import json
-        session_dir = session.log_path.parent
-        session_dir.mkdir(parents=True, exist_ok=True)
-
-        forecast = result.get("forecast") or {}
-        forecast_conf = forecast.get("confidence") or {}
-        first_conf = float(next(iter(forecast_conf.values()), 0.0)) if forecast_conf else 0.0
-
-        tick_data = {
-            "tick": session.current_interval,
-            "datetime": (current_time or datetime.now()).strftime("%Y-%m-%dT%H:%M:%S") if current_time else None,
-            "forecast_kw": _coerce_optional_float(result.get("forecast_kw")),
-            "forecast_confidence": first_conf,
-            "tariff_window": (result.get("tariff") or {}).get("window"),
-            "optimization_strategy": result.get("optimization_strategy"),
-            "dispatch_action": result.get("dispatch_action"),
-            "dispatch_result": result.get("dispatch_result"),
-            "actual_load_kw": _coerce_optional_float(result.get("actual_load")),
-            "within_limit": bool(
-                _coerce_optional_float(result.get("actual_load")) is not None
-                and _coerce_optional_float(result.get("actual_load")) <= session.state.get("md_limit_kw", 800.0)
-            ),
-            "savings_rm": _coerce_optional_float(
-                (result.get("auditor_result") or {}).get("delta_eval", {}).get("interval_savings_rm")
-            ),
-        }
-
-        if session.log_path.exists():
-            with open(session.log_path) as f:
-                log = json.load(f)
-        else:
-            log = {"ticks": [], "summary": {}}
-
-        log["ticks"].append(tick_data)
-        with open(session.log_path, "w") as f:
-            json.dump(log, f, indent=2)
-
-    def _finalize_log(self, session: SimulationSession) -> None:
-        if session.log_path is None:
-            return
-        import json
-        if not session.log_path.exists():
-            return
-        with open(session.log_path) as f:
-            log = json.load(f)
-
-        state = session.state
-        battery = state.get("battery") or {}
-        within_limit = int(state.get("within_limit_ticks", 0))
-        total = int(state.get("total_intervals", 0)) or len(log["ticks"])
-        decision_log = state.get("decision_log", [])
-        last_auditor = decision_log[-1] if decision_log else {}
-
-        log["summary"] = {
-            "total_ticks": total,
-            "within_limit_ticks": within_limit,
-            "total_savings_rm": float(state.get("total_savings_rm", 0.0)),
-            "compliance_rate": round(within_limit / total, 4) if total > 0 else 0.0,
-            "shave_percentage": float(state.get("shave_percentage", 0.0)),
-            "final_soc_percent": int((float(battery.get("soc", 0.5)) or 0.5) * 100),
-        }
-
-        date_str = (session.available_start or datetime.now()).strftime("%Y-%m-%d")
-        experience_path = Path(__file__).parent.parent / "experience" / f"{date_str}-{session.day_type}.md"
-        if experience_path.exists():
-            with open(experience_path) as f:
-                log["audit_report"] = f.read()
-        else:
-            log["audit_report"] = last_auditor.get("reason", "") or "No experience report available."
-
-        with open(session.log_path, "w") as f:
-            json.dump(log, f, indent=2)
-
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _build_sizing_recommendation(
-        *,
-        full_records: list[dict[str, Any]],
-        metadata: dict[str, Any],
-        md_limit_kw: float,
-    ) -> dict[str, Any]:
-        loads = [float(item.get("kw_import", 0.0) or 0.0) for item in full_records]
-        max_breach = max((max(load - md_limit_kw, 0.0) for load in loads), default=0.0)
-
-        longest_energy_kwh = 0.0
-        current_energy_kwh = 0.0
-        for load in loads:
-            breach = max(load - md_limit_kw, 0.0)
-            if breach > 0:
-                current_energy_kwh += breach * 0.5
-                longest_energy_kwh = max(longest_energy_kwh, current_energy_kwh)
-            else:
-                current_energy_kwh = 0.0
-
-        raw_bess_kwh = max(300.0, longest_energy_kwh * 1.15)
-        recommended_bess = float(min(2000, max(300, ceil(raw_bess_kwh / 100) * 100)))
-
-        solar_installed = float(metadata.get("solar_installed_kwp") or 0.0)
-        daytime_loads = loads[20:32] if len(loads) >= 32 else loads
-        daytime_target = max(daytime_loads, default=0.0) * 0.35
-        recommended_solar = solar_installed if solar_installed > 0 else float(ceil(daytime_target / 50) * 50 if daytime_target > 0 else 0.0)
-
-        estimated_peak_reduction = round(min(max_breach, recommended_bess / 5), 1)
-        estimated_monthly_savings = round(estimated_peak_reduction * MD_RATE, 2)
-
-        if solar_installed > 0:
-            rationale = (
-                f"Existing solar of {solar_installed:.0f} kWp already offsets part of the daytime load; "
-                f"the recommended {recommended_bess:.0f} kWh BESS is sized around the longest MD breach window."
-            )
-        else:
-            rationale = (
-                f"Recommend {recommended_solar:.0f} kWp solar to offset daytime import and "
-                f"{recommended_bess:.0f} kWh BESS to cover the longest breach streak above {md_limit_kw:.0f} kW."
-            )
-
-        return {
-            "recommended_bess_capacity_kwh": recommended_bess,
-            "recommended_solar_capacity_kwp": recommended_solar,
-            "estimated_peak_reduction_kw": estimated_peak_reduction,
-            "estimated_monthly_savings_rm": estimated_monthly_savings,
-            "rationale": rationale,
-        }
 
     @staticmethod
     def _select_simulation_window(

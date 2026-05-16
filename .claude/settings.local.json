@@ -38,7 +38,13 @@
       "Skill(frontend-design)",
       "Skill(frontend-design:*)",
       "Skill(code-reviewer)",
-      "Skill(code-reviewer:*)"
+      "Skill(code-reviewer:*)",
+      "Skill(grill-me)",
+      "Skill(grill-me:*)",
+      "mcp__docs-langchain__search_docs_by_lang_chain",
+      "mcp__docs-langchain__query_docs_filesystem_docs_by_lang_chain",
+      "Bash(uv pip *)",
+      "Bash(python -c \"from app.services.sizing_advisor import SizingAdvisor; print\\('ok'\\)\")"
     ]
   }
 }
