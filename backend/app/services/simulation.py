@@ -14,10 +14,9 @@ from app.agents.state import BatteryState
 from app.agents.workflow import create_workflow
 from app.schemas.simulation import (
     AgentTraceEntry,
+    ScenarioMetadataResponse,
     SimulationStateResponse,
-    SizingRecommendation,
 )
-from app.services.sizing_advisor import SizingAdvisor
 from app.services.tick_logger import TickLogger
 
 
@@ -59,7 +58,6 @@ class SimulationService:
     def __init__(self) -> None:
         self._sessions: dict[str, SimulationSession] = {}
         self._workflow = create_workflow()
-        self._sizing_advisor = SizingAdvisor()
         self._tick_logger = TickLogger()
 
     async def start(
@@ -95,13 +93,6 @@ class SimulationService:
                 detail=f"Unable to derive a simulation window for {day_type}.",
             )
 
-        sizing_recommendation = self._sizing_advisor.compute(
-            full_records=full_records,
-            metadata=metadata,
-            md_limit_kw=DEFAULT_MD_LIMIT_KW,
-            md_rate=MD_RATE,
-        )
-
         session_id = str(uuid4())
         state = {
             **loaded,
@@ -127,7 +118,6 @@ class SimulationService:
             "actual_load": None,
             "tariff": None,
             "messages": [],
-            "sizing_recommendation": sizing_recommendation,
         }
 
         date_str = (start_time or datetime.now()).strftime("%Y-%m-%d")
@@ -322,7 +312,6 @@ class SimulationService:
 
     def _build_snapshot(self, session: SimulationSession) -> SimulationStateResponse:
         state = session.state
-        sizing = state.get("sizing_recommendation")
         agent_trace = [AgentTraceEntry.model_validate(entry) for entry in state.get("agent_trace", [])]
 
         battery = state.get("battery") or {}
@@ -350,14 +339,22 @@ class SimulationService:
             md_limit_kw=float(state.get("md_limit_kw", DEFAULT_MD_LIMIT_KW) or DEFAULT_MD_LIMIT_KW),
             md_rate=MD_RATE,
             dispatch_action=state.get("dispatch_action"),
-            sizing_recommendation=(
-                SizingRecommendation.model_validate(sizing) if isinstance(sizing, dict) else None
-            ),
-            available_start=session.available_start,
-            available_end=session.available_end,
-            selected_start_time=session.selected_start_time,
-            selected_end_time=session.selected_end_time,
             scenarios=SCENARIO_META,
+        )
+
+    async def get_scenario_metadata(self, day_type: str) -> ScenarioMetadataResponse:
+        loop = asyncio.get_event_loop()
+        loaded = await loop.run_in_executor(None, data_loader_node, {"day_type": day_type})
+        current_facility = loaded["current_facility"]
+        metadata = loaded["loaded_data"][current_facility].get("metadata") or {}
+        data_quality = loaded["data_quality"].get(current_facility) or {}
+        return ScenarioMetadataResponse(
+            day_type=day_type,
+            available_start=metadata["available_start"],
+            available_end=metadata["available_end"],
+            facility_name=metadata.get("facility_name", ""),
+            solar_installed_kwp=float(metadata.get("solar_installed_kwp", 0.0)),
+            total_rows=int(data_quality.get("rows", 0)),
         )
 
     @staticmethod

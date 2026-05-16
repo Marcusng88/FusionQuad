@@ -25,11 +25,13 @@ export default function LiveDashboardPage() {
     simulation,
     isBusy,
     errorMessage,
-    applySizingRecommendation,
     handleDayTypeChange,
-    handleTimeRangeChange,
     runOptimization,
     timeRange,
+    setTimeRange,
+    scenarioMetadata,
+    metadataLoading,
+    canRun,
   } = useSimulationController();
 
   const accent = accentForDayType(selectedDayType);
@@ -121,83 +123,60 @@ export default function LiveDashboardPage() {
             </div>
           </div>
 
-          {/* Sizing recommendation */}
-          {simulation.sizingRecommendation ? (
-            <div className="rounded-xl border border-primary/30 bg-primary/8 px-4 py-4">
-              <p className="font-label text-[10px] text-primary">AI Recommendation</p>
-              <p className="mt-2 text-base font-semibold text-foreground">
-                {simulation.sizingRecommendation.recommended_bess_capacity_kwh} kWh BESS
-              </p>
-              <p className="mt-1 text-xs text-muted">
-                Solar: {simulation.sizingRecommendation.recommended_solar_capacity_kwp} kWp
-                · Est. RM{formatCurrencyValue(simulation.sizingRecommendation.estimated_monthly_savings_rm)}/mo
-              </p>
-              <p className="mt-2 text-xs leading-5 text-foreground">
-                {simulation.sizingRecommendation.rationale}
-              </p>
-              <button
-                type="button"
-                disabled={isBusy}
-                onClick={() => applySizingRecommendation()}
-                className="mt-3 rounded-lg border border-primary/35 bg-primary/10 px-3 py-1.5 text-xs text-primary transition hover:bg-primary/20 disabled:opacity-50"
-              >
-                Apply recommendation
-              </button>
-            </div>
-          ) : null}
-
-          {/* Time window */}
-          {simulation.availableStart || simulation.availableEnd ? (
-            <div className="rounded-xl border border-outline bg-surface px-4 py-4">
-              <p className="font-label text-[10px] text-primary mb-3">Time Window</p>
+          {/* Time window — shown once metadata loads */}
+          <div className="rounded-xl border border-outline bg-surface px-4 py-4">
+            <p className="font-label text-[10px] text-primary mb-3">Time Window</p>
+            {metadataLoading ? (
+              <p className="text-[11px] text-muted">Loading available dates…</p>
+            ) : scenarioMetadata ? (
               <div className="space-y-2">
                 <div>
-                  <label className="text-[10px] text-muted" htmlFor="range-start">Start</label>
+                  <label className="text-[10px] text-muted" htmlFor="range-start">Start <span className="text-danger">*</span></label>
                   <input
                     id="range-start"
                     className="mt-1 w-full rounded-lg border border-outline bg-surface-2 px-3 py-1.5 text-xs"
                     disabled={isBusy}
-                    max={simulation.availableEnd ?? undefined}
-                    min={simulation.availableStart ?? undefined}
+                    max={scenarioMetadata.available_end.slice(0, 16)}
+                    min={scenarioMetadata.available_start.slice(0, 16)}
                     type="datetime-local"
                     value={timeRange.start ?? ""}
-                    onChange={(e) => handleTimeRangeChange({ start: e.target.value || null, end: timeRange.end })}
+                    onChange={(e) => setTimeRange({ start: e.target.value || null, end: timeRange.end })}
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted" htmlFor="range-end">End</label>
+                  <label className="text-[10px] text-muted" htmlFor="range-end">End <span className="text-danger">*</span></label>
                   <input
                     id="range-end"
                     className="mt-1 w-full rounded-lg border border-outline bg-surface-2 px-3 py-1.5 text-xs"
                     disabled={isBusy}
-                    max={simulation.availableEnd ?? undefined}
-                    min={simulation.availableStart ?? undefined}
+                    max={scenarioMetadata.available_end.slice(0, 16)}
+                    min={scenarioMetadata.available_start.slice(0, 16)}
                     type="datetime-local"
                     value={timeRange.end ?? ""}
-                    onChange={(e) => handleTimeRangeChange({ start: timeRange.start, end: e.target.value || null })}
+                    onChange={(e) => setTimeRange({ start: timeRange.start, end: e.target.value || null })}
                   />
                 </div>
-                <button
-                  type="button"
-                  disabled={isBusy}
-                  onClick={() => handleTimeRangeChange({ start: null, end: null })}
-                  className="rounded-lg border border-outline bg-surface-2 px-3 py-1 text-[10px] text-muted hover:bg-surface-3 disabled:opacity-50"
-                >
-                  Reset window
-                </button>
+                <p className="text-[10px] text-muted">
+                  Available: {scenarioMetadata.available_start.slice(0, 10)} → {scenarioMetadata.available_end.slice(0, 10)}
+                </p>
               </div>
-            </div>
-          ) : null}
+            ) : (
+              <p className="text-[11px] text-muted">Select a scenario to see available dates.</p>
+            )}
+          </div>
 
           {/* Primary CTA */}
           <button
             type="button"
-            disabled={isBusy}
+            disabled={!canRun}
             onClick={() => void runOptimization()}
             className="w-full rounded-xl border border-primary/40 bg-primary/15 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary/25 disabled:opacity-50 active:scale-95"
           >
             {isBusy ? "Working…" : "▶ Run Optimization"}
           </button>
+          {!canRun && !isBusy && scenarioMetadata && (
+            <p className="text-center text-[10px] text-muted">Select start and end date to run</p>
+          )}
 
           {/* Error */}
           {errorMessage ? (
@@ -348,15 +327,7 @@ export default function LiveDashboardPage() {
                 detail={`${simulation.shavePercentage.toFixed(1)}% shave score`}
                 tone="tertiary"
               />
-              {simulation.sizingRecommendation ? (
-                <KpiCard
-                  title="Sizing Impact"
-                  value={`${Math.round(simulation.sizingRecommendation.estimated_peak_reduction_kw)}`}
-                  suffix="kW"
-                  detail="Est. peak reduction from AI sizing"
-                  tone="secondary"
-                />
-              ) : null}
+              
             </div>
           </div>
 

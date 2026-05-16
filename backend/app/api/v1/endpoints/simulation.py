@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
 from app.schemas.simulation import (
+    ScenarioMetadataResponse,
     SimulationSessionRequest,
     SimulationStateResponse,
     StartSimulationRequest,
@@ -15,6 +16,14 @@ router = APIRouter()
 
 def get_simulation_service(request: Request) -> SimulationService:
     return request.app.state.simulation_service
+
+
+@router.get("/scenarios/{day_type}/metadata", response_model=ScenarioMetadataResponse, summary="Get scenario metadata without starting simulation")
+async def get_scenario_metadata(
+    day_type: str,
+    service: SimulationService = Depends(get_simulation_service),
+) -> ScenarioMetadataResponse:
+    return await service.get_scenario_metadata(day_type)
 
 
 @router.post("/start", response_model=SimulationStateResponse, summary="Start a simulation")

@@ -107,8 +107,6 @@ class AgentState(TypedDict, total=False):
     total_savings_rm: float | None
     within_limit_ticks: int | None
     total_intervals: int | None
-    sizing_recommendation: dict | None
-
     # Workflow metadata
     messages: Annotated[list, add_messages]
     is_end_of_day: bool | None

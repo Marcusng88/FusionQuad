@@ -1,4 +1,5 @@
 import type {
+  ScenarioMetadata,
   SimulationApiState,
   SimulationDayType,
 } from "../types";
@@ -46,6 +47,21 @@ async function requestSimulationState(
     throw new Error(`Invalid simulation response: missing required fields`);
   }
   return data as SimulationApiState;
+}
+
+export async function fetchScenarioMetadata(
+  dayType: SimulationDayType,
+  baseUrl?: string,
+): Promise<ScenarioMetadata> {
+  const response = await fetch(
+    `${resolveBaseUrl(baseUrl)}/api/v1/simulation/scenarios/${dayType}/metadata`,
+    { method: "GET", cache: "no-store" },
+  );
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || `Failed to fetch metadata for ${dayType}.`);
+  }
+  return response.json() as Promise<ScenarioMetadata>;
 }
 
 export function startSimulation(

@@ -34,9 +34,6 @@ export function createSimulationViewModel(
     mdLimitKw: DEFAULT_DEMAND_LIMIT_KW,
     lastDispatchKw: 0,
     agentTrace: [],
-    sizingRecommendation: null,
-    availableStart: null,
-    availableEnd: null,
     scenarios: [],
   };
 }
@@ -69,9 +66,6 @@ export function mergeSimulationSnapshot(
     withinLimitTicks: snapshot.within_limit_ticks,
     mdLimitKw,
     lastDispatchKw: snapshot.last_dispatch_kw,
-    sizingRecommendation: snapshot.sizing_recommendation,
-    availableStart: snapshot.available_start?.slice(0, 16) ?? null,
-    availableEnd: snapshot.available_end?.slice(0, 16) ?? null,
     scenarios: snapshot.scenarios ?? [],
   };
 }

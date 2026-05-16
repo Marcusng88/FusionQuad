@@ -19,12 +19,13 @@ class SimulationSessionRequest(BaseModel):
 
 
 
-class SizingRecommendation(BaseModel):
-    recommended_bess_capacity_kwh: float
-    recommended_solar_capacity_kwp: float
-    estimated_peak_reduction_kw: float
-    estimated_monthly_savings_rm: float
-    rationale: str
+class ScenarioMetadataResponse(BaseModel):
+    day_type: str
+    available_start: datetime
+    available_end: datetime
+    facility_name: str
+    solar_installed_kwp: float
+    total_rows: int
 
 
 class AgentTraceEntry(BaseModel):
@@ -65,9 +66,4 @@ class SimulationStateResponse(BaseModel):
     md_limit_kw: float = 800.0
     md_rate: float = 97.06
     dispatch_action: dict[str, Any] | None = None
-    sizing_recommendation: SizingRecommendation | None = None
-    available_start: datetime | None = Field(default=None, description="Available datetime range start from CSV metadata")
-    available_end: datetime | None = Field(default=None, description="Available datetime range end from CSV metadata")
-    selected_start_time: datetime | None = Field(default=None, description="User-selected window start")
-    selected_end_time: datetime | None = Field(default=None, description="User-selected window end")
     scenarios: list[ScenarioMeta] = Field(default_factory=list)

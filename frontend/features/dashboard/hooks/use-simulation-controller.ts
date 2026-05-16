@@ -13,10 +13,12 @@ import {
   mergeSimulationSnapshot,
 } from "../lib/live-simulation";
 import {
+  fetchScenarioMetadata,
   startSimulation,
   subscribeSimulationStream,
 } from "../lib/simulation-api";
 import type {
+  ScenarioMetadata,
   SimulationApiState,
   SimulationDayType,
   SimulationViewModel,
@@ -37,6 +39,8 @@ export function useSimulationController() {
     start: null,
     end: null,
   });
+  const [scenarioMetadata, setScenarioMetadata] = useState<ScenarioMetadata | null>(null);
+  const [metadataLoading, setMetadataLoading] = useState(false);
   const [simulation, setSimulation] = useState<SimulationViewModel>(() =>
     createSimulationViewModel("weekday"),
   );
@@ -81,7 +85,6 @@ export function useSimulationController() {
     capacityKwh = bessCapacityKwh,
     range?: { start: string | null; end: string | null },
   ) {
-    // Cancel any in-flight stream before starting a new one
     streamCleanupRef.current?.();
     streamCleanupRef.current = null;
 
@@ -134,26 +137,21 @@ export function useSimulationController() {
     });
   }
 
-  function handleDayTypeChange(dayType: SimulationDayType) {
+  async function handleDayTypeChange(dayType: SimulationDayType) {
     setSelectedDayType(dayType);
     setTimeRange({ start: null, end: null });
-  }
-
-  async function handleTimeRangeChange(range: { start: string | null; end: string | null }) {
-    setTimeRange(range);
-    if (simulation.sessionId) {
-      await applySnapshot(
-        () =>
-          startSimulation({
-            dayType: selectedDayType,
-            bessCapacityKwh: bessCapacityKwh,
-            batterySoc: 0.5,
-            startTime: range.start,
-            endTime: range.end,
-          }),
-        true,
-        selectedDayType,
-      );
+    setSimulation(createSimulationViewModel(dayType));
+    setErrorMessage(null);
+    setScenarioMetadata(null);
+    setMetadataLoading(true);
+    try {
+      const metadata = await fetchScenarioMetadata(dayType);
+      setScenarioMetadata(metadata);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load scenario metadata.";
+      setErrorMessage(message);
+    } finally {
+      setMetadataLoading(false);
     }
   }
 
@@ -161,13 +159,7 @@ export function useSimulationController() {
     await bootstrapSimulation(selectedDayType, bessCapacityKwh, timeRange);
   }
 
-  function applySizingRecommendation() {
-    const recommended =
-      simulation.sizingRecommendation?.recommended_bess_capacity_kwh;
-    if (recommended) {
-      setBessCapacityKwh(recommended);
-    }
-  }
+  const canRun = !isBusy && timeRange.start !== null && timeRange.end !== null;
 
   return {
     dayOptions,
@@ -178,11 +170,12 @@ export function useSimulationController() {
     isBusy,
     errorMessage,
     activeAgentNode,
-    applySizingRecommendation,
     handleDayTypeChange,
-    handleTimeRangeChange,
     runOptimization,
     timeRange,
     setTimeRange,
+    scenarioMetadata,
+    metadataLoading,
+    canRun,
   };
 }

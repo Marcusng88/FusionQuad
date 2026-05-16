@@ -40,12 +40,13 @@ export type DecisionLog = {
   estimated_saving_rm?: number;
 };
 
-export type SizingRecommendation = {
-  recommended_bess_capacity_kwh: number;
-  recommended_solar_capacity_kwp: number;
-  estimated_peak_reduction_kw: number;
-  estimated_monthly_savings_rm: number;
-  rationale: string;
+export type ScenarioMetadata = {
+  day_type: string;
+  available_start: string;
+  available_end: string;
+  facility_name: string;
+  solar_installed_kwp: number;
+  total_rows: number;
 };
 
 export type ScenarioKey =
@@ -110,11 +111,6 @@ export type SimulationApiState = {
   md_limit_kw: number;
   md_rate: number;
   dispatch_action: SimulationDispatchAction;
-  sizing_recommendation: SizingRecommendation | null;
-  available_start: string | null;
-  available_end: string | null;
-  selected_start_time: string | null;
-  selected_end_time: string | null;
   scenarios: Array<{ key: SimulationDayType; label: string; blurb: string }>;
 };
 
@@ -138,8 +134,5 @@ export type SimulationViewModel = {
   mdLimitKw: number;
   lastDispatchKw: number;
   agentTrace: DecisionLog[];
-  sizingRecommendation: SizingRecommendation | null;
-  availableStart: string | null;
-  availableEnd: string | null;
   scenarios: Array<{ key: SimulationDayType; label: string; blurb: string }>;
 };
