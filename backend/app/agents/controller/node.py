@@ -8,6 +8,7 @@ from typing import Any
 from deepagents import create_deep_agent
 from langchain.tools import tool
 
+from app.agents.controller.middleware import DispatchValidationMiddleware
 from app.agents.optimization.solver import OptimizationInput, OptimizationSolver
 from app.agents.state import AgentState, BatteryState, DispatchAction, DispatchResult
 from app.core.model_selection import resolve_deepagents_model
@@ -141,6 +142,7 @@ def _build_controller_agent() -> Any:
         model=model,
         system_prompt=_CONTROLLER_PROMPT,
         tools=[milp_optimizer, mock_inverter_dispatch],
+        middleware=[DispatchValidationMiddleware(max_retries=2)],
     )
 
 

@@ -28,7 +28,15 @@
       "PowerShell($venv = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\backend\\\\.venv\\\\Scripts\\\\python.exe\"; $testDir = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\.claude\\\\worktrees\\\\opportunity-1-value-objects\\\\backend\"; & $venv -m pytest \"$testDir\\\\tests\\\\test_value_objects.py::TestForecastNodeContract\" \"$testDir\\\\tests\\\\test_value_objects.py::TestTariffNodeContract\" -v --rootdir=\"$testDir\" 2>&1 | Select-Object -Last 30)",
       "PowerShell($venv = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\backend\\\\.venv\\\\Scripts\\\\python.exe\"; $testDir = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\.claude\\\\worktrees\\\\opportunity-1-value-objects\\\\backend\"; & $venv -m pytest \"$testDir\\\\tests\\\\test_value_objects.py::TestControllerNodeContract\" -v --rootdir=\"$testDir\" 2>&1 | Select-Object -Last 40)",
       "PowerShell($venv = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\backend\\\\.venv\\\\Scripts\\\\python.exe\"; $testDir = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\.claude\\\\worktrees\\\\opportunity-1-value-objects\\\\backend\"; & $venv -m pytest \"$testDir\\\\tests\\\\test_value_objects.py\" -v --rootdir=\"$testDir\" 2>&1 | Select-Object -Last 20)",
-      "PowerShell($venv = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\backend\\\\.venv\\\\Scripts\\\\python.exe\"; $testDir = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\.claude\\\\worktrees\\\\opportunity-1-value-objects\\\\backend\"; & $venv -m pytest \"$testDir\\\\tests\\\\test_tariff.py\" \"$testDir\\\\tests\\\\test_planner.py\" \"$testDir\\\\tests\\\\test_auditor_evaluation.py\" -v --rootdir=\"$testDir\" 2>&1 | Select-Object -Last 40)"
+      "PowerShell($venv = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\backend\\\\.venv\\\\Scripts\\\\python.exe\"; $testDir = \"C:\\\\Users\\\\PREDATOR\\\\Desktop\\\\hackathon\\\\Recharge2026\\\\FusionQuad\\\\.claude\\\\worktrees\\\\opportunity-1-value-objects\\\\backend\"; & $venv -m pytest \"$testDir\\\\tests\\\\test_tariff.py\" \"$testDir\\\\tests\\\\test_planner.py\" \"$testDir\\\\tests\\\\test_auditor_evaluation.py\" -v --rootdir=\"$testDir\" 2>&1 | Select-Object -Last 40)",
+      "Bash(git -C \"C:/Users/PREDATOR/Desktop/hackathon/Recharge2026/FusionQuad/.claude/worktrees/opp3-strategy\" log --oneline -5)",
+      "Bash(git -C \"C:/Users/PREDATOR/Desktop/hackathon/Recharge2026/FusionQuad/.claude/worktrees/opp3-strategy\" diff HEAD feature/multi-agent-architecture --name-only)",
+      "Bash(python -m pytest tests/test_optimization_strategy.py::TestOptimizationStrategyModel::test_valid_full_dict_parses -v)",
+      "Bash(uv sync *)",
+      "Bash(uv add *)",
+      "WebFetch(domain:blog.langchain.com)",
+      "Skill(frontend-design)",
+      "Skill(frontend-design:*)"
     ]
   }
 }
