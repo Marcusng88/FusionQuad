@@ -14,6 +14,8 @@ from pathlib import Path
 import json
 from typing import TypedDict
 
+_PROMPTS_DIR = Path(__file__).parent / "prompts"
+
 from deepagents import create_deep_agent
 from deepagents.backends import FilesystemBackend
 from deepagents.backends.state import StateBackend
@@ -34,32 +36,8 @@ _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 _EXPERIENCE_DIR = Path(__file__).parent.parent.parent.parent / "experience"
 _STRATEGIES_DIR = Path(__file__).parent.parent.parent.parent / "strategies"
 
-_AUDITOR_PROMPT_TICK = """You are the Auditor Agent for FusionQuad.
-Evaluate dispatch outcomes and provide reasoning + recommendation when prompted.
-
-Return JSON only with:
-{
-    "reasoning": "...",
-    "recommendation": "...",
-    "confidence": 0.0
-}
-"""
-
-_AUDITOR_PROMPT_EOD = """You are the Auditor Agent for FusionQuad — END OF DAY.
-This is the final tick. Produce a comprehensive end-of-day audit summary.
-
-STEPS:
-1. Use read_file to read past experience files from /experience/ that match today's day_type
-2. Use evaluate_rules_tool and evaluate_delta_tool on the final tick state (provided below)
-3. Use write_file to append the end-of-day summary to /experience/{date}-{day_type}.md
-
-Return JSON only with:
-{
-    "reasoning": "...",
-    "recommendation": "...",
-    "confidence": 0.0
-}
-"""
+_AUDITOR_PROMPT_TICK = (_PROMPTS_DIR / "tick.md").read_text(encoding="utf-8")
+_AUDITOR_PROMPT_EOD = (_PROMPTS_DIR / "end_of_day.md").read_text(encoding="utf-8")
 
 
 @tool

@@ -36,7 +36,9 @@
       "Bash(uv add *)",
       "WebFetch(domain:blog.langchain.com)",
       "Skill(frontend-design)",
-      "Skill(frontend-design:*)"
+      "Skill(frontend-design:*)",
+      "Skill(code-reviewer)",
+      "Skill(code-reviewer:*)"
     ]
   }
 }

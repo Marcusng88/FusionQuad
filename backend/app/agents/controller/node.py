@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from pathlib import Path
 from typing import Any
 
 from deepagents import create_deep_agent
@@ -15,17 +16,7 @@ from app.core.model_selection import resolve_deepagents_model
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 
-_CONTROLLER_PROMPT = """You are the Controller Agent for FusionQuad — you execute BESS dispatch actions using MILP optimization.
-
-Your workflow per tick:
-1. Read optimization_strategy from state (set by Planner)
-2. Call milp_optimizer with current state parameters to get dispatch_action
-3. Execute dispatch via mock_inverter_dispatch
-4. Observe the response (new_soc, temp, cycle_count)
-5. Return dispatch_result and updated battery state
-
-Never call mock_inverter_dispatch before milp_optimizer for the same tick.
-"""
+_CONTROLLER_PROMPT = (Path(__file__).parent / "prompts" / "system.md").read_text(encoding="utf-8")
 
 
 def _select_facility_forecast(state: AgentState) -> tuple[str | None, list[float]]:
