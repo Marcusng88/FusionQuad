@@ -2,145 +2,65 @@
   "ticks": [
     {
       "tick": 0,
-      "datetime": "2025-09-02T13:00:00",
-      "forecast_kw": 893.9771118164062,
-      "forecast_confidence": 0.95,
+      "datetime": "2025-09-02T08:00:00",
+      "forecast_kw": 82.37500762939453,
+      "forecast_confidence": 0.8,
       "tariff_window": "OFF_PEAK",
       "optimization_strategy": {
-        "strategy_name": "Solar Duck Curve (OFF_PEAK solar hours - no discharge)",
+        "strategy_name": "Off-Peak Valley Fill (Solar Duck Curve pre-ramp preserve SOC)",
         "shave_kw": 0.0,
-        "reserve_soc_pct": 0.25,
+        "reserve_soc_pct": 0.2,
         "target_soc_end": 0.9,
-        "rationale": "Tariff_window is OFF_PEAK and day_type is solar_duck_curve at 13:00 (within the solar valley period). The solar_duck_curve strategy specifies Phase 1 (10:00-15:00): shave_target = 0 kW (no discharge during cheapest solar hours) and charging is allowed when SOC < 80%. Current SOC is 90% (0.9), which is already above both the strategy\u2019s SOC threshold for charging (<80%) and the general 10\u201395% safety envelope. Also, load forecast (~894\u2013908 kW) is far above the given MD limit (800 kW), so discharging now to shave would consume SOC that is better reserved for the later duck-ramp/surge window; additionally, this tick cannot be charged above 95% SOC anyway. Therefore, optimal action this interval is 0 kW discharge (shave_kw=0) to preserve SOC reserve and follow the duck-curve timing risk control.",
-        "confidence": 0.62,
+        "rationale": "Tariff window is OFF_PEAK at 08:00, and day_type is solar_duck_curve. MD charge applies only during PEAK (14:00\u201322:00 weekdays), so there is no immediate MD-billing penalty for current/off-peak load breaches. With current SOC at 50%, the optimal move is to preserve battery for the upcoming PEAK duck-ramp and charge during OFF_PEAK (valley fill) toward a high SOC target before 14:00. No mandatory PEAK override applies because tariff_window is not PEAK. Historical solar_duck_curve audit showed under-shaving and MD misses during PEAK when SOC management/dispatch constraints limited discharge later; charging now reduces that risk by increasing available SOC for PEAK shaving.",
+        "confidence": 0.78,
         "md_limit_kw": 800.0,
         "constraints": [
-          "reserve_25pct_soc",
-          "reserve_soft_min_20pct_soc (general guideline)",
-          "hard_min_10pct_soc",
-          "charge_ceiling_95pct_soc",
-          "solar_duck_curve_no_discharge_10AM_to_3PM"
-        ]
-      },
-      "dispatch_action": {
-        "action": "hold",
-        "discharge_kw": null,
-        "charge_kw": null,
-        "duration_min": 30,
-        "expected_soc_after": 0.9
-      },
-      "dispatch_result": {
-        "new_soc": 0.9,
-        "temp_increase_c": 0.1,
-        "cycle_count_delta": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 868.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 1,
-      "datetime": "2025-09-02T13:30:00",
-      "forecast_kw": 901.0463256835938,
-      "forecast_confidence": 0.95,
-      "tariff_window": "OFF_PEAK",
-      "optimization_strategy": {
-        "strategy_name": "Solar Duck Curve (Phase 1 charging / no discharge mid-day)",
-        "shave_kw": 0.0,
-        "reserve_soc_pct": 0.25,
-        "target_soc_end": 0.95,
-        "rationale": "Tariff window is OFF_PEAK and day_type is solar_duck_curve at 13:30 (within the Solar Valley window). The load forecast for the next interval is high (~901\u2013916 kW), but OFF_PEAK energy is cheaper and the solar_duck_curve strategy prioritizes charging during the mid-day solar-cheap period rather than discharging. With Battery SOC at 90% (0.9) and general rules enforcing a 95% charge ceiling, we avoid further discharge (so shave_kw=0) and instead target bringing SOC up toward 95% to prepare for the upcoming late-afternoon/evening surge while keeping at least 25% SOC reserve for safety/lifecycle. This also prevents unnecessary cycle wear by not discharging during the cheapest energy procurement window.",
-        "confidence": 0.52,
-        "md_limit_kw": 800.0,
-        "constraints": [
-          "no_discharge_10AM_to_3PM",
-          "reserve_25pct_soc",
-          "charge_ceiling_95pct_soc",
-          "hard_min_soc_10pct",
-          "thermal_hold_above_45C"
-        ]
-      },
-      "dispatch_action": {
-        "action": "hold",
-        "discharge_kw": null,
-        "charge_kw": null,
-        "duration_min": 30,
-        "expected_soc_after": 0.9
-      },
-      "dispatch_result": {
-        "new_soc": 0.9,
-        "temp_increase_c": 0.1,
-        "cycle_count_delta": 0.0,
-        "action_taken": "hold",
-        "actual_discharge_kw": 0.0,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 857.0,
-      "within_limit": false,
-      "savings_rm": 0.0
-    },
-    {
-      "tick": 2,
-      "datetime": "2025-09-02T14:00:00",
-      "forecast_kw": 899.5172729492188,
-      "forecast_confidence": 0.95,
-      "tariff_window": "PEAK",
-      "optimization_strategy": {
-        "strategy_name": "Solar Duck Curve (Phase 2: Duck Ramp) \u2014 PEAK tariff discharge",
-        "shave_kw": 100.0,
-        "reserve_soc_pct": 0.25,
-        "target_soc_end": 0.25,
-        "rationale": "Tariff_window is PEAK and day_type is solar_duck_curve at 14:00. The solar-duck-curve strategy prioritizes preventing early discharge that would waste later duck-ramp value, but at 14:00 the forecasted load is already far above MD (forecast \u2248 899\u2013916 kW vs MD limit 800 kW). To avoid any MD breach during a high-cost PEAK window, we discharge at the max allowed per interval (100 kW) to bring net load toward/under the MD limit while respecting SOC safety. With SOC at 90% (0.90) and a required reserve of 25% SOC (soft minimum for duck-ramp), discharging 100 kW for one interval is consistent with keeping reserve at 25% and avoids SOC going below 10%. Forecast confidence is high (0.95), so aggressive shaving is justified to protect the demand-charge (MD) risk.",
-        "confidence": 0.72,
-        "md_limit_kw": 800.0,
-        "constraints": [
-          "reserve_25pct_soc",
-          "max_100kW_interval",
-          "never_discharge_below_10pct_soc",
-          "thermal_hold_if_above_45C"
+          "reserve_20pct_soc",
+          "charge_until_90_to_95pct_before_peak",
+          "do_not_defer_md_safety_override_only_applies_in_peak_window",
+          "max_95pct_soc_charge_ceiling"
         ]
       },
       "dispatch_action": {
         "action": "discharge",
-        "discharge_kw": 100.0,
+        "discharge_kw": 0.0,
         "charge_kw": null,
         "duration_min": 30,
-        "expected_soc_after": 0.85
+        "expected_soc_after": 0.5
       },
       "dispatch_result": {
-        "new_soc": 0.8525,
-        "temp_increase_c": 0.5,
-        "cycle_count_delta": 0.025,
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
         "action_taken": "discharge",
-        "actual_discharge_kw": 100.0,
+        "actual_discharge_kw": 0.0,
         "efficiency_loss_pct": 0.05
       },
-      "actual_load_kw": 762.0,
+      "actual_load_kw": 536.0,
       "within_limit": true,
-      "savings_rm": 26.67897222222222
+      "savings_rm": 0.0
     },
     {
-      "tick": 3,
-      "datetime": "2025-09-02T14:30:00",
-      "forecast_kw": 905.9588012695312,
-      "forecast_confidence": 0.95,
-      "tariff_window": "PEAK",
+      "tick": 1,
+      "datetime": "2025-09-02T08:30:00",
+      "forecast_kw": 94.61338806152344,
+      "forecast_confidence": 0.8,
+      "tariff_window": "OFF_PEAK",
       "optimization_strategy": {
-        "strategy_name": "Solar Duck Curve (Phase 2: Duck Ramp smoothing, 15:00-19:00) \u2014 applied conservatively at 14:30",
+        "strategy_name": "Solar Duck Curve (Industrial Scale) - OFF_PEAK Hold/Preserve SOC",
         "shave_kw": 0.0,
-        "reserve_soc_pct": 0.25,
-        "target_soc_end": 0.8,
-        "rationale": "Tariff window is PEAK (RM 0.45/kWh), but day_type is solar_duck_curve and current time is 14:30 (within the solar valley window). The Solar Duck Curve strategy specifies no discharge during the valley period (10:00-15:00) and emphasizes preserving SOC until the 15:00 ramp. Current load forecast values are ~906\u2013922 kW, and MD limit is 800 kW, so shaving would be beneficial economically; however, discharging before 15:00 would waste the duck-curve timing advantage and conflicts with the strategy constraint. With SOC at 85.25% (above the required reserve), the optimal action at 14:30 is to hold (shave_kw=0) and position capacity for the 15:00-19:00 period where aggressive discharge (30-60 kW class) is permitted. Cycle count is very low (0.025), so degradation limits are not constraining. Confidence is limited slightly because the aggressive peak-shaving strategy could reduce MD risk earlier, but duck-curve timing rules are higher priority for this day_type.",
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.9,
+        "rationale": "Tariff window is OFF_PEAK (22:00\u201314:00) so MD charge is not applicable; the solar_duck_curve strategy requires preserving SOC before the 14:00 PEAK ramp. With current SOC at 50% (0.5), we avoid discharging and instead plan to recharge during remaining OFF_PEAK time to reach ~90% SOC by the PEAK start. Historical audit for 2025-09-02 shows MD misses mainly due to strategy/timing constraints during PEAK; since we are not in PEAK yet, the optimal action now is to HOLD (no shaving) to enable stronger PEAK compliance later.",
         "confidence": 0.74,
         "md_limit_kw": 800.0,
         "constraints": [
-          "reserve_25pct_soc",
-          "no_discharge_10AM_to_3PM",
-          "reserve_soft_min_20pct_soc (general override)",
-          "max_100kW_interval (from peak strategy; not used due to 0 shave)"
+          "reserve_20pct_soc",
+          "OFF_PEAK_no_MD_shaving",
+          "max_charge_95pct_soc",
+          "thermal_hold_if_temp>45C",
+          "never_discharge_below_10pct_soc",
+          "discharge_only_if_PEAK_override_triggers"
         ]
       },
       "dispatch_action": {
@@ -148,190 +68,269 @@
         "discharge_kw": null,
         "charge_kw": null,
         "duration_min": 30,
-        "expected_soc_after": 0.8525
+        "expected_soc_after": 0.5
       },
       "dispatch_result": {
-        "new_soc": 0.8525,
+        "new_soc": 0.5,
         "temp_increase_c": 0.1,
         "cycle_count_delta": 0.0,
         "action_taken": "hold",
         "actual_discharge_kw": 0.0,
         "efficiency_loss_pct": 0.05
       },
-      "actual_load_kw": 902.0,
+      "actual_load_kw": 771.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 2,
+      "datetime": "2025-09-02T09:00:00",
+      "forecast_kw": 134.4961395263672,
+      "forecast_confidence": 0.8,
+      "tariff_window": "OFF_PEAK",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.93,
+        "rationale": "Current tariff_window is OFF_PEAK (MD charge does not apply) and day_type is solar_duck_curve. At 09:00, the solar duck curve strategy\u2019s Phase 1 calls for HOLD to preserve SOC for the upcoming 14:00\u201322:00 PEAK period. With Battery SOC at 50% (well below 85%), charging during OFF_PEAK is optimal to build headroom for aggressive PEAK shaving later. Past audit for 2025-09-02 shows MD misses were mostly driven by timing/constraint issues during PEAK rather than needing discharge during OFF_PEAK, so we avoid discharging now.",
+        "confidence": 0.78,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_100kW_per_interval",
+          "max_charge_95pct_soc",
+          "charge_rate_50_80kW"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 878.0,
+      "within_limit": false,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 3,
+      "datetime": "2025-09-02T09:30:00",
+      "forecast_kw": 226.07666015625,
+      "forecast_confidence": 0.8,
+      "tariff_window": "OFF_PEAK",
+      "optimization_strategy": {
+        "strategy_name": "Solar Duck Curve (Industrial Scale) \u2014 Phase 1: Pre-Peak Preservation (OFF_PEAK)",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.9,
+        "rationale": "Tariff window is OFF_PEAK at 09:30, and day_type is solar_duck_curve. Per solar_duck_curve strategy (Phase 1, before 14:00), there is no MD charge exposure yet, so discharging would waste SOC needed for the 14:00\u201322:00 PEAK duck-ramp. With SOC at 50% (<75% threshold), we should preserve capacity for PEAK by holding discharge at 0 kW in this tick (shave_kw=0) and rely on OFF_PEAK charging in subsequent OFF_PEAK intervals to reach ~90% SOC by PEAK start.",
+        "confidence": 0.8,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "discharge_only_during_peak_window",
+          "max_100kW_per_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 0.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 913.0,
       "within_limit": false,
       "savings_rm": 0.0
     },
     {
       "tick": 4,
-      "datetime": "2025-09-02T15:00:00",
-      "forecast_kw": 871.9699096679688,
+      "datetime": "2025-09-02T10:00:00",
+      "forecast_kw": 359.469970703125,
       "forecast_confidence": 0.95,
-      "tariff_window": "PEAK",
+      "tariff_window": "OFF_PEAK",
       "optimization_strategy": {
-        "strategy_name": "Solar Duck Curve - Aggressive evening duck-ramp discharge with PEAK shaving",
-        "shave_kw": 100.0,
+        "strategy_name": "Solar Duck Curve (Industrial Scale) \u2014 Phase 1 Pre-Peak Preservation (HOLD)",
+        "shave_kw": 0.0,
         "reserve_soc_pct": 0.2,
-        "target_soc_end": 0.7,
-        "rationale": "Tariff window is PEAK and day_type is solar_duck_curve at 15:00, which matches the duck-ramp phase (15:00-19:00) for aggressive discharge to blunt the late-afternoon surge. Forecast load at this tick is ~871.97\u2013892.94 kW, while MD limit is 800 kW, so peak shaving is required to avoid MD breach risk. With battery SOC at 85.25% (>35% and well above 20% soft minimum), we can discharge while maintaining reserve SOC. Using the solar_duck_curve rule to discharge 30\u201360 kW, combined with general aggressive peak-shaving needs to mitigate MD overrun, we cap discharge at the allowed max interval rate (100 kW). This reduces the effective load by ~100 kW (bringing it toward/closer to the MD limit) while keeping SOC above the 20% reserve and remaining in a safe degradation regime given the very low cycle count.",
+        "target_soc_end": 0.85,
+        "rationale": "At 10:00 the tariff window is OFF_PEAK and day_type is solar_duck_curve. Per the solar_duck_curve strategy Phase 1 (pre-14:00), MD charge does not apply yet, so discharging would unnecessarily consume SOC needed for the upcoming PEAK (14:00\u201322:00) duck-ramp. With forecast loads well above the md_limit (given horizon values up to ~559.8 kW), the cost-critical shaving should be reserved for the PEAK window when MD-record risk applies. Current SOC is 50% (above the 20% soft reserve), so we can safely HOLD now and preserve capacity for later shaving.",
         "confidence": 0.78,
         "md_limit_kw": 800.0,
         "constraints": [
-          "reserve_20pct_soc (>=20% SOC soft minimum)",
-          "never_discharge_below_10pct_soc (hard minimum)",
-          "max_100kW_interval (100 kW per interval cap)",
-          "aggressive_discharge_3PM_to_7PM (duck-ramp window starts at 15:00)",
-          "respect_temperature_safety (assumed normal; HOLD only if >45C)"
+          "reserve_20pct_soc",
+          "discharge_only_in_peakh_window_from_14h00",
+          "no_unnecessary_offpeak_discharge"
         ]
       },
       "dispatch_action": {
-        "action": "discharge",
-        "discharge_kw": 72.0,
+        "action": "hold",
+        "discharge_kw": null,
         "charge_kw": null,
         "duration_min": 30,
-        "expected_soc_after": 0.8525
+        "expected_soc_after": 0.5
       },
       "dispatch_result": {
-        "new_soc": 0.8183,
-        "temp_increase_c": 0.36,
-        "cycle_count_delta": 0.018,
-        "action_taken": "discharge",
-        "actual_discharge_kw": 72.0,
+        "new_soc": 0.5,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "hold",
+        "actual_discharge_kw": 0.0,
         "efficiency_loss_pct": 0.05
       },
-      "actual_load_kw": 818.0,
+      "actual_load_kw": 879.0,
       "within_limit": false,
-      "savings_rm": 21.052999999999997
+      "savings_rm": 0.0
     },
     {
       "tick": 5,
-      "datetime": "2025-09-02T15:30:00",
-      "forecast_kw": 881.226318359375,
+      "datetime": "2025-09-02T10:30:00",
+      "forecast_kw": 498.346923828125,
       "forecast_confidence": 0.95,
-      "tariff_window": "PEAK",
+      "tariff_window": "OFF_PEAK",
       "optimization_strategy": {
-        "strategy_name": "Solar Duck Curve (Phase 2 Duck Ramp)",
-        "shave_kw": 81.23,
-        "reserve_soc_pct": 0.25,
-        "target_soc_end": 0.5,
-        "rationale": "Tariff window is PEAK with a solar_duck_curve day type at 15:30, which falls into the duck-ramp period (15:00\u201319:00) where late-afternoon surge smoothing is prioritized. Load forecast is [881.23, 900.19, 896.89] kW, with MD limit 800.0 kW, so there is a direct PEAK demand-charge risk. To keep the next interval(s) from exceeding MD, target shaving of (forecast_peak - MD) plus a small buffer is required. Using the first forecast point: shave_kw = 881.23 - 800.0 - 0.0 \u2248 81.23 kW. SOC is high at 81.8% (>=35% trigger), and cycle count is very low (0.043), so lifecycle constraints are not restrictive (0\u20132000 cycles normal operation). Safety: maintain at least 20% hard minimum and use the duck-curve reserve target of 25% SOC; the chosen target_soc_end (50%) provides ample headroom to avoid getting trapped before the end of the ramp while still achieving MD compliance. Confidence reduced slightly because the provided PEAK strategy files assume a weekday model, while the day_type here is solar_duck_curve (timing matters), but forecast confidence is high (0.95).",
-        "confidence": 0.76,
-        "md_limit_kw": 800.0,
-        "constraints": [
-          "reserve_25pct_soc",
-          "max_100kW_interval",
-          "never_below_10pct_soc_hard_min",
-          "respect_cycle_budget_normal_operation"
-        ]
-      },
-      "dispatch_action": {
-        "action": "discharge",
-        "discharge_kw": 81.23,
-        "charge_kw": null,
-        "duration_min": 30,
-        "expected_soc_after": 0.7776850000000001
-      },
-      "dispatch_result": {
-        "new_soc": 0.77971575,
-        "temp_increase_c": 0.40615,
-        "cycle_count_delta": 0.020307500000000003,
-        "action_taken": "discharge",
-        "actual_discharge_kw": 81.23,
-        "efficiency_loss_pct": 0.05
-      },
-      "actual_load_kw": 809.77,
-      "within_limit": false,
-      "savings_rm": 23.751877638888892
-    },
-    {
-      "tick": 6,
-      "datetime": "2025-09-02T16:00:00",
-      "forecast_kw": 880.4849243164062,
-      "forecast_confidence": 0.95,
-      "tariff_window": "PEAK",
-      "optimization_strategy": {
-        "strategy_name": "Solar Duck Curve (PEAK ramp) - Aggressive evening discharge",
-        "shave_kw": 100.0,
+        "strategy_name": "Off-Peak Valley Fill (via Solar Duck Curve Phase 1 HOLD)",
+        "shave_kw": 0.0,
         "reserve_soc_pct": 0.2,
-        "target_soc_end": 0.58,
-        "rationale": "Tariff window is PEAK (RM 0.45/kWh on weekdays 08:00\u201322:00). At 16:00 the forecasted load is ~880 kW (solar_duck_curve) and exceeds the MD limit (800 kW), so we must aggressively shave during the late-afternoon ramp to avoid or reduce any MD breach. Battery SOC is high at 78% (>35% and >40%), and cycle count (~0.063) is in normal range (0\u20132000 cycles), so full discharge depth is allowed by lifecycle rules. The solar_duck_curve strategy prioritizes blunting the evening surge starting after 15:00; therefore we discharge at the max interval limit of 100 kW while keeping SOC above the soft minimum reserve. This discharge brings the projected SOC from 78% to ~58% (>=20% reserve), reducing the interval load from ~880 kW to ~780 kW, bringing it below MD.",
+        "target_soc_end": 0.9,
+        "rationale": "Tariff window is OFF_PEAK (MD charge does not apply). At 10:30 with day_type=solar_duck_curve and battery SOC=50%, the optimal move is to preserve headroom for later PEAK shaving rather than discharge now. Solar_duck_curve guidance says Phase 1 (before 14:00) should HOLD / avoid wasting battery; instead prepare SOC to be high by the start of the PEAK window. Past audit for 2025-09-02 showed low MD compliance driven by under/constraint timing in PEAK, so we avoid additional risky discharge during OFF_PEAK and focus on ending SOC ~90% for stronger PEAK shaving headroom.",
         "confidence": 0.74,
         "md_limit_kw": 800.0,
         "constraints": [
-          "reserve_20pct_soc (SOC never below 20% soft minimum)",
-          "no_discharge_below_10pct_hard_minimum",
-          "max_100kW_interval",
-          "aggressive_discharge_after_15_00 (solar_duck_curve phase-2 rule)",
-          "respect_cycle_budget (cycle count well within 0\u20132000 normal operation)"
+          "reserve_20pct_soc",
+          "discharge_only_during_peak_window",
+          "max_100kW_per_interval",
+          "no_overcharge_above_95pct_soc",
+          "thermal_hold_if_T>45C"
         ]
       },
       "dispatch_action": {
         "action": "discharge",
-        "discharge_kw": 80.5,
+        "discharge_kw": 0.0,
         "charge_kw": null,
         "duration_min": 30,
-        "expected_soc_after": 0.7797
+        "expected_soc_after": 0.5
       },
       "dispatch_result": {
-        "new_soc": 0.74147825,
-        "temp_increase_c": 0.4025,
-        "cycle_count_delta": 0.020125,
+        "new_soc": 0.5,
+        "temp_increase_c": 0.0,
+        "cycle_count_delta": 0.0,
         "action_taken": "discharge",
-        "actual_discharge_kw": 80.5,
+        "actual_discharge_kw": 0.0,
         "efficiency_loss_pct": 0.05
       },
-      "actual_load_kw": 805.5,
+      "actual_load_kw": 880.0,
       "within_limit": false,
-      "savings_rm": 23.538423611111114
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 6,
+      "datetime": "2025-09-02T11:00:00",
+      "forecast_kw": 681.7162475585938,
+      "forecast_confidence": 0.8,
+      "tariff_window": "OFF_PEAK",
+      "optimization_strategy": {
+        "strategy_name": "Off-Peak Valley Fill (with Solar Duck Curve Phase 1 HOLD)",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.95,
+        "rationale": "Tariff window is OFF_PEAK at 11:00, where MD charge does not apply. For solar_duck_curve, the Solar Duck Curve guidance specifies Phase 1 pre-PEAK preservation: HOLD (do not discharge) to conserve SOC for the 14:00\u201322:00 PEAK ramp. Current SOC is 50% (>20% reserve), so we keep battery available for future PEAK shaving rather than wasting capacity now. History for 2025-09-02 solar_duck_curve shows prior underperformance largely due to timing/window constraints later in the day, so preserving SOC now is the safest choice until the system enters the PEAK window.",
+        "confidence": 0.72,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "no_discharge_in_offpeak_for_solar_duck_curve_prepeak_preservation",
+          "max_charge_95pct_soc",
+          "charge_rate_50_80kW_per_interval_if_charging_needed",
+          "thermal_hold_if_temp_gt_45C",
+          "never_discharge_below_10pct_soc"
+        ]
+      },
+      "dispatch_action": {
+        "action": "hold",
+        "discharge_kw": null,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.5,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "hold",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 882.0,
+      "within_limit": false,
+      "savings_rm": 0.0
     },
     {
       "tick": 7,
-      "datetime": "2025-09-02T16:30:00",
-      "forecast_kw": 873.6500854492188,
-      "forecast_confidence": 0.95,
-      "tariff_window": "PEAK",
+      "datetime": "2025-09-02T11:30:00",
+      "forecast_kw": 847.38330078125,
+      "forecast_confidence": 0.8,
+      "tariff_window": "OFF_PEAK",
       "optimization_strategy": {
-        "strategy_name": "Solar Duck Curve (Phase 2 Duck Ramp smoothing during PEAK)",
-        "shave_kw": 73.65,
-        "reserve_soc_pct": 0.25,
-        "target_soc_end": 0.7,
-        "rationale": "Tariff is PEAK (RM 0.45/kWh, 08:00\u201322:00) and day_type is solar_duck_curve. At 16:30, this is within the duck-ramp window (after 15:00) where the strategy calls for aggressive discharge to blunt the late-afternoon surge. Forecast load is 873.65 kW with MD limit 800.0 kW, so to avoid a demand-charge breach we need to shave at least 873.65-800.0 = 73.65 kW. SOC is 74.1% (>35% rule / >20% reserve requirement), and cycle count is low (~0.083), so normal (not degraded) operation is allowed. We therefore set shave_kw to exactly cover the MD margin while maintaining SOC reserve (25% minimum) and targeting end-of-interval SOC ~70% to avoid overuse risk and keep headroom for continuing PEAK shaving in subsequent intervals.",
-        "confidence": 0.88,
+        "strategy_name": "Solar Duck Curve (Industrial Scale) \u2014 Phase 1 Pre-Peak Preservation (OFF_PEAK HOLD)",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.9,
+        "rationale": "At 2025-09-02 11:30, tariff_window=OFF_PEAK and day_type=solar_duck_curve. Solar duck curve Phase 1 requires preserving BESS SOC before the 14:00 PEAK ramp (do NOT waste battery on OFF_PEAK ticks; shave target 0 kW). Current SOC is 50%, below 85% so charging is allowed by the off-peak valley-fill concept, but current-time 'valley fill' is typically overnight (22:00\u201306:00). Given no forced MD override applies in OFF_PEAK (MD charge is only during weekday 14:00\u201322:00 PEAK), the optimal action now is HOLD rather than discharge. Historical audit for 2025-09-02 shows earlier OFF_PEAK ticks had MD misses while the strategy held, but with MD not billed in OFF_PEAK, the higher priority is entering PEAK with sufficient SOC. Therefore, set shave_kw=0 now and target SOC ~90% by PEAK start via overnight charging.",
+        "confidence": 0.7,
         "md_limit_kw": 800.0,
         "constraints": [
-          "reserve_25pct_soc",
-          "respect_md_limit_avoid_breach",
-          "max_100kW_interval_discharge",
-          "never_discharge_below_10pct_soc",
-          "cycle_count_safe_no_restriction_0-2000"
+          "offpeak_no_discharge_for_md_savings",
+          "reserve_20pct_soc",
+          "charge_ceiling_95pct_soc",
+          "max_interval_discharge_100kW",
+          "thermal_hold_if_temp>45C"
         ]
       },
       "dispatch_action": {
-        "action": "discharge",
-        "discharge_kw": 73.7,
+        "action": "hold",
+        "discharge_kw": null,
         "charge_kw": null,
         "duration_min": 30,
-        "expected_soc_after": 0.7415
+        "expected_soc_after": 0.5
       },
       "dispatch_result": {
-        "new_soc": 0.70647075,
-        "temp_increase_c": 0.3685,
-        "cycle_count_delta": 0.018425,
-        "action_taken": "discharge",
-        "actual_discharge_kw": 73.7,
+        "new_soc": 0.5,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "hold",
+        "actual_discharge_kw": 0.0,
         "efficiency_loss_pct": 0.05
       },
-      "actual_load_kw": 748.3,
-      "within_limit": true,
-      "savings_rm": 18.065361111111123
+      "actual_load_kw": 895.0,
+      "within_limit": false,
+      "savings_rm": 0.0
     }
   ],
   "summary": {
     "total_ticks": 8,
     "within_limit_ticks": 2,
-    "total_savings_rm": 113.08763458333334,
+    "total_savings_rm": 0.0,
     "compliance_rate": 0.25,
-    "shave_percentage": 70.48961937716264,
-    "final_soc_percent": 70
+    "shave_percentage": 0.0,
+    "final_soc_percent": 50
   }
 }

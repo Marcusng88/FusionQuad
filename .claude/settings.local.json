@@ -55,7 +55,8 @@
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
       "Bash(python3 -c \"import sys; print\\(sys.version\\)\")",
       "Skill(karpathy-guidelines)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(Select-Object Name, PSIsContainer)"
     ]
   }
 }

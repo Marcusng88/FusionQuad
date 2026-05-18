@@ -241,6 +241,29 @@ async def controller_node(state: AgentState) -> dict:
             optimization_strategy=dict(optimization_strategy),
         )
 
+    # Safety override: during PEAK, if actual load exceeds MD limit and battery has capacity,
+    # ensure minimum discharge regardless of what the planner/agent decided.
+    # This prevents the monthly MD record being set by a single hold tick.
+    reserve_soc = float((optimization_strategy or {}).get("reserve_soc_pct", 0.25))
+    if (
+        tariff_window == "PEAK"
+        and baseline_load > md_limit_kw
+        and battery_soc > reserve_soc + 0.05
+    ):
+        min_discharge_kw = min(baseline_load - md_limit_kw + 15.0, 100.0)
+        current_kw = forced_action.get("discharge_kw") or 0.0
+        if forced_action.get("action") != "discharge" or current_kw < min_discharge_kw:
+            logger.info(
+                "controller | MD override: baseline=%.1f > limit=%.1f, forcing discharge %.1f kW",
+                baseline_load, md_limit_kw, min_discharge_kw,
+            )
+            forced_action = {
+                "action": "discharge",
+                "discharge_kw": min_discharge_kw,
+                "charge_kw": None,
+                "duration_min": 30,
+            }
+
     raw_result = _execute_dispatch(
         action_dict=forced_action,
         battery_soc=battery_soc,

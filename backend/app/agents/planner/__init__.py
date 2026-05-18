@@ -18,7 +18,7 @@ def search_guidelines(query: str) -> list[dict[str, Any]]:
         if not dirname.exists():
             continue
         for filepath in dirname.glob("*.md"):
-            content = filepath.read_text()
+            content = filepath.read_text(encoding="utf-8")
             if any(kw in content.lower() for kw in keywords):
                 results.append({
                     "content": content[:500],
@@ -40,7 +40,7 @@ def read_guideline_file(path: str) -> str:
         filepath = STRATEGIES_DIR / path
     
     if filepath.exists():
-        return filepath.read_text()
+        return filepath.read_text(encoding="utf-8")
     return ""
 
 

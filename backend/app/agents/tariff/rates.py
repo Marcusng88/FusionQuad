@@ -10,11 +10,14 @@ class TariffRates:
     demand: float    # RM/kW/month
 
 
+# Rates effective 1 July 2025 (TNB TOU tariff revision)
+# MD charge = RM 30.19 Capacity + RM 66.87 Network = RM 97.06/kW/month (peak period only)
+# Energy: peak 23.4 sen/kWh, off-peak 14.4 sen/kWh
 TARIFF_RATES: dict[str, TariffRates] = {
-    "C2": TariffRates(peak=0.45, off_peak=0.22, weekend=0.30, demand=97.06),
-    "E2": TariffRates(peak=0.45, off_peak=0.22, weekend=0.30, demand=97.06),
-    "C1": TariffRates(peak=0.45, off_peak=0.22, weekend=0.30, demand=89.27),
-    "E1": TariffRates(peak=0.45, off_peak=0.22, weekend=0.30, demand=89.27),
+    "C2": TariffRates(peak=0.234, off_peak=0.144, weekend=0.234, demand=97.06),
+    "E2": TariffRates(peak=0.234, off_peak=0.144, weekend=0.234, demand=97.06),
+    "C1": TariffRates(peak=0.234, off_peak=0.144, weekend=0.234, demand=89.27),
+    "E1": TariffRates(peak=0.234, off_peak=0.144, weekend=0.234, demand=89.27),
 }
 
 

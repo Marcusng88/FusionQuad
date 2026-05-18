@@ -119,6 +119,9 @@ class OptimizationSolver:
         energy_cost = sum(energy_rate * power[i] * (DT_SECONDS / 3600) for i in range(n_intervals))
         prob += energy_cost
 
+        # During PEAK, target 30 kW below the MD limit to absorb forecast error (GRU MAPE ~3-5%)
+        md_target = input_data.md_limit_kw - (30.0 if input_data.tariff_window == "PEAK" else 0.0)
+
         for i in range(n_intervals):
             prob += power[i] <= MAX_DISCHARGE_KW, f"max_discharge_{i}"
             prob += power[i] >= -MAX_CHARGE_KW, f"max_charge_{i}"
@@ -127,7 +130,7 @@ class OptimizationSolver:
             else:
                 energy_kwh = power[i-1] * (DT_SECONDS / 3600)
                 prob += soc[i] == soc[i-1] - (energy_kwh / input_data.bess_capacity_kwh), f"soc_dynamics_{i}"
-            prob += input_data.load_forecast[i] - power[i] <= input_data.md_limit_kw, f"md_threshold_{i}"
+            prob += input_data.load_forecast[i] - power[i] <= md_target, f"md_threshold_{i}"
 
         target_soc_end = strategy.get("target_soc_end", 0.50)
         reserve_soc_pct = strategy.get("reserve_soc_pct", 0.20)
