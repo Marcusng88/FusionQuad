@@ -183,7 +183,7 @@ class SimulationService:
                 "is_end_of_day": is_last_tick,
             }
 
-            result = self._workflow.invoke(state)
+            result = await self._workflow.ainvoke(state)
 
             agent_trace = list(session.state.get("agent_trace", []))
             agent_trace.extend(_build_agent_trace_entries(result))
@@ -256,33 +256,90 @@ class SimulationService:
                     }
                     snapshot_state_ref = session.state  # for preview merging
 
-                # Run workflow OUTSIDE lock — LLM calls can take seconds
-                tick_events: list[dict] = []
+                # Run workflow OUTSIDE lock — LLM calls can take seconds.
+                # Yield agent_token events immediately for live streaming.
+                # Yield agent_update/agent_start/agent_complete during astream.
+                # Only step_complete waits for the post-tick lock.
                 final_state: dict | None = None
+                seen_streaming_nodes: set[str] = set()
+                timestamp_str = (
+                    current_time.strftime("%Y-%m-%d %H:%M")
+                    if current_time is not None
+                    else ""
+                )
 
                 async for chunk in self._workflow.astream(
                     state,
-                    stream_mode=["updates", "values"],
+                    stream_mode=["updates", "values", "messages"],
                     version="v2",
                 ):
-                    if chunk["type"] == "updates":
-                        for node_name, node_state in chunk["data"].items():
-                            if node_name not in _SKIP_NODES:
-                                preview_state = {**snapshot_state_ref, **node_state}
-                                preview_snapshot = self._build_snapshot_with_state(
-                                    session,
-                                    preview_state,
-                                )
-                                trace_entry = _build_live_trace_entry(node_name, preview_state)
-                                tick_events.append({
-                                    "event": "agent_update",
+                    if chunk["type"] == "messages":
+                        msg, metadata = chunk["data"]
+                        node_name = metadata.get("langgraph_node", "unknown")
+                        # Only stream AI output tokens (skip tool messages, human messages)
+                        msg_type = getattr(msg, "type", "")
+                        if msg_type not in ("ai", "AIMessageChunk"):
+                            # Check class name as fallback
+                            cls_name = type(msg).__name__
+                            if "AI" not in cls_name and "Assistant" not in cls_name:
+                                continue
+                        raw_content = getattr(msg, "content", None)
+                        # Normalize content: list of blocks → plain string
+                        if isinstance(raw_content, list):
+                            token_text = "".join(
+                                block.get("text", "") if isinstance(block, dict) else str(block)
+                                for block in raw_content
+                            )
+                        elif isinstance(raw_content, str):
+                            token_text = raw_content
+                        else:
+                            token_text = ""
+                        if token_text and node_name not in _SKIP_NODES:
+                            if node_name not in seen_streaming_nodes:
+                                seen_streaming_nodes.add(node_name)
+                                yield {
+                                    "event": "agent_start",
                                     "data": {
                                         "node": node_name,
-                                        "state": node_state,
-                                        "snapshot": preview_snapshot.model_dump(mode="json"),
+                                        "timestamp": timestamp_str,
+                                    },
+                                }
+                            yield {
+                                "event": "agent_token",
+                                "data": {
+                                    "node": node_name,
+                                    "token": token_text,
+                                },
+                            }
+
+                    elif chunk["type"] == "updates":
+                        for node_name, node_state in chunk["data"].items():
+                            if node_name in _SKIP_NODES:
+                                continue
+                            preview_state = {**snapshot_state_ref, **node_state}
+                            preview_snapshot = self._build_snapshot_with_state(
+                                session,
+                                preview_state,
+                            )
+                            trace_entry = _build_live_trace_entry(node_name, preview_state)
+                            yield {
+                                "event": "agent_update",
+                                "data": {
+                                    "node": node_name,
+                                    "state": node_state,
+                                    "snapshot": preview_snapshot.model_dump(mode="json"),
+                                    "trace": trace_entry,
+                                },
+                            }
+                            if node_name in seen_streaming_nodes:
+                                yield {
+                                    "event": "agent_complete",
+                                    "data": {
+                                        "node": node_name,
                                         "trace": trace_entry,
                                     },
-                                })
+                                }
+
                     elif chunk["type"] == "values":
                         final_state = chunk["data"]
 
@@ -321,11 +378,8 @@ class SimulationService:
                             )
 
                     snapshot = self._build_snapshot(session)
-                    tick_events.append({"event": "step_complete", "data": snapshot.model_dump(mode="json")})
 
-                # Yield all events outside lock
-                for event in tick_events:
-                    yield event
+                yield {"event": "step_complete", "data": snapshot.model_dump(mode="json")}
 
         except Exception as exc:
             yield {"event": "error", "data": {"message": str(exc)}}

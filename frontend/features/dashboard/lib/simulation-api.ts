@@ -1,5 +1,6 @@
 import type {
   AgentUpdatePayload,
+  DecisionLog,
   ScenarioMetadata,
   SimulationApiState,
   SimulationDayType,
@@ -105,13 +106,24 @@ export function getSimulationState(sessionId: string, baseUrl?: string) {
   );
 }
 
+export type StreamCallbacks = {
+  onAgentUpdate: (payload: AgentUpdatePayload) => void;
+  onStepComplete: (snapshot: SimulationApiState) => void;
+  onError: (message: string) => void;
+  onDone: () => void;
+  onAgentStart?: (node: string, timestamp: string) => void;
+  onAgentToken?: (node: string, token: string) => void;
+  onAgentComplete?: (node: string, trace: DecisionLog | null) => void;
+};
+
 export function subscribeSimulationStream(
   sessionId: string,
-  onAgentUpdate: (payload: AgentUpdatePayload) => void,
-  onStepComplete: (snapshot: SimulationApiState) => void,
-  onError: (message: string) => void,
-  onDone: () => void,
+  onAgentUpdate: StreamCallbacks["onAgentUpdate"],
+  onStepComplete: StreamCallbacks["onStepComplete"],
+  onError: StreamCallbacks["onError"],
+  onDone: StreamCallbacks["onDone"],
   baseUrl?: string,
+  extraCallbacks?: Pick<StreamCallbacks, "onAgentStart" | "onAgentToken" | "onAgentComplete">,
 ): () => void {
   const url = `${resolveBaseUrl(baseUrl)}/api/v1/simulation/stream/${sessionId}`;
   const es = new EventSource(url);
@@ -123,6 +135,27 @@ export function subscribeSimulationStream(
 
   es.addEventListener("step_complete", (e: MessageEvent) => {
     onStepComplete(JSON.parse(e.data) as SimulationApiState);
+  });
+
+  es.addEventListener("agent_start", (e: MessageEvent) => {
+    if (extraCallbacks?.onAgentStart) {
+      const parsed = JSON.parse(e.data) as { node: string; timestamp: string };
+      extraCallbacks.onAgentStart(parsed.node, parsed.timestamp);
+    }
+  });
+
+  es.addEventListener("agent_token", (e: MessageEvent) => {
+    if (extraCallbacks?.onAgentToken) {
+      const parsed = JSON.parse(e.data) as { node: string; token: string };
+      extraCallbacks.onAgentToken(parsed.node, parsed.token);
+    }
+  });
+
+  es.addEventListener("agent_complete", (e: MessageEvent) => {
+    if (extraCallbacks?.onAgentComplete) {
+      const parsed = JSON.parse(e.data) as { node: string; trace: DecisionLog | null };
+      extraCallbacks.onAgentComplete(parsed.node, parsed.trace);
+    }
   });
 
   es.addEventListener("simulation_done", () => {

@@ -49,7 +49,9 @@
       "Skill(vercel-react-best-practices:*)",
       "Bash(pnpm add *)",
       "Bash(pnpm install *)",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "WebSearch",
+      "Bash(Get-ChildItem *)"
     ]
   }
 }

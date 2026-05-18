@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   BaselineChart,
   DispatchChart,
@@ -8,14 +8,15 @@ import {
   SocChart,
 } from "./components/dashboard-charts";
 import { KpiCard } from "./components/dashboard-primitives";
-import { ACCENT_STYLES, AGENT_STYLES, type AccentStyle } from "./theme";
+import { ACCENT_STYLES, type AccentStyle } from "./theme";
 import {
   DEFAULT_DEMAND_LIMIT_KW,
   MD_RATE,
 } from "./data/day-scenarios";
+import { AgentStreamFeed, DayTabBar } from "./components/agent-stream-panel";
 import { useSimulationController } from "./hooks/use-simulation-controller";
 import { formatCurrencyValue } from "./lib/formatters";
-import type { DecisionLog } from "./types";
+
 
 function useLocalStorage<T>(key: string, initial: T): [T, (v: T) => void] {
   const [value, setValue] = useState<T>(initial);
@@ -55,39 +56,19 @@ export default function LiveDashboardPage() {
     scenarioMetadata,
     metadataLoading,
     canRun,
+    tabs,
+    activeTabId,
+    selectTab,
+    closeTab,
+    togglePinTab,
   } = useSimulationController();
+
+  const activeTabStreams = tabs.find((t) => t.id === activeTabId)?.streams ?? [];
 
   const [leftOpen, setLeftOpen] = useLocalStorage("fusionquad-left-open", true);
   const [rightOpen, setRightOpen] = useLocalStorage("fusionquad-right-open", true);
-  const [drawerOpen, setDrawerOpen] = useLocalStorage("fusionquad-drawer-open", false);
   const [mobileLeft, setMobileLeft] = useState(false);
   const [mobileRight, setMobileRight] = useState(false);
-
-  const traceRef = useRef<HTMLDivElement>(null);
-  const userScrolledRef = useRef(false);
-  const [showScrollBtn, setShowScrollBtn] = useState(false);
-
-  useEffect(() => {
-    if (!userScrolledRef.current && traceRef.current) {
-      traceRef.current.scrollLeft = traceRef.current.scrollWidth;
-    }
-  }, [simulation.agentTrace.length]);
-
-  const handleTraceScroll = useCallback(() => {
-    const el = traceRef.current;
-    if (!el) return;
-    const atRight = el.scrollWidth - el.scrollLeft - el.clientWidth < 40;
-    userScrolledRef.current = !atRight;
-    setShowScrollBtn(!atRight);
-  }, []);
-
-  const scrollToLatest = useCallback(() => {
-    if (traceRef.current) {
-      traceRef.current.scrollLeft = traceRef.current.scrollWidth;
-      userScrolledRef.current = false;
-      setShowScrollBtn(false);
-    }
-  }, []);
 
   const accent = accentForDayType(selectedDayType);
   const activeDay = dayOptions.find((o) => o.key === selectedDayType) ?? dayOptions[0];
@@ -481,40 +462,67 @@ export default function LiveDashboardPage() {
 
         {/* ── RIGHT PANEL ── */}
         <div
-          className={`relative flex-shrink-0 hidden xl:block transition-[width] duration-300 ease-in-out ${rightOpen ? "xl:w-[300px]" : "xl:w-0"}`}
+          className={`relative flex-shrink-0 hidden xl:block transition-[width] duration-300 ease-in-out ${rightOpen ? "xl:w-[320px]" : "xl:w-0"}`}
         >
           <div className="h-full overflow-hidden rounded-3xl border border-outline bg-surface-2/80 panel-shadow">
-            <div className="w-[300px] h-full">
-              <div className="sticky top-0 z-10 border-b border-outline bg-surface-2/90 px-4 py-3 backdrop-blur">
+            <div className="w-[320px] h-full flex flex-col">
+              <div className="flex-shrink-0 border-b border-outline bg-surface-2/90 px-4 py-3 backdrop-blur">
                 <p className="font-label text-[10px] text-muted">Live State</p>
                 <p className="font-display text-sm font-semibold text-foreground">
                   Battery + Dispatch
                 </p>
               </div>
-              <div className="h-[calc(100%-52px)] overflow-y-auto panel-scroll">
-                <div className="space-y-3 p-5">
-                  <KpiCard
-                    title="Battery SoC"
-                    value={String(simulation.batterySocPercent)}
-                    suffix="%"
-                    detail={`${simulation.bessCapacityKwh} kWh installed`}
-                    tone="primary"
-                  />
-                  <KpiCard
-                    title="Last Dispatch"
-                    value={String(Math.round(simulation.lastDispatchKw))}
-                    suffix="kW"
-                    detail="Positive = battery discharge issued"
-                    tone="secondary"
-                  />
-                  <KpiCard
-                    title="Total Savings"
-                    value={formatCurrencyValue(simulation.totalSavingsRm)}
-                    prefix="RM"
-                    detail={`${simulation.shavePercentage.toFixed(1)}% shave score`}
-                    tone="tertiary"
-                  />
+
+              {/* KPI strip — compact 3-column row */}
+              <div className="flex-shrink-0 grid grid-cols-3 divide-x divide-outline border-b border-outline">
+                <div className="px-3 py-2.5">
+                  <p className="font-label text-[9px] text-muted uppercase tracking-wide">Batt SoC</p>
+                  <p className="font-display text-lg font-semibold text-foreground mt-0.5">
+                    {simulation.batterySocPercent}<span className="text-xs text-muted font-normal ml-0.5">%</span>
+                  </p>
+                  <p className="text-[9px] text-muted truncate">{simulation.bessCapacityKwh} kWh</p>
                 </div>
+                <div className="px-3 py-2.5">
+                  <p className="font-label text-[9px] text-muted uppercase tracking-wide">Dispatch</p>
+                  <p className="font-display text-lg font-semibold text-foreground mt-0.5">
+                    {Math.round(simulation.lastDispatchKw)}<span className="text-xs text-muted font-normal ml-0.5">kW</span>
+                  </p>
+                  <p className="text-[9px] text-muted truncate">last issued</p>
+                </div>
+                <div className="px-3 py-2.5">
+                  <p className="font-label text-[9px] text-muted uppercase tracking-wide">Savings</p>
+                  <p className="font-display text-lg font-semibold text-foreground mt-0.5">
+                    <span className="text-xs text-muted font-normal mr-0.5">RM</span>{formatCurrencyValue(simulation.totalSavingsRm)}
+                  </p>
+                  <p className="text-[9px] text-muted truncate">{simulation.shavePercentage.toFixed(1)}% shave</p>
+                </div>
+              </div>
+
+              {/* Agent stream section */}
+              <div className="flex-shrink-0 px-3 pt-3 pb-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="font-label text-[10px] text-muted">Agent Stream</p>
+                  {isBusy && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  )}
+                  {tabs.length > 0 && (
+                    <span className="ml-auto rounded-full border border-outline bg-surface px-2 py-0.5 text-[10px] text-muted">
+                      {tabs.length} {tabs.length === 1 ? "run" : "runs"}
+                    </span>
+                  )}
+                </div>
+                <DayTabBar
+                  tabs={tabs}
+                  activeTabId={activeTabId}
+                  onSelect={selectTab}
+                  onClose={closeTab}
+                  onTogglePin={togglePinTab}
+                />
+              </div>
+
+              {/* Stream feed — fills remaining space, scrollable */}
+              <div className="flex-1 min-h-0 overflow-y-auto panel-scroll px-3 pb-3">
+                <AgentStreamFeed streams={activeTabStreams} />
               </div>
             </div>
           </div>
@@ -528,60 +536,6 @@ export default function LiveDashboardPage() {
           >
             {rightOpen ? "▶" : "◀"}
           </button>
-        </div>
-      </div>
-
-      {/* ── BOTTOM DRAWER: Agent Trace ── */}
-      <div
-        className="flex-shrink-0 overflow-hidden rounded-3xl border border-outline bg-surface-2/80 backdrop-blur panel-shadow transition-[height] duration-300 ease-in-out"
-        style={{ height: drawerOpen ? 260 : 40 }}
-      >
-        {/* Tab / header */}
-        <button
-          type="button"
-          onClick={() => setDrawerOpen(!drawerOpen)}
-          className="flex w-full h-10 items-center gap-3 px-5 text-left hover:bg-surface-3/40 transition flex-shrink-0"
-        >
-          <span className="font-label text-[10px] text-muted">Agent Trace</span>
-          {simulation.agentTrace.length > 0 && (
-            <span className="rounded-full border border-outline bg-surface px-2 py-0.5 text-[10px] text-muted">
-              {simulation.agentTrace.length} steps
-            </span>
-          )}
-          {isBusy && (
-            <span className="ml-1 h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-          )}
-          <span className="ml-auto text-[10px] text-muted">{drawerOpen ? "▼" : "▲"}</span>
-        </button>
-
-        {/* Horizontal card timeline */}
-        <div className="relative" style={{ height: 220 }}>
-          <div
-            ref={traceRef}
-            onScroll={handleTraceScroll}
-            className="h-full overflow-x-auto overflow-y-hidden px-5 pt-2 pb-4 flex items-start gap-3 panel-scroll"
-          >
-            {simulation.agentTrace.length > 0 ? (
-              simulation.agentTrace.map((log, i) => (
-                <DecisionCard key={`${log.timestamp}-${i}`} log={log} index={i} compact />
-              ))
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <p className="text-xs text-muted">
-                  No agent steps yet. Run optimization to see trace.
-                </p>
-              </div>
-            )}
-          </div>
-          {showScrollBtn && (
-            <button
-              type="button"
-              onClick={scrollToLatest}
-              className="absolute right-5 bottom-4 rounded-full border border-outline bg-surface px-3 py-1 text-[10px] text-muted shadow-md hover:text-foreground transition"
-            >
-              → Latest
-            </button>
-          )}
         </div>
       </div>
 
@@ -647,8 +601,8 @@ export default function LiveDashboardPage() {
       {mobileRight && (
         <div className="xl:hidden fixed inset-0 z-40 flex justify-end">
           <div className="flex-1 bg-black/40" onClick={() => setMobileRight(false)} />
-          <div className="w-80 max-w-[85vw] bg-surface-2 border-l border-outline overflow-y-auto">
-            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-outline">
+          <div className="w-80 max-w-[85vw] bg-surface-2 border-l border-outline flex flex-col">
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-outline flex-shrink-0">
               <p className="font-label text-[11px] text-muted">Live State</p>
               <button
                 type="button"
@@ -658,28 +612,41 @@ export default function LiveDashboardPage() {
                 ✕
               </button>
             </div>
-            <div className="space-y-3 p-5">
-              <KpiCard
-                title="Battery SoC"
-                value={String(simulation.batterySocPercent)}
-                suffix="%"
-                detail={`${simulation.bessCapacityKwh} kWh installed`}
-                tone="primary"
+            <div className="flex-shrink-0 grid grid-cols-3 divide-x divide-outline border-b border-outline">
+              <div className="px-3 py-2.5">
+                <p className="font-label text-[9px] text-muted uppercase tracking-wide">Batt SoC</p>
+                <p className="font-display text-lg font-semibold text-foreground mt-0.5">
+                  {simulation.batterySocPercent}<span className="text-xs text-muted font-normal ml-0.5">%</span>
+                </p>
+                <p className="text-[9px] text-muted truncate">{simulation.bessCapacityKwh} kWh</p>
+              </div>
+              <div className="px-3 py-2.5">
+                <p className="font-label text-[9px] text-muted uppercase tracking-wide">Dispatch</p>
+                <p className="font-display text-lg font-semibold text-foreground mt-0.5">
+                  {Math.round(simulation.lastDispatchKw)}<span className="text-xs text-muted font-normal ml-0.5">kW</span>
+                </p>
+                <p className="text-[9px] text-muted truncate">last issued</p>
+              </div>
+              <div className="px-3 py-2.5">
+                <p className="font-label text-[9px] text-muted uppercase tracking-wide">Savings</p>
+                <p className="font-display text-lg font-semibold text-foreground mt-0.5">
+                  <span className="text-xs text-muted font-normal mr-0.5">RM</span>{formatCurrencyValue(simulation.totalSavingsRm)}
+                </p>
+                <p className="text-[9px] text-muted truncate">{simulation.shavePercentage.toFixed(1)}% shave</p>
+              </div>
+            </div>
+            <div className="flex-shrink-0 px-4 pt-3 pb-2">
+              <p className="font-label text-[10px] text-muted mb-2">Agent Stream</p>
+              <DayTabBar
+                tabs={tabs}
+                activeTabId={activeTabId}
+                onSelect={selectTab}
+                onClose={closeTab}
+                onTogglePin={togglePinTab}
               />
-              <KpiCard
-                title="Last Dispatch"
-                value={String(Math.round(simulation.lastDispatchKw))}
-                suffix="kW"
-                detail="Positive = battery discharge issued"
-                tone="secondary"
-              />
-              <KpiCard
-                title="Total Savings"
-                value={formatCurrencyValue(simulation.totalSavingsRm)}
-                prefix="RM"
-                detail={`${simulation.shavePercentage.toFixed(1)}% shave score`}
-                tone="tertiary"
-              />
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto panel-scroll px-4 pb-4">
+              <AgentStreamFeed streams={activeTabStreams} />
             </div>
           </div>
         </div>
@@ -784,59 +751,6 @@ function GuidedEmptyState({ isIdle, isBusy }: { isIdle: boolean; isBusy: boolean
             {s.label}
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function DecisionCard({
-  log,
-  index,
-  compact = false,
-}: {
-  log: DecisionLog;
-  index: number;
-  compact?: boolean;
-}) {
-  const agentKey = log.agent as keyof typeof AGENT_STYLES;
-  const styles = AGENT_STYLES[agentKey] ?? AGENT_STYLES["Controller Agent"];
-
-  return (
-    <div
-      className={`rounded-xl border border-outline bg-surface px-4 py-4 flex-shrink-0 ${compact ? "w-64" : "w-full"}`}
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] ${styles.badge}`}>
-          {log.agent}
-        </span>
-        <span className="font-label text-[9px] text-muted">{log.timestamp}</span>
-      </div>
-      <div className="mt-0.5 flex items-center gap-1.5">
-        <span className={`h-1.5 w-1.5 rounded-full ${styles.dot}`} />
-        <span className="font-label text-[9px] text-muted">
-          Step {String(index + 1).padStart(2, "0")}
-        </span>
-      </div>
-      <h4 className="font-display mt-2 text-sm font-semibold text-foreground leading-snug">
-        {log.decision}
-      </h4>
-      <p className="mt-1 text-xs leading-5 text-muted line-clamp-3">{log.reason}</p>
-      {!compact && (
-        <div className="mt-2 rounded-lg border border-outline bg-surface-2 px-3 py-2 text-xs leading-5 text-foreground">
-          {log.action}
-        </div>
-      )}
-      <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
-        {log.expected_reduction_kw ? (
-          <span className="rounded-full border border-secondary/35 bg-secondary/10 px-2.5 py-0.5 text-secondary">
-            Shave {log.expected_reduction_kw} kW
-          </span>
-        ) : null}
-        {log.estimated_saving_rm ? (
-          <span className="rounded-full border border-primary/35 bg-primary/10 px-2.5 py-0.5 text-primary">
-            RM{formatCurrencyValue(log.estimated_saving_rm)}
-          </span>
-        ) : null}
       </div>
     </div>
   );

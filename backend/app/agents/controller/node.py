@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import concurrent.futures
 from dataclasses import asdict
 import logging
 from pathlib import Path
@@ -19,7 +18,6 @@ from app.core.model_selection import resolve_deepagents_model
 logger = logging.getLogger(__name__)
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
-_AGENT_TIMEOUT_S = 30.0
 
 _CONTROLLER_PROMPT = (Path(__file__).parent / "prompts" / "system.md").read_text(encoding="utf-8")
 
@@ -89,7 +87,6 @@ def milp_optimizer(
     return {"dispatch_action": dispatch_action}
 
 
-@tool
 def mock_inverter_dispatch(
     action: str,
     power_kw: float,
@@ -166,7 +163,7 @@ def _get_controller_agent() -> Any:
     return _CONTROLLER_AGENT
 
 
-def controller_node(state: AgentState) -> dict:
+async def controller_node(state: AgentState) -> dict:
     """Execute BESS dispatch using MILP optimization + inverter execution."""
     facility, forecast_values = _select_facility_forecast(state)
 
@@ -213,13 +210,10 @@ def controller_node(state: AgentState) -> dict:
         agent = _get_controller_agent()
         session_id = state.get("session_id", "default")
         invoke_config = {"configurable": {"thread_id": f"controller-{session_id}"}}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _ex:
-            future = _ex.submit(
-                agent.invoke,
-                {"messages": [{"role": "user", "content": prompt}]},
-                invoke_config,
-            )
-            result = future.result(timeout=_AGENT_TIMEOUT_S)
+        result = await agent.ainvoke(
+            {"messages": [{"role": "user", "content": prompt}]},
+            invoke_config,
+        )
         structured = result.get("structured_response") if isinstance(result, dict) else None
         if isinstance(structured, dict) and structured.get("action"):
             forced_action = {
@@ -395,11 +389,11 @@ def _execute_dispatch(
     elif action == "charge":
         power_kw = action_dict.get("charge_kw", 0.0) or 0.0
 
-    return mock_inverter_dispatch.invoke({
-        "action": action,
-        "power_kw": power_kw,
-        "duration_min": duration_min,
-        "current_soc": battery_soc,
-        "bess_capacity_kwh": bess_capacity_kwh,
-        "temperature_c": temperature_c,
-    })
+    return mock_inverter_dispatch(
+        action=action,
+        power_kw=power_kw,
+        duration_min=duration_min,
+        current_soc=battery_soc,
+        bess_capacity_kwh=bess_capacity_kwh,
+        temperature_c=temperature_c,
+    )

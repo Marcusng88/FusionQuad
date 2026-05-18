@@ -2,7 +2,9 @@ import {
   DEFAULT_DEMAND_LIMIT_KW,
 } from "../data/day-scenarios.ts";
 import type {
+  AgentStreamEntry,
   AgentUpdatePayload,
+  DayTab,
   DecisionLog,
   EnergyPoint,
   SimulationApiState,
@@ -293,6 +295,90 @@ function numberOrUndefined(value: unknown) {
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+// ── Tab / stream state helpers ──────────────────────────────────────────────
+
+export function createDayTab(
+  sessionId: string,
+  dayType: SimulationDayType,
+  currentTime: string | null,
+): DayTab {
+  const date = currentTime
+    ? new Date(currentTime).toLocaleDateString("en-MY", { year: "numeric", month: "short", day: "2-digit" })
+    : new Date().toLocaleDateString("en-MY", { year: "numeric", month: "short", day: "2-digit" });
+  const label = `${date} · ${dayType.replace(/_/g, " ")}`;
+  return { id: sessionId, label, dayType, date, streams: [], pinned: false };
+}
+
+export function addOrUpdateTab(tabs: DayTab[], tab: DayTab): DayTab[] {
+  const idx = tabs.findIndex((t) => t.id === tab.id);
+  if (idx === -1) return [...tabs, tab];
+  const updated = [...tabs];
+  updated[idx] = tab;
+  return updated;
+}
+
+export function closeTab(tabs: DayTab[], id: string): DayTab[] {
+  return tabs.filter((t) => t.id !== id || t.pinned);
+}
+
+export function togglePinTab(tabs: DayTab[], id: string): DayTab[] {
+  return tabs.map((t) => (t.id === id ? { ...t, pinned: !t.pinned } : t));
+}
+
+export function handleAgentStart(
+  tabs: DayTab[],
+  activeTabId: string,
+  node: string,
+  timestamp: string,
+): DayTab[] {
+  return tabs.map((t) => {
+    if (t.id !== activeTabId) return t;
+    const entry: AgentStreamEntry = { node, tokens: "", isStreaming: true, traceEntry: null, timestamp };
+    return { ...t, streams: [...t.streams, entry] };
+  });
+}
+
+export function handleAgentToken(
+  tabs: DayTab[],
+  activeTabId: string,
+  node: string,
+  token: string,
+): DayTab[] {
+  return tabs.map((t) => {
+    if (t.id !== activeTabId) return t;
+    const streams = [...t.streams];
+    // find last streaming entry for this node
+    for (let i = streams.length - 1; i >= 0; i--) {
+      if (streams[i].node === node && streams[i].isStreaming) {
+        streams[i] = { ...streams[i], tokens: streams[i].tokens + token };
+        return { ...t, streams };
+      }
+    }
+    // no existing entry → create one (agent_start may have been missed)
+    const entry: AgentStreamEntry = { node, tokens: token, isStreaming: true, traceEntry: null, timestamp: "" };
+    return { ...t, streams: [...t.streams, entry] };
+  });
+}
+
+export function handleAgentComplete(
+  tabs: DayTab[],
+  activeTabId: string,
+  node: string,
+  trace: DecisionLog | null,
+): DayTab[] {
+  return tabs.map((t) => {
+    if (t.id !== activeTabId) return t;
+    const streams = [...t.streams];
+    for (let i = streams.length - 1; i >= 0; i--) {
+      if (streams[i].node === node && streams[i].isStreaming) {
+        streams[i] = { ...streams[i], isStreaming: false, traceEntry: trace };
+        return { ...t, streams };
+      }
+    }
+    return t;
+  });
 }
 
 function emptySummary(): SimulationSummary {

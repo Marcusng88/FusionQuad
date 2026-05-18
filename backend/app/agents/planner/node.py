@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import concurrent.futures
 import json
 from pathlib import Path
 from typing import Any
@@ -14,13 +13,13 @@ from deepagents.backends.composite import CompositeBackend
 import logging
 
 from app.agents.planner import STRATEGIES_DIR, EXPERIENCE_DIR, get_forecast_context, search_guidelines
+from app.agents.shared_middleware import OutputFormatGuardMiddleware
 from app.agents.state import AgentState, OptimizationStrategy
 from app.core.model_selection import resolve_deepagents_model
 
 logger = logging.getLogger(__name__)
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
-_AGENT_TIMEOUT_S = 30.0
 
 _PLANNER_PROMPT = (Path(__file__).parent / "prompts" / "system.md").read_text(encoding="utf-8")
 
@@ -50,7 +49,10 @@ def _get_planner_agent() -> Any:
             system_prompt=_PLANNER_PROMPT,
             tools=[],
             backend=_build_planner_backend(),
-            response_format=OptimizationStrategy,
+            middleware=[OutputFormatGuardMiddleware(
+                required_fields=["strategy", "shave"],
+                agent_name="planner",
+            )],
         )
     return _PLANNER_AGENT
 
@@ -104,7 +106,7 @@ def _fallback_strategy(state: AgentState) -> OptimizationStrategy:
     )
 
 
-def planner_node(state: AgentState) -> dict:
+async def planner_node(state: AgentState) -> dict:
     context = get_forecast_context(state)
     tariff = state.get("tariff") or {}
     guidelines = search_guidelines(f"{tariff.get('window', '')} {state.get('day_type', '')}")
@@ -116,20 +118,18 @@ def planner_node(state: AgentState) -> dict:
         "Based on the following state and guidelines, select the optimal BESS strategy." + chr(10) + chr(10) +
         f"STATE:" + chr(10) + context + chr(10) + chr(10) + "GUIDELINES:" + chr(10) + guidelines_text + chr(10) + chr(10) +
         "You have access to /strategies/ and /experience/ via the filesystem backend." + chr(10) +
-        "Use read_file to read strategy files as needed, then respond with optimization_strategy JSON only."
+        "Use read_file to read strategy files as needed, then respond with the strategy as JSON with fields: " +
+        "strategy_name, shave_kw, reserve_soc_pct, target_soc_end, rationale, confidence, md_limit_kw, constraints."
     )
 
     try:
         agent = _get_planner_agent()
         session_id = state.get("session_id", "default")
         invoke_config = {"configurable": {"thread_id": f"planner-{session_id}"}}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _ex:
-            future = _ex.submit(
-                agent.invoke,
-                {"messages": [{"role": "user", "content": prompt}]},
-                invoke_config,
-            )
-            result = future.result(timeout=_AGENT_TIMEOUT_S)
+        result = await agent.ainvoke(
+            {"messages": [{"role": "user", "content": prompt}]},
+            invoke_config,
+        )
         structured = result.get("structured_response") if isinstance(result, dict) else None
         if isinstance(structured, dict):
             strategy = _parse_strategy_payload(structured) or _fallback_strategy(state)

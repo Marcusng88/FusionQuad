@@ -13,7 +13,7 @@ On validation failure: returns error ToolMessage immediately (deterministic —
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from langchain.agents.middleware.types import AgentMiddleware, ToolCallRequest
@@ -50,6 +50,45 @@ class DispatchValidationMiddleware(AgentMiddleware):
                 if error_msg is None:
                     return result
                 # Deterministic validation failure — return error for agent to fix
+                return ToolMessage(
+                    content=(
+                        f"Dispatch validation failed: {error_msg}. "
+                        "Fix dispatch parameters and retry."
+                    ),
+                    tool_call_id=tool_call_id,
+                    status="error",
+                )
+            except Exception as exc:
+                last_exc = exc
+
+        return ToolMessage(
+            content=(
+                f"mock_inverter_dispatch failed after {self._max_retries + 1} attempts: "
+                f"{last_exc}"
+            ),
+            tool_call_id=tool_call_id,
+            status="error",
+        )
+
+    async def awrap_tool_call(
+        self,
+        request: ToolCallRequest,
+        handler: Callable[[ToolCallRequest], Awaitable[ToolMessage | Any]],
+    ) -> ToolMessage | Any:
+        tool_call = request.tool_call
+        if tool_call.get("name") != _DISPATCH_TOOL:
+            return await handler(request)
+
+        requested_action: str = (tool_call.get("args") or {}).get("action", "hold")
+        tool_call_id: str = tool_call.get("id") or ""
+
+        last_exc: Exception | None = None
+        for attempt in range(self._max_retries + 1):
+            try:
+                result = await handler(request)
+                error_msg = _validate(result, requested_action)
+                if error_msg is None:
+                    return result
                 return ToolMessage(
                     content=(
                         f"Dispatch validation failed: {error_msg}. "

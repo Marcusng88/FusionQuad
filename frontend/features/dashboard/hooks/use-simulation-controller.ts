@@ -9,9 +9,16 @@ import {
 
 import { DAY_SCENARIOS } from "../data/day-scenarios";
 import {
+  addOrUpdateTab,
+  closeTab as closeTabFn,
+  createDayTab,
   createSimulationViewModel,
+  handleAgentComplete as handleAgentCompleteFn,
+  handleAgentStart as handleAgentStartFn,
+  handleAgentToken as handleAgentTokenFn,
   mergeAgentUpdate,
   mergeSimulationSnapshot,
+  togglePinTab as togglePinTabFn,
 } from "../lib/live-simulation";
 import {
   fetchScenarioMetadata,
@@ -19,6 +26,7 @@ import {
   subscribeSimulationStream,
 } from "../lib/simulation-api";
 import type {
+  DayTab,
   ScenarioMetadata,
   SimulationApiState,
   SimulationDayType,
@@ -48,6 +56,9 @@ export function useSimulationController() {
   const [isBusy, setIsBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeAgentNode, setActiveAgentNode] = useState<string | null>(null);
+  const [tabs, setTabs] = useState<DayTab[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const activeTabIdRef = useRef<string | null>(null);
   const streamCleanupRef = useRef<(() => void) | null>(null);
 
   const dayOptions = resolveDayOptions(simulation.scenarios);
@@ -106,6 +117,12 @@ export function useSimulationController() {
       return null;
     }
 
+    // Create new day tab for this run
+    const newTab = createDayTab(started.session_id, dayType, started.current_time);
+    setTabs((t) => addOrUpdateTab(t, newTab));
+    setActiveTabId(newTab.id);
+    activeTabIdRef.current = newTab.id;
+
     setIsBusy(true);
     setErrorMessage(null);
 
@@ -136,6 +153,24 @@ export function useSimulationController() {
           streamCleanupRef.current = null;
           resolve(started);
         },
+        undefined,
+        {
+          onAgentStart: (node, timestamp) => {
+            const tabId = activeTabIdRef.current;
+            if (!tabId) return;
+            setTabs((t) => handleAgentStartFn(t, tabId, node, timestamp));
+          },
+          onAgentToken: (node, token) => {
+            const tabId = activeTabIdRef.current;
+            if (!tabId) return;
+            setTabs((t) => handleAgentTokenFn(t, tabId, node, token));
+          },
+          onAgentComplete: (node, trace) => {
+            const tabId = activeTabIdRef.current;
+            if (!tabId) return;
+            setTabs((t) => handleAgentCompleteFn(t, tabId, node, trace));
+          },
+        },
       );
       streamCleanupRef.current = cleanup;
     });
@@ -165,6 +200,24 @@ export function useSimulationController() {
 
   const canRun = !isBusy && timeRange.start !== null && timeRange.end !== null;
 
+  const selectTab = useCallback((id: string) => {
+    setActiveTabId(id);
+    activeTabIdRef.current = id;
+  }, []);
+
+  const closeTab = useCallback((id: string) => {
+    setTabs((t) => closeTabFn(t, id));
+    setActiveTabId((current) => {
+      if (current !== id) return current;
+      const remaining = tabs.filter((t) => t.id !== id || t.pinned);
+      return remaining.length > 0 ? remaining[remaining.length - 1].id : null;
+    });
+  }, [tabs]);
+
+  const togglePinTab = useCallback((id: string) => {
+    setTabs((t) => togglePinTabFn(t, id));
+  }, []);
+
   return {
     dayOptions,
     selectedDayType,
@@ -181,5 +234,10 @@ export function useSimulationController() {
     scenarioMetadata,
     metadataLoading,
     canRun,
+    tabs,
+    activeTabId,
+    selectTab,
+    closeTab,
+    togglePinTab,
   };
 }

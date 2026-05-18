@@ -9,7 +9,6 @@ The deep agent uses CompositeBackend with FilesystemBackend scoped to
 At end-of-day, it reads past audit reports and appends a summary.
 """
 
-import concurrent.futures
 from datetime import datetime
 import logging
 from pathlib import Path
@@ -37,7 +36,6 @@ from app.agents.auditor.evaluation import (
 from app.core.model_selection import resolve_deepagents_model
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
-_AGENT_TIMEOUT_S = 30.0
 _EXPERIENCE_DIR = Path(__file__).parent.parent.parent.parent / "experience"
 _STRATEGIES_DIR = Path(__file__).parent.parent.parent.parent / "strategies"
 
@@ -174,7 +172,7 @@ def _parse_llm_payload(payload: str) -> dict | None:
     return None
 
 
-def auditor_node(state: dict) -> dict:
+async def auditor_node(state: dict) -> dict:
     """Main auditor node — delegates tick evaluation to the deep agent."""
     # Read from value objects
     dispatch_result = state.get("dispatch_result")
@@ -277,13 +275,10 @@ def auditor_node(state: dict) -> dict:
 
     try:
         invoke_config = {"configurable": {"thread_id": f"auditor-{state.get('session_id', 'default')}"}}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _ex:
-            future = _ex.submit(
-                agent.invoke,
-                {"messages": [{"role": "user", "content": prompt}]},
-                invoke_config,
-            )
-            result = future.result(timeout=_AGENT_TIMEOUT_S)
+        result = await agent.ainvoke(
+            {"messages": [{"role": "user", "content": prompt}]},
+            invoke_config,
+        )
         messages = result.get("messages", []) if isinstance(result, dict) else []
         last = messages[-1].content if messages else ""
         parsed = _parse_llm_payload(str(last))

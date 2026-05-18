@@ -121,6 +121,23 @@ export type AgentUpdatePayload = {
   trace?: DecisionLog | null;
 };
 
+export type AgentStreamEntry = {
+  node: string;
+  tokens: string;
+  isStreaming: boolean;
+  traceEntry: DecisionLog | null;
+  timestamp: string;
+};
+
+export type DayTab = {
+  id: string;
+  label: string;
+  dayType: SimulationDayType;
+  date: string;
+  streams: AgentStreamEntry[];
+  pinned: boolean;
+};
+
 export type SimulationViewModel = {
   sessionId: string | null;
   status: SimulationRunStatus;

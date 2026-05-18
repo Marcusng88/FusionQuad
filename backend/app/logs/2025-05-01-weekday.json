@@ -2,22 +2,20 @@
   "ticks": [
     {
       "tick": 0,
-      "datetime": "2025-05-01T17:00:00",
-      "forecast_kw": -150.7042694091797,
+      "datetime": "2025-05-01T15:00:00",
+      "forecast_kw": 152.56948852539062,
       "forecast_confidence": 0.4,
       "tariff_window": "WEEKEND",
       "optimization_strategy": {
-        "strategy_name": "IDLE (No valid discharge/charge trigger met)",
-        "shave_kw": 0.0,
-        "reserve_soc_pct": 50.0,
-        "target_soc_end": 50.0,
-        "rationale": "Tariff window is WEEKEND and day_type is weekday, so neither the Weekday PEAK aggressive peak-shaving trigger (requires tariff_window=PEAK) nor the OFF_PEAK valley-fill trigger (requires tariff_window=OFF_PEAK and typically overnight 22:00-06:00) is applicable. Additionally battery_soc is only 0.5% (<10% hard minimum for any discharge per general guidelines), so discharge is disallowed and the safe action is to stay idle/avoid BESS power movement. With no valid charge window specified, keep SOC unchanged.",
-        "confidence": 0.82,
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
         "md_limit_kw": 800.0,
         "constraints": [
-          "Never discharge below 10% SOC (hard minimum). Current SOC=0.5% => discharge prohibited.",
-          "No applicable WEEKEND strategy found in provided guidelines (no PEAK/OFF_PEAK trigger).",
-          "Respect emergency rules: if faults/frequency deviations occur, remain idle."
+          "max_100kW_interval"
         ]
       },
       "dispatch_action": {
@@ -35,28 +33,26 @@
         "actual_discharge_kw": 50.0,
         "efficiency_loss_pct": 0.05
       },
-      "actual_load_kw": 157.0,
+      "actual_load_kw": 221.0,
       "within_limit": true,
       "savings_rm": 0.0
     },
     {
       "tick": 1,
-      "datetime": "2025-05-01T17:30:00",
-      "forecast_kw": -149.9734649658203,
+      "datetime": "2025-05-01T15:30:00",
+      "forecast_kw": 152.566162109375,
       "forecast_confidence": 0.4,
       "tariff_window": "WEEKEND",
       "optimization_strategy": {
-        "strategy_name": "IDLE (no eligible PEAK discharge; prepare for OFF_PEAK later)",
-        "shave_kw": 0.0,
-        "reserve_soc_pct": 20.0,
-        "target_soc_end": 52.0,
-        "rationale": "Tariff window is WEEKEND while available peak-shaving discharge guidance requires `tariff_window: PEAK` and weekday PEAK conditions. Current day_type is weekday but discharge trigger also requires load_forecast > 50 kW; provided forecast magnitudes are ~-150 kW (not meeting the stated positive >50 kW criterion) and confidence is low (0.4). Battery SOC is ~52% (>40%), but without the PEAK tariff trigger the aggressive peak-shaving rules do not apply. With SOC already moderate and no OFF_PEAK charging window indicated (offpeak_valley_fill is typically 22:00-06:00), optimal action is to hold (no shave/no charge) to avoid violating guideline triggers.",
-        "confidence": 0.66,
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
         "md_limit_kw": 800.0,
         "constraints": [
-          "Do not discharge below hard minimum SOC (10%); maintain recommended soft minimum (20%)",
-          "Respect strategy trigger conditions: aggressive_peak_shaving requires tariff_window=PEAK and load_forecast > 50 kW (weekday)",
-          "Do not start OFF_PEAK valley fill outside typical 22:00-06:00 window"
+          "max_100kW_interval"
         ]
       },
       "dispatch_action": {
@@ -74,98 +70,536 @@
         "actual_discharge_kw": 50.0,
         "efficiency_loss_pct": 0.05
       },
-      "actual_load_kw": 146.0,
+      "actual_load_kw": 221.0,
       "within_limit": true,
       "savings_rm": 0.0
     },
     {
       "tick": 2,
-      "datetime": "2025-05-01T18:00:00",
-      "forecast_kw": -149.1732177734375,
+      "datetime": "2025-05-01T16:00:00",
+      "forecast_kw": 152.56610107421875,
       "forecast_confidence": 0.4,
       "tariff_window": "WEEKEND",
       "optimization_strategy": {
-        "strategy_name": "Idle / Forecast-Not-Eligible (Tariff mismatch: WEEKEND vs weekday PEAK rules)",
-        "shave_kw": 0.0,
-        "reserve_soc_pct": 55.0,
-        "target_soc_end": 55.0,
-        "rationale": "Current context is WEEKEND while provided discharge guideline requires `tariff_window: PEAK` for aggressive peak shaving. Even though SOC is ~54.75% (>40%), the PEAK discharge trigger is not met due to tariff mismatch. With low forecast confidence (0.4) and load forecast values provided as negative kW (ambiguous for peak-shaving eligibility), the safest cost-control action per guidelines is to avoid untriggered discharge/charging and hold SOC. Reserve SOC is set conservatively above the 20% soft minimum.",
-        "confidence": 0.56,
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
         "md_limit_kw": 800.0,
         "constraints": [
-          "Do not discharge below 10% SOC (hard minimum)",
-          "Maintain >=20% SOC reserve for discharge scenarios (soft minimum)",
-          "Only apply aggressive peak-shaving discharge when `tariff_window` is PEAK and day_type is weekday with sufficient predicted load"
+          "max_100kW_interval"
         ]
       },
       "dispatch_action": {
-        "action": "discharge",
-        "discharge_kw": 0.0,
-        "charge_kw": null,
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
         "duration_min": 30,
         "expected_soc_after": 0.5475
       },
       "dispatch_result": {
-        "new_soc": 0.5475000000000001,
-        "temp_increase_c": 0.0,
+        "new_soc": 0.5712500000000001,
+        "temp_increase_c": 0.1,
         "cycle_count_delta": 0.0,
-        "action_taken": "discharge",
-        "actual_discharge_kw": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
         "efficiency_loss_pct": 0.05
       },
-      "actual_load_kw": 91.0,
+      "actual_load_kw": 218.0,
       "within_limit": true,
       "savings_rm": 0.0
     },
     {
       "tick": 3,
-      "datetime": "2025-05-01T18:30:00",
-      "forecast_kw": -148.5400848388672,
+      "datetime": "2025-05-01T16:30:00",
+      "forecast_kw": 152.55723571777344,
       "forecast_confidence": 0.4,
       "tariff_window": "WEEKEND",
       "optimization_strategy": {
-        "strategy_name": "Off-Peak Valley Fill",
-        "shave_kw": 0.0,
-        "reserve_soc_pct": 80.0,
-        "target_soc_end": 92.0,
-        "rationale": "Tariff window is WEEKEND (not PEAK), current time is 18:30 (outside the typical 22:00\u201306:00 overnight charging window defined for OFF_PEAK valley fill). Also, the provided weekday load forecast is negative (-148.54 kW) and confidence is low (0.4), so there is no justified peak-shaving discharge. With SOC already ~54.75% (>40% but <85%), the best rule-consistent action is to prepare for future PEAK by charging toward a high target SOC. Target set to ~92% to balance readiness and cycle-life constraints (vs. 90\u201395% guideline).",
-        "confidence": 0.46,
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
         "md_limit_kw": 800.0,
         "constraints": [
-          "No PEAK discharge trigger met: tariff_window != PEAK",
-          "Do not discharge based on invalid/negative forecast load (-148.54 kW)",
-          "Maintain SOC headroom: charge only if SOC < 85% (guideline trigger)",
-          "Charging target capped under OFF_PEAK rule: aim 90\u201395% by next PEAK",
-          "Respect charge-rate limits (50\u201380 kW per 15-min in guidelines) even though exact kW not provided"
+          "max_100kW_interval"
         ]
       },
       "dispatch_action": {
-        "action": "discharge",
-        "discharge_kw": 0.0,
-        "charge_kw": null,
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
         "duration_min": 30,
-        "expected_soc_after": 0.5475
+        "expected_soc_after": 0.5713
       },
       "dispatch_result": {
-        "new_soc": 0.5475000000000001,
-        "temp_increase_c": 0.0,
+        "new_soc": 0.5950000000000002,
+        "temp_increase_c": 0.1,
         "cycle_count_delta": 0.0,
-        "action_taken": "discharge",
-        "actual_discharge_kw": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
         "efficiency_loss_pct": 0.05
       },
-      "actual_load_kw": 90.0,
+      "actual_load_kw": 217.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 4,
+      "datetime": "2025-05-01T17:00:00",
+      "forecast_kw": 152.5491943359375,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.595
+      },
+      "dispatch_result": {
+        "new_soc": 0.6187500000000002,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 157.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 5,
+      "datetime": "2025-05-01T17:30:00",
+      "forecast_kw": 152.3485870361328,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.6188
+      },
+      "dispatch_result": {
+        "new_soc": 0.6425000000000003,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 146.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 6,
+      "datetime": "2025-05-01T18:00:00",
+      "forecast_kw": 152.1971893310547,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.6425
+      },
+      "dispatch_result": {
+        "new_soc": 0.6662500000000003,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 141.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 7,
+      "datetime": "2025-05-01T18:30:00",
+      "forecast_kw": 152.1485595703125,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.6663
+      },
+      "dispatch_result": {
+        "new_soc": 0.6900000000000004,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 140.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 8,
+      "datetime": "2025-05-01T19:00:00",
+      "forecast_kw": 152.1824951171875,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.69
+      },
+      "dispatch_result": {
+        "new_soc": 0.7137500000000004,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 144.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 9,
+      "datetime": "2025-05-01T19:30:00",
+      "forecast_kw": 152.27059936523438,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.7138
+      },
+      "dispatch_result": {
+        "new_soc": 0.7375000000000005,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 147.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 10,
+      "datetime": "2025-05-01T20:00:00",
+      "forecast_kw": 152.37063598632812,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.7375
+      },
+      "dispatch_result": {
+        "new_soc": 0.7612500000000005,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 148.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 11,
+      "datetime": "2025-05-01T20:30:00",
+      "forecast_kw": 152.45291137695312,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.7613
+      },
+      "dispatch_result": {
+        "new_soc": 0.7850000000000006,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 148.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 12,
+      "datetime": "2025-05-01T21:00:00",
+      "forecast_kw": 152.5088348388672,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.785
+      },
+      "dispatch_result": {
+        "new_soc": 0.8087500000000006,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 151.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 13,
+      "datetime": "2025-05-01T21:30:00",
+      "forecast_kw": 152.5531463623047,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.8088
+      },
+      "dispatch_result": {
+        "new_soc": 0.8325000000000007,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 154.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 14,
+      "datetime": "2025-05-01T22:00:00",
+      "forecast_kw": 152.58880615234375,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.8325
+      },
+      "dispatch_result": {
+        "new_soc": 0.8562500000000007,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 158.0,
+      "within_limit": true,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 15,
+      "datetime": "2025-05-01T22:30:00",
+      "forecast_kw": 152.61972045898438,
+      "forecast_confidence": 0.4,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 50.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.8563
+      },
+      "dispatch_result": {
+        "new_soc": 0.8800000000000008,
+        "temp_increase_c": 0.1,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 50.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "actual_load_kw": 159.0,
       "within_limit": true,
       "savings_rm": 0.0
     }
   ],
   "summary": {
-    "total_ticks": 8,
-    "within_limit_ticks": 4,
+    "total_ticks": 32,
+    "within_limit_ticks": 16,
     "total_savings_rm": 0.0,
     "compliance_rate": 0.5,
     "shave_percentage": 0.0,
-    "final_soc_percent": 54
+    "final_soc_percent": 88
   },
-  "audit_report": "BESS SoC at 55%, sufficient for 0kW discharge"
+  "audit_report": "BESS SoC at 88%"
 }
