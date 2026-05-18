@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -38,16 +39,32 @@ def _build_planner_backend() -> CompositeBackend:
 _PLANNER_AGENT: Any | None = None
 
 
+def _build_planner_tools() -> list:
+    tools: list = []
+    tavily_key = os.environ.get("TAVILY_API_KEY")
+    if tavily_key:
+        try:
+            from langchain_tavily import TavilySearch
+            tools.append(TavilySearch(max_results=3, api_key=tavily_key))
+            logger.info("planner | Tavily search tool enabled")
+        except ImportError:
+            logger.warning("planner | langchain-community not installed, Tavily search unavailable")
+    else:
+        logger.debug("planner | TAVILY_API_KEY not set, search tool disabled")
+    return tools
+
+
 def _get_planner_agent() -> Any:
     global _PLANNER_AGENT
     if _PLANNER_AGENT is None:
         model = resolve_deepagents_model(_DEFAULT_MODEL)
-        logger.info("planner | initializing agent model=%s", model)
+        tools = _build_planner_tools()
+        logger.info("planner | initializing agent model=%s tools=%d", model, len(tools))
         _PLANNER_AGENT = create_deep_agent(
             name="planner-agent",
             model=model,
             system_prompt=_PLANNER_PROMPT,
-            tools=[],
+            tools=tools,
             backend=_build_planner_backend(),
             middleware=[OutputFormatGuardMiddleware(
                 required_fields=["strategy", "shave"],

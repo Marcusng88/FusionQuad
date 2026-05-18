@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   BaselineChart,
   DispatchChart,
@@ -19,14 +19,13 @@ import { formatCurrencyValue } from "./lib/formatters";
 
 
 function useLocalStorage<T>(key: string, initial: T): [T, (v: T) => void] {
-  const [value, setValue] = useState<T>(initial);
-
-  useEffect(() => {
+  const [value, setValue] = useState<T>(() => {
     try {
       const stored = localStorage.getItem(key);
-      if (stored !== null) setValue(JSON.parse(stored) as T);
+      if (stored !== null) return JSON.parse(stored) as T;
     } catch {}
-  }, [key]);
+    return initial;
+  });
 
   const set = useCallback(
     (v: T) => {
