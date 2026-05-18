@@ -52,6 +52,9 @@ class SimulationSession:
     tick_buffer: list[dict[str, Any]] = field(default_factory=list)
 
 
+_MAX_SESSIONS = 50
+
+
 class SimulationService:
     """Workflow-backed simulation coordinator for the FastAPI endpoints."""
 
@@ -59,6 +62,12 @@ class SimulationService:
         self._sessions: dict[str, SimulationSession] = {}
         self._workflow = create_workflow()
         self._tick_logger = TickLogger()
+
+    def _evict_completed_sessions(self) -> None:
+        if len(self._sessions) < _MAX_SESSIONS:
+            return
+        for sid in [s for s, v in self._sessions.items() if v.status == "completed"]:
+            del self._sessions[sid]
 
     async def start(
         self,
@@ -69,7 +78,8 @@ class SimulationService:
         start_time: datetime | None = None,
         end_time: datetime | None = None,
     ) -> SimulationStateResponse:
-        loop = asyncio.get_event_loop()
+        self._evict_completed_sessions()
+        loop = asyncio.get_running_loop()
         loaded = await loop.run_in_executor(None, data_loader_node, {"day_type": day_type})
         current_facility = loaded["current_facility"]
         full_records = list(loaded["loaded_data"][current_facility]["data"])
@@ -103,6 +113,7 @@ class SimulationService:
         session_id = str(uuid4())
         state = {
             **loaded,
+            "session_id": session_id,
             "day_type": day_type,
             "current_interval": 0,
             "current_record_index": record_offset,
@@ -120,6 +131,7 @@ class SimulationService:
             "within_limit_ticks": 0,
             "total_intervals": len(records),
             "shave_percentage": 0.0,
+            "total_possible_shave_kw": 0.0,
             "forecast_kw": None,
             "baseline_load": None,
             "actual_load": None,
@@ -222,13 +234,13 @@ class SimulationService:
                     yield {"event": "simulation_done", "data": {"status": "completed"}}
                     return
 
+                # Build tick state under lock (fast — no IO)
                 async with session.lock:
                     record = session.records[session.current_interval]
                     current_time = _coerce_datetime(record.get("datetime"))
                     baseline_load = float(record.get("kw_import", 0.0) or 0.0)
                     absolute_index = session.record_offset + session.current_interval
                     is_last_tick = session.current_interval + 1 >= len(session.records)
-
                     state = {
                         **session.state,
                         "current_interval": session.current_interval,
@@ -242,38 +254,43 @@ class SimulationService:
                         ),
                         "is_end_of_day": is_last_tick,
                     }
+                    snapshot_state_ref = session.state  # for preview merging
 
-                    final_state: dict | None = None
+                # Run workflow OUTSIDE lock — LLM calls can take seconds
+                tick_events: list[dict] = []
+                final_state: dict | None = None
 
-                    async for chunk in self._workflow.astream(
-                        state,
-                        stream_mode=["updates", "values"],
-                        version="v2",
-                    ):
-                        if chunk["type"] == "updates":
-                            for node_name, node_state in chunk["data"].items():
-                                if node_name not in _SKIP_NODES:
-                                    preview_state = {**session.state, **node_state}
-                                    preview_snapshot = self._build_snapshot_with_state(
-                                        session,
-                                        preview_state,
-                                    )
-                                    trace_entry = _build_live_trace_entry(node_name, preview_state)
-                                    yield {
-                                        "event": "agent_update",
-                                        "data": {
-                                            "node": node_name,
-                                            "state": node_state,
-                                            "snapshot": preview_snapshot.model_dump(mode="json"),
-                                            "trace": trace_entry,
-                                        },
-                                    }
-                        elif chunk["type"] == "values":
-                            final_state = chunk["data"]
+                async for chunk in self._workflow.astream(
+                    state,
+                    stream_mode=["updates", "values"],
+                    version="v2",
+                ):
+                    if chunk["type"] == "updates":
+                        for node_name, node_state in chunk["data"].items():
+                            if node_name not in _SKIP_NODES:
+                                preview_state = {**snapshot_state_ref, **node_state}
+                                preview_snapshot = self._build_snapshot_with_state(
+                                    session,
+                                    preview_state,
+                                )
+                                trace_entry = _build_live_trace_entry(node_name, preview_state)
+                                tick_events.append({
+                                    "event": "agent_update",
+                                    "data": {
+                                        "node": node_name,
+                                        "state": node_state,
+                                        "snapshot": preview_snapshot.model_dump(mode="json"),
+                                        "trace": trace_entry,
+                                    },
+                                })
+                    elif chunk["type"] == "values":
+                        final_state = chunk["data"]
 
-                    if final_state is None:
-                        raise RuntimeError("astream ended without values chunk")
+                if final_state is None:
+                    raise RuntimeError("astream ended without values chunk")
 
+                # Update session state under lock (fast — no IO)
+                async with session.lock:
                     agent_trace = list(session.state.get("agent_trace", []))
                     agent_trace.extend(_build_agent_trace_entries(final_state))
                     final_state["agent_trace"] = agent_trace
@@ -304,7 +321,11 @@ class SimulationService:
                             )
 
                     snapshot = self._build_snapshot(session)
-                    yield {"event": "step_complete", "data": snapshot.model_dump(mode="json")}
+                    tick_events.append({"event": "step_complete", "data": snapshot.model_dump(mode="json")})
+
+                # Yield all events outside lock
+                for event in tick_events:
+                    yield event
 
         except Exception as exc:
             yield {"event": "error", "data": {"message": str(exc)}}
@@ -363,7 +384,7 @@ class SimulationService:
         )
 
     async def get_scenario_metadata(self, day_type: str) -> ScenarioMetadataResponse:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         loaded = await loop.run_in_executor(None, data_loader_node, {"day_type": day_type})
         current_facility = loaded["current_facility"]
         metadata = loaded["loaded_data"][current_facility].get("metadata") or {}

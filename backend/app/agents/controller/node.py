@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import concurrent.futures
 from dataclasses import asdict
 import logging
 from pathlib import Path
@@ -18,6 +19,7 @@ from app.core.model_selection import resolve_deepagents_model
 logger = logging.getLogger(__name__)
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
+_AGENT_TIMEOUT_S = 30.0
 
 _CONTROLLER_PROMPT = (Path(__file__).parent / "prompts" / "system.md").read_text(encoding="utf-8")
 
@@ -209,10 +211,15 @@ def controller_node(state: AgentState) -> dict:
 
     try:
         agent = _get_controller_agent()
-        result = agent.invoke(
-            {"messages": [{"role": "user", "content": prompt}]},
-            config={"configurable": {"thread_id": "controller"}},
-        )
+        session_id = state.get("session_id", "default")
+        invoke_config = {"configurable": {"thread_id": f"controller-{session_id}"}}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _ex:
+            future = _ex.submit(
+                agent.invoke,
+                {"messages": [{"role": "user", "content": prompt}]},
+                invoke_config,
+            )
+            result = future.result(timeout=_AGENT_TIMEOUT_S)
         structured = result.get("structured_response") if isinstance(result, dict) else None
         if isinstance(structured, dict) and structured.get("action"):
             forced_action = {

@@ -108,5 +108,7 @@ class AgentState(TypedDict, total=False):
     within_limit_ticks: int | None
     total_intervals: int | None
     # Workflow metadata
+    session_id: str | None
     messages: Annotated[list, add_messages]
     is_end_of_day: bool | None
+    total_possible_shave_kw: float | None

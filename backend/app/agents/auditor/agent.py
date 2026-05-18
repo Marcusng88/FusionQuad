@@ -9,6 +9,7 @@ The deep agent uses CompositeBackend with FilesystemBackend scoped to
 At end-of-day, it reads past audit reports and appends a summary.
 """
 
+import concurrent.futures
 from datetime import datetime
 import logging
 from pathlib import Path
@@ -36,6 +37,7 @@ from app.agents.auditor.evaluation import (
 from app.core.model_selection import resolve_deepagents_model
 
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
+_AGENT_TIMEOUT_S = 30.0
 _EXPERIENCE_DIR = Path(__file__).parent.parent.parent.parent / "experience"
 _STRATEGIES_DIR = Path(__file__).parent.parent.parent.parent / "strategies"
 
@@ -130,7 +132,6 @@ def _build_auditor_backend() -> CompositeBackend:
 
 def _get_auditor_agent(system_prompt: str, is_eod: bool) -> object:
     global _AUDITOR_AGENT_TICK, _AUDITOR_AGENT_EOD
-    backend = _build_auditor_backend()
     if is_eod:
         if _AUDITOR_AGENT_EOD is None:
             model = resolve_deepagents_model(_DEFAULT_MODEL)
@@ -140,7 +141,7 @@ def _get_auditor_agent(system_prompt: str, is_eod: bool) -> object:
                 model=model,
                 system_prompt=system_prompt,
                 tools=[evaluate_rules_tool, evaluate_delta_tool],
-                backend=backend,
+                backend=_build_auditor_backend(),
             )
         return _AUDITOR_AGENT_EOD
     else:
@@ -152,7 +153,7 @@ def _get_auditor_agent(system_prompt: str, is_eod: bool) -> object:
                 model=model,
                 system_prompt=system_prompt,
                 tools=[evaluate_rules_tool, evaluate_delta_tool],
-                backend=backend,
+                backend=_build_auditor_backend(),
             )
         return _AUDITOR_AGENT_TICK
 
@@ -255,15 +256,34 @@ def auditor_node(state: dict) -> dict:
         )
         agent = _get_auditor_agent(_AUDITOR_PROMPT_TICK, is_eod=False)
 
-    rule_eval: RuleEvaluation = {"passed": True, "violations": []}
-    delta_eval: DeltaEvaluation = {"shave_kw": 0.0, "shave_pct": 0.0, "forecast_error_pct": 0.0, "interval_savings_rm": 0.0, "delta_score": 0.0}
+    # Always run deterministic safety checks first — non-negotiable (fix 2.2)
+    rule_eval: RuleEvaluation = evaluate_rules(
+        dispatch_result=dispatch_result,
+        battery_soc=battery_soc,
+        cycle_count=cycle_count,
+        tariff_window=tariff_window,
+        dispatch_action=dispatch_action,
+    )
+    delta_eval: DeltaEvaluation = evaluate_delta(
+        dispatch_result=dispatch_result,
+        dispatch_action=dispatch_action,
+        baseline_load=baseline_load,
+        actual_load=actual_load,
+        forecast_kw=forecast_kw,
+        tariff_window=tariff_window,
+        md_limit_kw=md_limit_kw,
+    )
     llm_eval: LLMEvaluation | None = None
 
     try:
-        result = agent.invoke(
-            {"messages": [{"role": "user", "content": prompt}]},
-            config={"configurable": {"thread_id": f"auditor-{state.get('session_id', 'main')}"}},
-        )
+        invoke_config = {"configurable": {"thread_id": f"auditor-{state.get('session_id', 'default')}"}}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _ex:
+            future = _ex.submit(
+                agent.invoke,
+                {"messages": [{"role": "user", "content": prompt}]},
+                invoke_config,
+            )
+            result = future.result(timeout=_AGENT_TIMEOUT_S)
         messages = result.get("messages", []) if isinstance(result, dict) else []
         last = messages[-1].content if messages else ""
         parsed = _parse_llm_payload(str(last))
@@ -276,29 +296,12 @@ def auditor_node(state: dict) -> dict:
     except Exception as exc:
         logger.warning("auditor | agent invoke failed, using rule+delta eval: %s", exc)
 
-    if llm_eval is None:
-        rule_eval = evaluate_rules(
-            dispatch_result=dispatch_result,
-            battery_soc=battery_soc,
-            cycle_count=cycle_count,
-            tariff_window=tariff_window,
-            dispatch_action=dispatch_action,
+    if llm_eval is None and should_run_llm(delta_eval, rule_eval):
+        llm_eval = LLMEvaluation(
+            reasoning=_generate_llm_reasoning(delta_eval, rule_eval),
+            recommendation=_generate_recommendation(rule_eval, delta_eval),
+            confidence=0.75,
         )
-        delta_eval = evaluate_delta(
-            dispatch_result=dispatch_result,
-            dispatch_action=dispatch_action,
-            baseline_load=baseline_load,
-            actual_load=actual_load,
-            forecast_kw=forecast_kw,
-            tariff_window=tariff_window,
-            md_limit_kw=md_limit_kw,
-        )
-        if should_run_llm(delta_eval, rule_eval):
-            llm_eval = LLMEvaluation(
-                reasoning=_generate_llm_reasoning(delta_eval, rule_eval),
-                recommendation=_generate_recommendation(rule_eval, delta_eval),
-                confidence=0.75,
-            )
 
     auditor_result = AuditorResult(
         delta_eval=delta_eval,
@@ -340,12 +343,10 @@ def auditor_node(state: dict) -> dict:
     if actual_load <= md_limit_kw:
         new_within_limit += 1
 
-    total_possible_shave = baseline_load - md_limit_kw if baseline_load > md_limit_kw else 0
-    if total_possible_shave > 0:
-        total_shave = sum(entry["evaluate"]["delta_eval"]["shave_kw"] for entry in new_decision_log)
-        shave_percentage = (total_shave / (total_possible_shave * len(new_decision_log))) * 100 if new_decision_log else 0
-    else:
-        shave_percentage = 0.0
+    # Accumulate possible shave across all ticks (fix 2.7: was using only current tick)
+    new_total_possible = float(state.get("total_possible_shave_kw") or 0.0) + max(baseline_load - md_limit_kw, 0.0)
+    total_shave = sum(entry["evaluate"]["delta_eval"]["shave_kw"] for entry in new_decision_log)
+    shave_percentage = (total_shave / new_total_possible * 100) if new_total_possible > 0 else 0.0
 
     return {
         "auditor_result": auditor_result,
@@ -354,6 +355,7 @@ def auditor_node(state: dict) -> dict:
         "within_limit_ticks": new_within_limit,
         "total_intervals": state.get("total_intervals", 0) + 1,
         "shave_percentage": shave_percentage,
+        "total_possible_shave_kw": new_total_possible,
     }
 
 

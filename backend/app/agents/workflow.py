@@ -25,10 +25,11 @@ def create_workflow() -> StateGraph:
     builder.add_node("controller", controller_node)
     builder.add_node("auditor", auditor_node)
 
-    # Define edges
+    # Define edges — forecast and tariff are independent, run in parallel
     builder.add_edge(START, "data_loader")
     builder.add_edge("data_loader", "forecast")
-    builder.add_edge("forecast", "tariff")
+    builder.add_edge("data_loader", "tariff")
+    builder.add_edge("forecast", "planner")
     builder.add_edge("tariff", "planner")
     builder.add_edge("planner", "controller")
     builder.add_edge("controller", "auditor")
