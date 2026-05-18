@@ -340,6 +340,26 @@ class SimulationService:
                                     "trace": trace_entry,
                                 },
                             }
+                            # Agents using deepagents.ainvoke() never stream tokens to the
+                            # outer LangGraph astream, so synthesize start/token/complete here.
+                            if node_name not in seen_streaming_nodes:
+                                token_json = _extract_node_token(node_name, node_state)
+                                if token_json:
+                                    seen_streaming_nodes.add(node_name)
+                                    yield {
+                                        "event": "agent_start",
+                                        "data": {
+                                            "node": node_name,
+                                            "timestamp": timestamp_str,
+                                        },
+                                    }
+                                    yield {
+                                        "event": "agent_token",
+                                        "data": {
+                                            "node": node_name,
+                                            "token": token_json,
+                                        },
+                                    }
                             if node_name in seen_streaming_nodes:
                                 yield {
                                     "event": "agent_complete",
@@ -710,3 +730,39 @@ def _optional_float(value: Any) -> float | None:
     if value is None:
         return None
     return float(value)
+
+
+def _extract_node_token(node_name: str, node_state: dict[str, Any]) -> str:
+    """Build a JSON token string for agent stream panel cards.
+
+    Called when a node completed via deepagents.ainvoke() (no token streaming),
+    so the outer LangGraph astream never emitted message chunks for it.
+    """
+    import json as _json
+
+    if node_name == "planner":
+        strategy = node_state.get("optimization_strategy") or {}
+        return _json.dumps(dict(strategy), default=str)
+
+    if node_name == "controller":
+        dispatch = node_state.get("dispatch_action") or {}
+        return _json.dumps({
+            "action": dispatch.get("action", "hold"),
+            "discharge_kw": dispatch.get("discharge_kw"),
+            "charge_kw": dispatch.get("charge_kw"),
+            "duration_min": dispatch.get("duration_min", 30),
+            "expected_soc_after": dispatch.get("expected_soc_after"),
+        }, default=str)
+
+    if node_name == "auditor":
+        auditor = node_state.get("auditor_result") or {}
+        llm = auditor.get("llm_eval") or {}
+        delta = auditor.get("delta_eval") or {}
+        raw_conf = llm.get("confidence") or (delta.get("delta_score", 75.0) / 100.0)
+        return _json.dumps({
+            "reasoning": llm.get("reasoning") or auditor.get("reason", ""),
+            "recommendation": llm.get("recommendation") or auditor.get("act", ""),
+            "confidence": float(raw_conf),
+        }, default=str)
+
+    return ""

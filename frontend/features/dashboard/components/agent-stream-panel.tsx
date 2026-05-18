@@ -248,10 +248,10 @@ function DetailsModal({
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-outline flex-shrink-0">
           <div className="flex items-center gap-2">
-            <span className={`rounded border px-2 py-0.5 text-[10px] font-medium ${agentBadgeCls(entry.node)}`}>
+            <span className={`rounded border px-2 py-0.5 text-xs font-medium ${agentBadgeCls(entry.node)}`}>
               {agentLabel(entry.node)}
             </span>
-            <span className="text-[10px] text-muted font-mono">{entry.timestamp}</span>
+            <span className="text-xs text-muted font-mono">{entry.timestamp}</span>
           </div>
           <button
             type="button"
@@ -267,8 +267,8 @@ function DetailsModal({
             <div className="space-y-2">
               {fields.map((f) => (
                 <div key={f.label} className="flex items-start justify-between gap-3">
-                  <span className="text-[11px] text-muted flex-shrink-0">{f.label}</span>
-                  <span className="text-[11px] text-foreground font-mono text-right">{f.value}</span>
+                  <span className="text-sm text-muted flex-shrink-0">{f.label}</span>
+                  <span className="text-sm text-foreground font-mono text-right">{f.value}</span>
                 </div>
               ))}
             </div>
@@ -276,9 +276,9 @@ function DetailsModal({
 
           {longText.map((lt) => (
             <div key={lt.title}>
-              <p className="font-label text-[10px] text-muted mb-1.5">{lt.title}</p>
+              <p className="font-label text-xs text-muted mb-1.5">{lt.title}</p>
               <div className="rounded-lg border border-outline bg-surface px-3 py-2.5">
-                <p className="text-[11px] text-foreground/90 leading-relaxed whitespace-pre-wrap">
+                <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
                   {lt.content}
                 </p>
               </div>
@@ -286,7 +286,7 @@ function DetailsModal({
           ))}
 
           {!hasContent && (
-            <p className="text-[11px] text-muted leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-muted leading-relaxed whitespace-pre-wrap">
               {entry.tokens || "No data."}
             </p>
           )}
