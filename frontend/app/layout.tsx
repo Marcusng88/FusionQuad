@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { HeaderNav, ThemeToggle } from "./components/nav-client";
 import "./globals.css";
 
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <head>
-        <script
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('fusionquad-theme');document.documentElement.setAttribute('data-theme',t||'dark');}catch(e){}})();`,
           }}

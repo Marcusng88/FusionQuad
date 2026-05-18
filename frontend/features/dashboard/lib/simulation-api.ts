@@ -1,4 +1,5 @@
 import type {
+  AgentUpdatePayload,
   ScenarioMetadata,
   SimulationApiState,
   SimulationDayType,
@@ -106,7 +107,7 @@ export function getSimulationState(sessionId: string, baseUrl?: string) {
 
 export function subscribeSimulationStream(
   sessionId: string,
-  onAgentUpdate: (node: string, state: unknown) => void,
+  onAgentUpdate: (payload: AgentUpdatePayload) => void,
   onStepComplete: (snapshot: SimulationApiState) => void,
   onError: (message: string) => void,
   onDone: () => void,
@@ -116,8 +117,8 @@ export function subscribeSimulationStream(
   const es = new EventSource(url);
 
   es.addEventListener("agent_update", (e: MessageEvent) => {
-    const parsed = JSON.parse(e.data) as { node: string; state: unknown };
-    onAgentUpdate(parsed.node, parsed.state);
+    const parsed = JSON.parse(e.data) as AgentUpdatePayload;
+    onAgentUpdate(parsed);
   });
 
   es.addEventListener("step_complete", (e: MessageEvent) => {

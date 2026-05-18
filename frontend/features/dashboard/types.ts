@@ -114,6 +114,13 @@ export type SimulationApiState = {
   scenarios: Array<{ key: SimulationDayType; label: string; blurb: string }>;
 };
 
+export type AgentUpdatePayload = {
+  node: string;
+  state: Record<string, unknown>;
+  snapshot?: SimulationApiState;
+  trace?: DecisionLog | null;
+};
+
 export type SimulationViewModel = {
   sessionId: string | null;
   status: SimulationRunStatus;

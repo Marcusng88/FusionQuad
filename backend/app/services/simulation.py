@@ -253,9 +253,20 @@ class SimulationService:
                         if chunk["type"] == "updates":
                             for node_name, node_state in chunk["data"].items():
                                 if node_name not in _SKIP_NODES:
+                                    preview_state = {**session.state, **node_state}
+                                    preview_snapshot = self._build_snapshot_with_state(
+                                        session,
+                                        preview_state,
+                                    )
+                                    trace_entry = _build_live_trace_entry(node_name, preview_state)
                                     yield {
                                         "event": "agent_update",
-                                        "data": {"node": node_name, "state": node_state},
+                                        "data": {
+                                            "node": node_name,
+                                            "state": node_state,
+                                            "snapshot": preview_snapshot.model_dump(mode="json"),
+                                            "trace": trace_entry,
+                                        },
                                     }
                         elif chunk["type"] == "values":
                             final_state = chunk["data"]
@@ -314,7 +325,13 @@ class SimulationService:
         return session
 
     def _build_snapshot(self, session: SimulationSession) -> SimulationStateResponse:
-        state = session.state
+        return self._build_snapshot_with_state(session, session.state)
+
+    def _build_snapshot_with_state(
+        self,
+        session: SimulationSession,
+        state: dict[str, Any],
+    ) -> SimulationStateResponse:
         agent_trace = [AgentTraceEntry.model_validate(entry) for entry in state.get("agent_trace", [])]
 
         battery = state.get("battery") or {}
@@ -514,6 +531,74 @@ def _build_agent_trace_entries(state: dict[str, Any]) -> list[dict[str, Any]]:
             "estimated_saving_rm": _optional_float(delta_eval.get("interval_savings_rm")),
         },
     ]
+
+
+def _build_live_trace_entry(node_name: str, state: dict[str, Any]) -> dict[str, Any] | None:
+    timestamp = state.get("current_time")
+    timestamp_str = timestamp.strftime("%Y-%m-%d %H:%M") if isinstance(timestamp, datetime) else str(timestamp or "")
+
+    if node_name == "forecast":
+        forecast = state.get("forecast") or {}
+        forecast_values = _first_forecast_values(forecast)
+        forecast_conf = _first_forecast_confidence(forecast)
+        forecast_kw = forecast_values[0] if forecast_values else state.get("forecast_kw")
+        return {
+            "timestamp": timestamp_str,
+            "agent": "Forecasting Agent",
+            "decision": f"Forecast next {len(forecast_values)} intervals",
+            "reason": f"Rolling forecast confidence {forecast_conf:.0%}.",
+            "action": (
+                f"Predicted next import at {float(forecast_kw or 0.0):.0f} kW"
+                if forecast_kw is not None
+                else "Forecast unavailable"
+            ),
+        }
+
+    if node_name == "planner":
+        strategy = state.get("optimization_strategy") or {}
+        reserve = float(strategy.get("reserve_soc_pct", 0.0) or 0.0)
+        return {
+            "timestamp": timestamp_str,
+            "agent": "Planner Agent",
+            "decision": str(strategy.get("strategy_name") or "Select fallback strategy"),
+            "reason": str(strategy.get("rationale") or "Planner evaluated tariff and forecast."),
+            "action": (
+                f"Target shave {float(strategy.get('shave_kw', 0.0) or 0.0):.0f} kW with reserve {reserve:.0%}."
+            ),
+            "expected_reduction_kw": _optional_float(strategy.get("shave_kw")),
+        }
+
+    if node_name == "controller":
+        dispatch_action = state.get("dispatch_action") or {}
+        dispatch_result = state.get("dispatch_result") or {}
+        battery = state.get("battery") or {}
+        action_taken = dispatch_result.get("action_taken", dispatch_action.get("action", "hold"))
+        actual_kw = float(dispatch_result.get("actual_discharge_kw", 0.0) or 0.0)
+        soc = float(battery.get("soc", 0.0) or 0.0)
+        actual_load = float(state.get("actual_load", 0.0) or 0.0)
+        return {
+            "timestamp": timestamp_str,
+            "agent": "Controller Agent",
+            "decision": f"Executed {action_taken}",
+            "reason": f"Battery SoC now {soc:.0%}.",
+            "action": f"Grid import adjusted to {actual_load:.0f} kW with {actual_kw:.0f} kW battery power.",
+        }
+
+    if node_name == "auditor":
+        decision_log = state.get("decision_log") or []
+        latest = decision_log[-1] if decision_log else {}
+        delta_eval = (latest.get("evaluate") or {}).get("delta_eval") or {}
+        return {
+            "timestamp": str(latest.get("timestamp") or timestamp_str),
+            "agent": "Auditor Agent",
+            "decision": str(latest.get("perceive") or "Audit completed."),
+            "reason": str(latest.get("reason") or "Auditor evaluated dispatch output."),
+            "action": str(latest.get("act") or "No action recorded."),
+            "expected_reduction_kw": _optional_float(delta_eval.get("shave_kw")),
+            "estimated_saving_rm": _optional_float(delta_eval.get("interval_savings_rm")),
+        }
+
+    return None
 
 
 def _first_forecast_values(forecast: dict[str, Any]) -> list[float]:

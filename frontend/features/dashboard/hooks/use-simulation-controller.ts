@@ -10,6 +10,7 @@ import {
 import { DAY_SCENARIOS } from "../data/day-scenarios";
 import {
   createSimulationViewModel,
+  mergeAgentUpdate,
   mergeSimulationSnapshot,
 } from "../lib/live-simulation";
 import {
@@ -111,8 +112,11 @@ export function useSimulationController() {
     return new Promise<SimulationApiState | null>((resolve) => {
       const cleanup = subscribeSimulationStream(
         started.session_id,
-        (node) => {
-          setActiveAgentNode(node);
+        (payload) => {
+          setActiveAgentNode(payload.node);
+          startTransition(() => {
+            setSimulation((current) => mergeAgentUpdate(current, payload));
+          });
         },
         (snapshot) => {
           startTransition(() => {

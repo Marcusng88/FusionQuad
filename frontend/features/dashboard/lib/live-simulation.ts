@@ -2,6 +2,7 @@ import {
   DEFAULT_DEMAND_LIMIT_KW,
 } from "../data/day-scenarios.ts";
 import type {
+  AgentUpdatePayload,
   DecisionLog,
   EnergyPoint,
   SimulationApiState,
@@ -68,6 +69,40 @@ export function mergeSimulationSnapshot(
     lastDispatchKw: snapshot.last_dispatch_kw,
     scenarios: snapshot.scenarios ?? [],
   };
+}
+
+export function mergeAgentUpdate(
+  current: SimulationViewModel,
+  update: AgentUpdatePayload,
+): SimulationViewModel {
+  const snapshot = update.snapshot;
+  const trace = update.trace ?? null;
+
+  const next: SimulationViewModel = {
+    ...current,
+  };
+
+  if (snapshot) {
+    next.status = snapshot.status;
+    next.currentTimeLabel = snapshot.current_time
+      ? formatCurrentTime(snapshot.current_time)
+      : current.currentTimeLabel;
+    next.forecastKw = snapshot.forecast_kw ?? current.forecastKw;
+    next.batterySocPercent = Math.round(
+      (snapshot.battery_soc ?? current.batterySocPercent / 100) * 100,
+    );
+    next.bessCapacityKwh = snapshot.bess_capacity_kwh ?? current.bessCapacityKwh;
+    next.totalSavingsRm = snapshot.total_savings_rm ?? current.totalSavingsRm;
+    next.shavePercentage = snapshot.shave_percentage ?? current.shavePercentage;
+    next.withinLimitTicks = snapshot.within_limit_ticks ?? current.withinLimitTicks;
+    next.lastDispatchKw = snapshot.last_dispatch_kw ?? current.lastDispatchKw;
+  }
+
+  if (trace) {
+    next.agentTrace = mergeTraceEntry(current.agentTrace, trace);
+  }
+
+  return next;
 }
 
 function buildEnergyPoint(
@@ -169,6 +204,19 @@ function mapDecisionLog(entries: Array<Record<string, unknown>>): DecisionLog[] 
       estimated_saving_rm: numberOrUndefined(deltaEval.interval_savings_rm),
     };
   });
+}
+
+function mergeTraceEntry(existing: DecisionLog[], next: DecisionLog): DecisionLog[] {
+  if (existing.length === 0) {
+    return [next];
+  }
+
+  const last = existing[existing.length - 1];
+  if (last.agent === next.agent && last.timestamp === next.timestamp) {
+    return [...existing.slice(0, -1), next];
+  }
+
+  return [...existing, next];
 }
 
 function deriveForecastConfidence(snapshot: SimulationApiState): number | null {
