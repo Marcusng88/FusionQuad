@@ -51,16 +51,14 @@ class TickLogger:
         log_path: Path,
         tick_buffer: list[dict[str, Any]],
         session_state: dict[str, Any],
-        available_start: datetime | None,
-        day_type: str,
+        available_start: datetime | None = None,
+        day_type: str = "",
     ) -> None:
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         battery = session_state.get("battery") or {}
         within_limit = int(session_state.get("within_limit_ticks", 0))
-        total = int(session_state.get("total_intervals", 0)) or len(tick_buffer)
-        decision_log = session_state.get("decision_log", [])
-        last_auditor = decision_log[-1] if decision_log else {}
+        total = len(tick_buffer)
 
         summary = {
             "total_ticks": total,
@@ -71,18 +69,9 @@ class TickLogger:
             "final_soc_percent": int((float(battery.get("soc", 0.5)) or 0.5) * 100),
         }
 
-        date_str = (available_start or datetime.now()).strftime("%Y-%m-%d")
-        experience_path = log_path.parent.parent / "experience" / f"{date_str}-{day_type}.md"
-        if experience_path.exists():
-            with open(experience_path) as f:
-                audit_report = f.read()
-        else:
-            audit_report = last_auditor.get("reason", "") or "No experience report available."
-
         log = {
             "ticks": tick_buffer,
             "summary": summary,
-            "audit_report": audit_report,
         }
 
         with open(log_path, "w") as f:

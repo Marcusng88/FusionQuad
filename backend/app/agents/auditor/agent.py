@@ -38,6 +38,7 @@ from app.core.model_selection import resolve_deepagents_model
 _DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 _EXPERIENCE_DIR = Path(__file__).parent.parent.parent.parent / "experience"
 _STRATEGIES_DIR = Path(__file__).parent.parent.parent.parent / "strategies"
+_LOGS_DIR = Path(__file__).parent.parent.parent / "logs"
 
 _AUDITOR_PROMPT_TICK = (_PROMPTS_DIR / "tick.md").read_text(encoding="utf-8")
 _AUDITOR_PROMPT_EOD = (_PROMPTS_DIR / "end_of_day.md").read_text(encoding="utf-8")
@@ -114,11 +115,10 @@ class AuditorResult(TypedDict):
 
 
 _AUDITOR_AGENT_TICK: object | None = None
-_AUDITOR_AGENT_EOD: object | None = None
 
 
-def _build_auditor_backend() -> CompositeBackend:
-    """Build a CompositeBackend scoped to /experience/ and /strategies/ only."""
+def _build_tick_backend() -> CompositeBackend:
+    """Tick auditor backend — /experience/ and /strategies/ only. No log access."""
     return CompositeBackend(
         default=StateBackend(),
         routes={
@@ -128,32 +128,31 @@ def _build_auditor_backend() -> CompositeBackend:
     )
 
 
-def _get_auditor_agent(system_prompt: str, is_eod: bool) -> object:
-    global _AUDITOR_AGENT_TICK, _AUDITOR_AGENT_EOD
-    if is_eod:
-        if _AUDITOR_AGENT_EOD is None:
-            model = resolve_deepagents_model(_DEFAULT_MODEL)
-            logger.info("auditor | initializing eod agent model=%s", model)
-            _AUDITOR_AGENT_EOD = create_deep_agent(
-                name="auditor-agent-eod",
-                model=model,
-                system_prompt=system_prompt,
-                tools=[evaluate_rules_tool, evaluate_delta_tool],
-                backend=_build_auditor_backend(),
-            )
-        return _AUDITOR_AGENT_EOD
-    else:
-        if _AUDITOR_AGENT_TICK is None:
-            model = resolve_deepagents_model(_DEFAULT_MODEL)
-            logger.info("auditor | initializing tick agent model=%s", model)
-            _AUDITOR_AGENT_TICK = create_deep_agent(
-                name="auditor-agent-tick",
-                model=model,
-                system_prompt=system_prompt,
-                tools=[evaluate_rules_tool, evaluate_delta_tool],
-                backend=_build_auditor_backend(),
-            )
-        return _AUDITOR_AGENT_TICK
+def _build_eod_backend() -> CompositeBackend:
+    """EOD auditor backend — adds /logs/ read access for post-finalize audit."""
+    return CompositeBackend(
+        default=StateBackend(),
+        routes={
+            "/logs/": FilesystemBackend(root_dir=str(_LOGS_DIR), virtual_mode=True),
+            "/experience/": FilesystemBackend(root_dir=str(_EXPERIENCE_DIR), virtual_mode=True),
+            "/strategies/": FilesystemBackend(root_dir=str(_STRATEGIES_DIR), virtual_mode=True),
+        },
+    )
+
+
+def _get_tick_agent() -> object:
+    global _AUDITOR_AGENT_TICK
+    if _AUDITOR_AGENT_TICK is None:
+        model = resolve_deepagents_model(_DEFAULT_MODEL)
+        logger.info("auditor | initializing tick agent model=%s", model)
+        _AUDITOR_AGENT_TICK = create_deep_agent(
+            name="auditor-agent-tick",
+            model=model,
+            system_prompt=_AUDITOR_PROMPT_TICK,
+            tools=[evaluate_rules_tool, evaluate_delta_tool],
+            backend=_build_tick_backend(),
+        )
+    return _AUDITOR_AGENT_TICK
 
 
 def _parse_llm_payload(payload: str) -> dict | None:
@@ -183,8 +182,6 @@ async def auditor_node(state: dict) -> dict:
     md_limit_kw = state.get("md_limit_kw", 800.0)
     current_time = state.get("current_time")
     current_interval = state.get("current_interval", 0)
-    day_type = state.get("day_type", "unknown")
-    is_end_of_day = state.get("is_end_of_day", False)
 
     battery = state.get("battery") or {}
     battery_soc = float(battery.get("soc") or 0.0)
@@ -194,7 +191,6 @@ async def auditor_node(state: dict) -> dict:
     tariff_window = tariff.get("window") or "PEAK"
 
     timestamp_str = current_time.strftime("%Y-%m-%d %H:%M") if isinstance(current_time, datetime) else str(current_time or "")
-    date_str = current_time.strftime("%Y-%m-%d") if isinstance(current_time, datetime) else ""
 
     import_kw = actual_load
     perceive = f"Grid import {import_kw:.0f}kW"
@@ -223,36 +219,18 @@ async def auditor_node(state: dict) -> dict:
     else:
         act = "No dispatch result available"
 
-    if is_end_of_day:
-        prompt = _build_eod_prompt(
-            date_str=date_str,
-            day_type=day_type,
-            dispatch_result=dispatch_result,
-            dispatch_action=dispatch_action,
-            baseline_load=baseline_load,
-            actual_load=actual_load,
-            battery_soc=battery_soc,
-            cycle_count=cycle_count,
-            tariff_window=tariff_window,
-            forecast_kw=forecast_kw,
-            md_limit_kw=md_limit_kw,
-            current_interval=current_interval,
-            state=state,
-        )
-        agent = _get_auditor_agent(_AUDITOR_PROMPT_EOD, is_eod=True)
-    else:
-        prompt = _build_tick_prompt(
-            dispatch_result=dispatch_result,
-            dispatch_action=dispatch_action,
-            baseline_load=baseline_load,
-            actual_load=actual_load,
-            battery_soc=battery_soc,
-            cycle_count=cycle_count,
-            tariff_window=tariff_window,
-            forecast_kw=forecast_kw,
-            md_limit_kw=md_limit_kw,
-        )
-        agent = _get_auditor_agent(_AUDITOR_PROMPT_TICK, is_eod=False)
+    prompt = _build_tick_prompt(
+        dispatch_result=dispatch_result,
+        dispatch_action=dispatch_action,
+        baseline_load=baseline_load,
+        actual_load=actual_load,
+        battery_soc=battery_soc,
+        cycle_count=cycle_count,
+        tariff_window=tariff_window,
+        forecast_kw=forecast_kw,
+        md_limit_kw=md_limit_kw,
+    )
+    agent = _get_tick_agent()
 
     # Always run deterministic safety checks first — non-negotiable (fix 2.2)
     rule_eval: RuleEvaluation = evaluate_rules(
@@ -348,10 +326,42 @@ async def auditor_node(state: dict) -> dict:
         "decision_log": new_decision_log,
         "total_savings_rm": new_total_savings,
         "within_limit_ticks": new_within_limit,
-        "total_intervals": state.get("total_intervals", 0) + 1,
         "shave_percentage": shave_percentage,
         "total_possible_shave_kw": new_total_possible,
     }
+
+
+async def run_eod_audit(log_path: Path, day_type: str, date_str: str) -> None:
+    """Fire-and-forget EOD audit. Reads JSON log, writes experience file.
+
+    Called from simulation.py after finalize() — log_path is guaranteed to exist.
+    """
+    model = resolve_deepagents_model(_DEFAULT_MODEL)
+    agent = create_deep_agent(
+        name="auditor-agent-eod",
+        model=model,
+        system_prompt=_AUDITOR_PROMPT_EOD,
+        tools=[evaluate_rules_tool, evaluate_delta_tool],
+        backend=_build_eod_backend(),
+    )
+    log_filename = log_path.name
+    prompt = _build_eod_prompt(log_filename=log_filename, date_str=date_str, day_type=day_type)
+    invoke_config = {"configurable": {"thread_id": f"eod-{date_str}-{day_type}"}}
+    await agent.ainvoke({"messages": [{"role": "user", "content": prompt}]}, invoke_config)
+
+
+def _build_eod_prompt(log_filename: str, date_str: str, day_type: str) -> str:
+    return (
+        f"END OF DAY AUDIT — {date_str} ({day_type})\n\n"
+        f"The simulation has completed. The full tick log is at /logs/{log_filename}.\n\n"
+        f"Steps:\n"
+        f"1. Read /logs/{log_filename} for complete tick-by-tick data (ticks, summary)\n"
+        f"2. Read past experience files in /experience/ for pattern comparison (same day_type)\n"
+        f"3. Call evaluate_rules_tool and evaluate_delta_tool on the final tick state\n"
+        f"4. Write end-of-day summary to /experience/{date_str}-{day_type}.md\n\n"
+        f"Do NOT write to /logs/.\n\n"
+        f"Return final JSON: {{\"reasoning\": \"...\", \"recommendation\": \"...\", \"confidence\": 0.0}}"
+    )
 
 
 def _build_tick_prompt(
@@ -383,50 +393,6 @@ def _build_tick_prompt(
         f"Return final JSON: {{'reasoning': '...', 'recommendation': '...', 'confidence': 0.0}}"
     )
 
-
-def _build_eod_prompt(
-    date_str: str,
-    day_type: str,
-    dispatch_result: dict | None,
-    dispatch_action: dict | None,
-    baseline_load: float,
-    actual_load: float,
-    battery_soc: float,
-    cycle_count: float,
-    tariff_window: str,
-    forecast_kw: float,
-    md_limit_kw: float,
-    current_interval: int,
-    state: dict,
-) -> str:
-    decision_log = state.get("decision_log", [])
-    total_intervals = len(decision_log) if decision_log else current_interval + 1
-    within_limit = state.get("within_limit_ticks", 0)
-    total_savings = state.get("total_savings_rm", 0.0)
-
-    return (
-        f"END OF DAY — produce end-of-day audit summary.\n\n"
-        f"DATE: {date_str} | DAY TYPE: {day_type}\n"
-        f"TICK: {current_interval} | TOTAL TICKS: {total_intervals}\n"
-        f"COMPLIANCE: {within_limit}/{total_intervals} ticks within MD limit\n"
-        f"TOTAL SAVINGS: RM{total_savings:.2f}\n\n"
-        f"STATE:\n"
-        f"  dispatch_result: {dispatch_result}\n"
-        f"  dispatch_action: {dispatch_action}\n"
-        f"  baseline_load: {baseline_load}\n"
-        f"  actual_load: {actual_load}\n"
-        f"  battery_soc: {battery_soc}\n"
-        f"  cycle_count: {cycle_count}\n"
-        f"  tariff_window: {tariff_window}\n"
-        f"  forecast_kw: {forecast_kw}\n"
-        f"  md_limit_kw: {md_limit_kw}\n\n"
-        f"STEPS:\n"
-        f"1. Use read_file tool to read past experience files in /experience/ for context\n"
-        f"2. Call evaluate_rules_tool\n"
-        f"3. Call evaluate_delta_tool\n"
-        f"4. Use write_file tool to append the end-of-day summary to /experience/{date_str}-{day_type}.md\n\n"
-        f"Return final JSON: {{'reasoning': '...', 'recommendation': '...', 'confidence': 0.0}}"
-    )
 
 
 def _generate_llm_reasoning(delta_eval: DeltaEvaluation, rule_eval: RuleEvaluation) -> str:

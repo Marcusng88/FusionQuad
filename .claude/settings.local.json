@@ -51,7 +51,9 @@
       "Bash(pnpm install *)",
       "Bash(python -c ' *)",
       "WebSearch",
-      "Bash(Get-ChildItem *)"
+      "Bash(Get-ChildItem *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(python3 -c \"import sys; print\\(sys.version\\)\")"
     ]
   }
 }

@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from fastapi import HTTPException, status
 
+from app.agents.auditor.agent import run_eod_audit
 from app.agents.data_loader.node import DEFAULT_MD_LIMIT_KW, data_loader_node
 from app.agents.state import BatteryState
 from app.agents.workflow import create_workflow
@@ -213,6 +214,12 @@ class SimulationService:
                         session.available_start,
                         session.day_type,
                     )
+                    date_str = (session.selected_start_time or session.available_start or datetime.now()).strftime("%Y-%m-%d")
+                    try:
+                        await run_eod_audit(session.log_path, session.day_type, date_str)
+                    except Exception:
+                        import logging as _log
+                        _log.getLogger(__name__).exception("auditor | EOD audit failed for %s %s", date_str, session.day_type)
 
             return self._build_snapshot(session)
 
@@ -376,6 +383,12 @@ class SimulationService:
                                 session.available_start,
                                 session.day_type,
                             )
+                            date_str = (session.selected_start_time or session.available_start or datetime.now()).strftime("%Y-%m-%d")
+                            try:
+                                await run_eod_audit(session.log_path, session.day_type, date_str)
+                            except Exception:
+                                import logging as _log
+                                _log.getLogger(__name__).exception("auditor | EOD audit failed for %s %s", date_str, session.day_type)
 
                     snapshot = self._build_snapshot(session)
 
