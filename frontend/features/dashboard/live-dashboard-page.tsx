@@ -14,6 +14,7 @@ import {
   MD_RATE,
 } from "./data/day-scenarios";
 import { AgentStreamFeed, DayTabBar } from "./components/agent-stream-panel";
+import { DateTimePicker } from "./components/date-time-picker";
 import { useSimulationController } from "./hooks/use-simulation-controller";
 import { formatCurrencyValue } from "./lib/formatters";
 
@@ -230,53 +231,35 @@ export default function LiveDashboardPage() {
                     {metadataLoading ? (
                       <p className="text-[11px] text-muted">Loading available dates…</p>
                     ) : scenarioMetadata ? (
-                      <div className="space-y-2">
-                        <div>
-                          <label className="text-[10px] text-muted" htmlFor="range-start">
-                            Start <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            id="range-start"
-                            className="mt-1 w-full rounded-lg border border-outline bg-surface-2 px-3 py-1.5 text-xs"
-                            disabled={isBusy}
-                            max={scenarioMetadata.available_end.slice(0, 16)}
-                            min={scenarioMetadata.available_start.slice(0, 16)}
-                            type="datetime-local"
-                            value={timeRange.start ?? ""}
-                            onChange={(e) => {
-                              const newStart = e.target.value || null;
-                              const endStillValid =
-                                newStart && timeRange.end && timeRange.end >= newStart;
-                              setTimeRange({
-                                start: newStart,
-                                end: endStillValid ? timeRange.end : null,
-                              });
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-muted" htmlFor="range-end">
-                            End <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            id="range-end"
-                            className="mt-1 w-full rounded-lg border border-outline bg-surface-2 px-3 py-1.5 text-xs"
-                            disabled={isBusy}
-                            max={scenarioMetadata.available_end.slice(0, 16)}
-                            min={
-                              timeRange.start ??
-                              scenarioMetadata.available_start.slice(0, 16)
-                            }
-                            type="datetime-local"
-                            value={timeRange.end ?? ""}
-                            onChange={(e) =>
-                              setTimeRange({
-                                start: timeRange.start,
-                                end: e.target.value || null,
-                              })
-                            }
-                          />
-                        </div>
+                      <div className="space-y-3">
+                        <DateTimePicker
+                          label="Start"
+                          required
+                          value={timeRange.start}
+                          minIso={scenarioMetadata.available_start}
+                          maxIso={scenarioMetadata.available_end}
+                          disabled={isBusy}
+                          onChange={(newStart) => {
+                            const endStillValid =
+                              newStart && timeRange.end && timeRange.end >= newStart;
+                            setTimeRange({
+                              start: newStart,
+                              end: endStillValid ? timeRange.end : null,
+                            });
+                          }}
+                        />
+                        <DateTimePicker
+                          label="End"
+                          required
+                          value={timeRange.end}
+                          minIso={scenarioMetadata.available_start}
+                          maxIso={scenarioMetadata.available_end}
+                          effectiveMinIso={timeRange.start}
+                          disabled={isBusy || !timeRange.start}
+                          onChange={(newEnd) =>
+                            setTimeRange({ start: timeRange.start, end: newEnd })
+                          }
+                        />
                         <p className="text-[10px] text-muted">
                           Available: {scenarioMetadata.available_start.slice(0, 10)} →{" "}
                           {scenarioMetadata.available_end.slice(0, 10)}
