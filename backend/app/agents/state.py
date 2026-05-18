@@ -76,6 +76,7 @@ class AgentState(TypedDict, total=False):
     day_type: str | None
     current_time: datetime | None
     forecast_window: int | None
+    forecast_model: str | None
     current_facility: str | None
     md_limit_kw: float | None
     current_record_index: int | None

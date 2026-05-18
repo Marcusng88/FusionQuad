@@ -268,6 +268,9 @@ export function DispatchChart({ points }: { points: EnergyPoint[] }) {
           <YAxis tick={TICK} {...AXIS} width={40} />
           <Tooltip
             contentStyle={TOOLTIP_STYLE}
+             
+            labelStyle={{ color: "#dae2fd" }}
+            itemStyle={{ color: "#dae2fd" }}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             formatter={(v: any) => [`${Math.round(Number(v ?? 0))} kW`, "Dispatch"]}
             labelFormatter={(l) => fmtTs(String(l))}

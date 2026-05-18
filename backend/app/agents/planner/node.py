@@ -131,7 +131,18 @@ async def planner_node(state: AgentState) -> dict:
         f"=== {item['source']} ===" + chr(10) + item['content'] for item in guidelines
     )
 
+    current_time = state.get("current_time")
+    if current_time is not None:
+        from datetime import datetime as _dt
+        if isinstance(current_time, _dt):
+            date_header = f"Simulation Date: {current_time.strftime('%Y-%m-%d')} | Time: {current_time.strftime('%H:%M')} | Day: {current_time.strftime('%A')}"
+        else:
+            date_header = f"Simulation Date: {current_time}"
+    else:
+        date_header = "Simulation Date: unknown"
+
     prompt = (
+        date_header + chr(10) + chr(10) +
         "Based on the following state and guidelines, select the optimal BESS strategy." + chr(10) + chr(10) +
         f"STATE:" + chr(10) + context + chr(10) + chr(10) + "GUIDELINES:" + chr(10) + guidelines_text + chr(10) + chr(10) +
         "You have access to /strategies/ and /experience/ via the filesystem backend." + chr(10) +
@@ -152,8 +163,14 @@ async def planner_node(state: AgentState) -> dict:
             strategy = _parse_strategy_payload(structured) or _fallback_strategy(state)
         else:
             messages = result.get("messages", []) if isinstance(result, dict) else []
-            last = messages[-1].content if messages else ""
-            strategy = _parse_strategy_payload(last) or _fallback_strategy(state)
+            raw_content = messages[-1].content if messages else ""
+            # LangChain returns content as list of blocks: [{"type": "text", "text": "..."}]
+            if isinstance(raw_content, list):
+                raw_content = " ".join(
+                    block.get("text", "") if isinstance(block, dict) else str(block)
+                    for block in raw_content
+                )
+            strategy = _parse_strategy_payload(raw_content) or _fallback_strategy(state)
     except Exception as exc:
         logger.warning("planner | agent error, using fallback: %s", exc)
         strategy = _fallback_strategy(state)

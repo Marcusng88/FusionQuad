@@ -53,7 +53,9 @@
       "WebSearch",
       "Bash(Get-ChildItem *)",
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
-      "Bash(python3 -c \"import sys; print\\(sys.version\\)\")"
+      "Bash(python3 -c \"import sys; print\\(sys.version\\)\")",
+      "Skill(karpathy-guidelines)",
+      "Bash(python *)"
     ]
   }
 }

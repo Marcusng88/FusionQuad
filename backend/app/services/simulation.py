@@ -78,6 +78,7 @@ class SimulationService:
         battery_soc: float = 0.5,
         start_time: datetime | None = None,
         end_time: datetime | None = None,
+        forecast_model: str = "gru_attention",
     ) -> SimulationStateResponse:
         self._evict_completed_sessions()
         loop = asyncio.get_running_loop()
@@ -119,6 +120,7 @@ class SimulationService:
             "current_interval": 0,
             "current_record_index": record_offset,
             "forecast_window": FORECAST_WINDOW_INTERVALS,
+            "forecast_model": forecast_model,
             # Battery state as value object
             "battery": BatteryState(
                 soc=battery_soc,

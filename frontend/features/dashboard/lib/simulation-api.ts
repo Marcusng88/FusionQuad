@@ -12,6 +12,7 @@ type StartPayload = {
   batterySoc?: number;
   startTime?: string | null;
   endTime?: string | null;
+  forecastModel?: "gru_attention" | "gru";
 };
 
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
@@ -80,6 +81,7 @@ export function startSimulation(
         battery_soc: payload.batterySoc ?? 0.5,
         start_time: payload.startTime ?? null,
         end_time: payload.endTime ?? null,
+        forecast_model: payload.forecastModel ?? "gru_attention",
       }),
     },
     baseUrl,

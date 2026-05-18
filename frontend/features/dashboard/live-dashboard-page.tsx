@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import {
   BaselineChart,
   DispatchChart,
@@ -18,33 +18,16 @@ import { useSimulationController } from "./hooks/use-simulation-controller";
 import { formatCurrencyValue } from "./lib/formatters";
 
 
-function useLocalStorage<T>(key: string, initial: T): [T, (v: T) => void] {
-  const [value, setValue] = useState<T>(() => {
-    try {
-      const stored = localStorage.getItem(key);
-      if (stored !== null) return JSON.parse(stored) as T;
-    } catch {}
-    return initial;
-  });
-
-  const set = useCallback(
-    (v: T) => {
-      setValue(v);
-      try {
-        localStorage.setItem(key, JSON.stringify(v));
-      } catch {}
-    },
-    [key],
-  );
-  return [value, set];
-}
-
 export default function LiveDashboardPage() {
   const {
     dayOptions,
     selectedDayType,
+    forecastModel,
+    setForecastModel,
     bessCapacityKwh,
     setBessCapacityKwh,
+    batterySoc,
+    setBatterySoc,
     simulation,
     isBusy,
     errorMessage,
@@ -64,8 +47,26 @@ export default function LiveDashboardPage() {
 
   const activeTabStreams = tabs.find((t) => t.id === activeTabId)?.streams ?? [];
 
-  const [leftOpen, setLeftOpen] = useLocalStorage("fusionquad-left-open", true);
-  const [rightOpen, setRightOpen] = useLocalStorage("fusionquad-right-open", true);
+  const [leftOpen, setLeftOpenState] = useState(true);
+  const [rightOpen, setRightOpenState] = useState(true);
+
+  useEffect(() => {
+    try {
+      const l = localStorage.getItem("fusionquad-left-open");
+      if (l !== null) setLeftOpenState(JSON.parse(l));
+      const r = localStorage.getItem("fusionquad-right-open");
+      if (r !== null) setRightOpenState(JSON.parse(r));
+    } catch {}
+  }, []);
+
+  function setLeftOpen(v: boolean) {
+    setLeftOpenState(v);
+    try { localStorage.setItem("fusionquad-left-open", JSON.stringify(v)); } catch {}
+  }
+  function setRightOpen(v: boolean) {
+    setRightOpenState(v);
+    try { localStorage.setItem("fusionquad-right-open", JSON.stringify(v)); } catch {}
+  }
   const [mobileLeft, setMobileLeft] = useState(false);
   const [mobileRight, setMobileRight] = useState(false);
 
@@ -137,37 +138,90 @@ export default function LiveDashboardPage() {
                   </div>
 
                   {/* BESS slider */}
-                  <div className="rounded-xl border border-outline bg-surface px-4 py-4">
-                    <div className="flex items-center justify-between">
-                      <div>
+                  <div className="rounded-xl border border-outline bg-surface px-4 py-4 space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between">
                         <p className="font-label text-[10px] text-primary">
                           BESS Capacity
                           <Tip text="Battery Energy Storage System — stored energy used to discharge during peak tariff windows to shave demand spikes." />
                         </p>
-                        <p className="mt-2 text-2xl font-semibold text-foreground font-display">
+                        <p className="text-lg font-semibold text-foreground font-display">
                           {bessCapacityKwh}{" "}
-                          <span className="text-sm text-muted font-normal">kWh</span>
+                          <span className="text-xs text-muted font-normal">kWh</span>
                         </p>
                       </div>
-                      <span className="rounded-lg border border-outline bg-surface-2 px-3 py-1.5 text-xs text-muted">
-                        SoC 50% start
-                      </span>
+                      <input
+                        aria-label="BESS capacity"
+                        className="mt-3 w-full accent-[var(--primary)]"
+                        disabled={isBusy}
+                        max={2000}
+                        min={500}
+                        onChange={(e) => setBessCapacityKwh(Number(e.target.value))}
+                        step={100}
+                        type="range"
+                        value={bessCapacityKwh}
+                      />
+                      <div className="mt-1 flex justify-between text-[10px] text-muted">
+                        <span>500 kWh</span>
+                        <span>2000 kWh</span>
+                      </div>
                     </div>
-                    <input
-                      aria-label="BESS capacity"
-                      className="mt-4 w-full accent-[var(--primary)]"
-                      disabled={isBusy}
-                      max={2000}
-                      min={500}
-                      onChange={(e) => setBessCapacityKwh(Number(e.target.value))}
-                      step={100}
-                      type="range"
-                      value={bessCapacityKwh}
-                    />
-                    <div className="mt-1 flex justify-between text-[10px] text-muted">
-                      <span>500 kWh</span>
-                      <span>2000 kWh</span>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <p className="font-label text-[10px] text-primary">
+                          Initial SoC
+                          <Tip text="Starting state-of-charge for the battery at simulation start. Higher SoC = more energy available for peak shaving." />
+                        </p>
+                        <p className="text-lg font-semibold text-foreground font-display">
+                          {Math.round(batterySoc * 100)}{" "}
+                          <span className="text-xs text-muted font-normal">%</span>
+                        </p>
+                      </div>
+                      <input
+                        aria-label="Initial battery SoC"
+                        className="mt-3 w-full accent-[var(--primary)]"
+                        disabled={isBusy}
+                        max={90}
+                        min={10}
+                        onChange={(e) => setBatterySoc(Number(e.target.value) / 100)}
+                        step={5}
+                        type="range"
+                        value={Math.round(batterySoc * 100)}
+                      />
+                      <div className="mt-1 flex justify-between text-[10px] text-muted">
+                        <span>10%</span>
+                        <span>90%</span>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Forecast model selector */}
+                  <div className="rounded-xl border border-outline bg-surface px-4 py-4">
+                    <p className="font-label text-[10px] text-primary mb-3">
+                      Forecast Model
+                      <Tip text="GRU Attention uses time covariates (hour, day, peak flag) for direct multi-step forecasting. Pure GRU uses autoregressive single-feature prediction." />
+                    </p>
+                    <div className="flex gap-2">
+                      {(["gru_attention", "gru"] as const).map((m) => (
+                        <button
+                          key={m}
+                          disabled={isBusy}
+                          onClick={() => setForecastModel(m)}
+                          className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                            forecastModel === m
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-outline bg-surface-2 text-muted hover:border-primary/50 hover:text-foreground"
+                          } disabled:cursor-not-allowed disabled:opacity-50`}
+                        >
+                          {m === "gru_attention" ? "GRU + Attention" : "GRU Pure"}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-[10px] text-muted">
+                      {forecastModel === "gru_attention"
+                        ? "6-feature · direct multi-step · default"
+                        : "1-feature · autoregressive · baseline"}
+                    </p>
                   </div>
 
                   {/* Time window */}
@@ -259,7 +313,7 @@ export default function LiveDashboardPage() {
                 /* Icon strip (collapsed) */
                 <div className="flex flex-col items-center gap-4 py-5">
                   <IconStrip icon="◈" tooltip={activeDay?.label ?? "Scenario"} />
-                  <IconStrip icon="⚡" tooltip={`${bessCapacityKwh} kWh`} />
+                  <IconStrip icon="⚡" tooltip={`${bessCapacityKwh} kWh · SoC ${Math.round(batterySoc * 100)}%`} />
                   <IconStrip
                     icon="⏱"
                     tooltip={timeRange.start ? timeRange.start.slice(0, 10) : "No date set"}

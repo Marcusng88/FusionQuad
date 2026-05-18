@@ -59,10 +59,13 @@ def get_forecast_context(state: dict[str, Any]) -> str:
         parts.append(f"Day Type: {day_type}")
 
     battery = state.get("battery") or {}
-    if soc := battery.get("soc"):
-        parts.append(f"Battery SOC: {soc}%")
+    raw_soc = battery.get("soc")
+    if raw_soc is not None:
+        parts.append(f"Battery SOC: {float(raw_soc) * 100:.1f}% (fraction: {raw_soc})")
     if cycles := battery.get("cycle_count"):
         parts.append(f"Cycle Count: {cycles}")
+    if md_limit := state.get("md_limit_kw"):
+        parts.append(f"MD Limit: {md_limit} kW")
 
     forecast = state.get("forecast") or {}
     if load := forecast.get("load_forecast"):

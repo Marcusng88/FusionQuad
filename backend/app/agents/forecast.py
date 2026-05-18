@@ -1,36 +1,62 @@
-"""Forecast agent - predicts rolling load using the GRU model."""
+"""Forecast agent - predicts rolling load using GRU or GRU+Attention model."""
 
 from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
-import torch
 
 from app.agents.state import AgentState, ForecastResult
-from app.ml.forecast_model import ForecastModel
 
 logger = logging.getLogger(__name__)
 
-_MODEL_PATH = Path(__file__).parent.parent.parent / "models" / "forecast_weights.pt"
-_FORECAST_MODEL: ForecastModel | None = None
+_MODELS_DIR = Path(__file__).parent.parent.parent / "models"
+
+_MODEL_CONFIGS: dict[str, dict[str, Any]] = {
+    "gru_attention": {
+        "weights": _MODELS_DIR / "gru_attention_weights.pt",
+        "cls": None,  # lazy import
+    },
+    "gru": {
+        "weights": _MODELS_DIR / "gru_weights.pt",
+        "cls": None,
+    },
+}
+
+_MODEL_CACHE: dict[str, Any] = {}
 
 
-def _get_model() -> ForecastModel:
-    global _FORECAST_MODEL
-    if _FORECAST_MODEL is None:
-        _FORECAST_MODEL = ForecastModel()
-        if _MODEL_PATH.exists():
-            _FORECAST_MODEL.load(_MODEL_PATH)
-        else:
-            logger.critical("forecast | weights not found at %s — predictions are random", _MODEL_PATH)
-    return _FORECAST_MODEL
+def _get_model(model_name: str) -> Any:
+    """Return cached model instance for model_name, loading on first call."""
+    name = model_name if model_name in _MODEL_CONFIGS else "gru_attention"
+    if name in _MODEL_CACHE:
+        return _MODEL_CACHE[name]
+
+    cfg = _MODEL_CONFIGS[name]
+    if name == "gru_attention":
+        from app.ml.gru_attention import GRUAttentionForecastModel
+        model = GRUAttentionForecastModel()
+    else:
+        from app.ml.gru import GRUForecastModel
+        model = GRUForecastModel()
+
+    weights_path: Path = cfg["weights"]
+    if weights_path.exists():
+        model.load(weights_path)
+        logger.info("forecast | loaded model=%s weights=%s", name, weights_path.name)
+    else:
+        logger.critical("forecast | weights not found at %s — predictions are random", weights_path)
+
+    _MODEL_CACHE[name] = model
+    return model
 
 
 def forecast_node(state: AgentState) -> dict:
     """Generate rolling forecasts using only history available up to this tick."""
-    model = _get_model()
+    model_name: str = state.get("forecast_model") or "gru_attention"
+    model = _get_model(model_name)
 
     forecasts: dict[str, list[float]] = {}
     confidences: dict[str, float] = {}
@@ -44,6 +70,7 @@ def forecast_node(state: AgentState) -> dict:
         if "datetime" not in df.columns or "kw_import" not in df.columns:
             continue
 
+        df["datetime"] = pd.to_datetime(df["datetime"])
         df = df.sort_values("datetime").reset_index(drop=True)
         if len(df) < 49:
             forecasts[facility] = []
@@ -53,15 +80,16 @@ def forecast_node(state: AgentState) -> dict:
         try:
             history = _historical_window(df, current_index, model.config.seq_len)
             confidence = _estimate_confidence(model, history)
-            forecast_values = _predict_horizon(model, history, horizon)
+            forecast_values = model.predict_horizon(history, horizon)
             forecasts[facility] = forecast_values
             confidences[facility] = confidence
             logger.info(
-                "forecast | facility=%s confidence=%.2f horizon=%d first_kw=%.1f",
-                facility, confidence, horizon, forecast_values[0] if forecast_values else 0.0,
+                "forecast | facility=%s model=%s confidence=%.2f horizon=%d first_kw=%.1f",
+                facility, model_name, confidence, horizon,
+                forecast_values[0] if forecast_values else 0.0,
             )
         except Exception as exc:
-            logger.warning("forecast | facility=%s failed: %s", facility, exc)
+            logger.warning("forecast | facility=%s model=%s failed: %s", facility, model_name, exc)
             forecasts[facility] = []
             confidences[facility] = 0.0
 
@@ -74,7 +102,7 @@ def forecast_node(state: AgentState) -> dict:
         "messages": [
             {
                 "role": "assistant",
-                "content": f"Generated rolling forecasts for {len(forecasts)} facilities.",
+                "content": f"Generated rolling forecasts for {len(forecasts)} facilities using {model_name}.",
             }
         ],
     }
@@ -92,7 +120,7 @@ def _historical_window(df: pd.DataFrame, current_index: int | None, seq_len: int
     return history
 
 
-def _estimate_confidence(model: ForecastModel, history: pd.DataFrame) -> float:
+def _estimate_confidence(model: Any, history: pd.DataFrame) -> float:
     X, y = model.prepare_sequence(history)
     n = len(X)
     if n <= 10:
@@ -112,27 +140,3 @@ def _estimate_confidence(model: ForecastModel, history: pd.DataFrame) -> float:
     if mape <= 30:
         return 0.60
     return 0.40
-
-
-def _predict_horizon(model: ForecastModel, history: pd.DataFrame, horizon: int) -> list[float]:
-    X, _ = model.prepare_sequence(history)
-    seq = X[-1:].clone()
-    scale = getattr(model, "_max_val", 0.0) - getattr(model, "_min_val", 0.0)
-
-    model.model.eval()
-    predictions: list[float] = []
-    for _ in range(horizon):
-        with torch.no_grad():
-            normalized = model.model(seq).reshape(-1)[0]
-
-        denormalized = normalized
-        if scale > 0:
-            denormalized = normalized * scale + getattr(model, "_min_val", 0.0)
-
-        value = float(denormalized.item())
-        predictions.append(value)
-
-        next_norm = normalized.reshape(1, 1, 1)
-        seq = torch.cat([seq[:, 1:, :], next_norm], dim=1)
-
-    return predictions

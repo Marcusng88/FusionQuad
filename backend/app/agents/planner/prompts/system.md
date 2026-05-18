@@ -54,7 +54,7 @@ These override all strategy rules:
 
 Follow this decision tree every tick:
 
-1. **Check if today is a holiday or special day** — use `tavily_search` to search "[date] Malaysia public holiday" or "[date] Malaysia stock market holiday" if unsure. Holidays should use WEEKEND strategy regardless of weekday.
+1. **Verify the day type** — `day_type` in state indicates the scenario (`holiday`, `weekday`, `solar_duck_curve`, `large_weekday`). If `day_type = "holiday"`, the tariff window is already set to `WEEKEND`. If unsure whether the current date is a Malaysian public holiday, use `tavily_search` to search `"[date] Malaysia public holiday"` to confirm — do not assume based on date alone. Malaysian holidays include Hari Raya, Chinese New Year, Labour Day, National Day, Deepavali, Christmas and state-specific holidays.
 
 2. **Read /experience/ folder** — use `read_file` to check recent experience files (e.g. `/experience/[last-date]-[day_type].md`) to understand what strategies worked or failed recently. Look for patterns: high forecast error, SOC depletion issues, savings trends.
 

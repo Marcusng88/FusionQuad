@@ -43,7 +43,9 @@ function resolveDayOptions(scenarios: SimulationApiState["scenarios"]) {
 export function useSimulationController() {
   const [selectedDayType, setSelectedDayType] =
     useState<SimulationDayType>("weekday");
+  const [forecastModel, setForecastModel] = useState<"gru_attention" | "gru">("gru_attention");
   const [bessCapacityKwh, setBessCapacityKwh] = useState(1000);
+  const [batterySoc, setBatterySoc] = useState(0.5);
   const [timeRange, setTimeRange] = useState<{ start: string | null; end: string | null }>({
     start: null,
     end: null,
@@ -95,7 +97,9 @@ export function useSimulationController() {
   async function bootstrapSimulation(
     dayType = selectedDayType,
     capacityKwh = bessCapacityKwh,
+    soc = batterySoc,
     range?: { start: string | null; end: string | null },
+    model: "gru_attention" | "gru" = forecastModel,
   ) {
     streamCleanupRef.current?.();
     streamCleanupRef.current = null;
@@ -105,9 +109,10 @@ export function useSimulationController() {
         startSimulation({
           dayType,
           bessCapacityKwh: capacityKwh,
-          batterySoc: 0.5,
+          batterySoc: soc,
           startTime: range?.start,
           endTime: range?.end,
+          forecastModel: model,
         }),
       true,
       dayType,
@@ -195,7 +200,7 @@ export function useSimulationController() {
   }
 
   async function runOptimization() {
-    await bootstrapSimulation(selectedDayType, bessCapacityKwh, timeRange);
+    await bootstrapSimulation(selectedDayType, bessCapacityKwh, batterySoc, timeRange, forecastModel);
   }
 
   const canRun = !isBusy && timeRange.start !== null && timeRange.end !== null;
@@ -221,8 +226,12 @@ export function useSimulationController() {
   return {
     dayOptions,
     selectedDayType,
+    forecastModel,
+    setForecastModel,
     bessCapacityKwh,
     setBessCapacityKwh,
+    batterySoc,
+    setBatterySoc,
     simulation,
     isBusy,
     errorMessage,

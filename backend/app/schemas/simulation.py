@@ -12,6 +12,7 @@ class StartSimulationRequest(BaseModel):
     battery_soc: float = Field(default=0.5, ge=0.0, le=1.0)
     start_time: datetime | None = Field(default=None, description="Optional tick window start — must fall within CSV datetime range")
     end_time: datetime | None = Field(default=None, description="Optional tick window end — must fall within CSV datetime range")
+    forecast_model: Literal["gru_attention", "gru"] = Field(default="gru_attention", description="ML model for load forecasting")
 
 
 class SimulationSessionRequest(BaseModel):

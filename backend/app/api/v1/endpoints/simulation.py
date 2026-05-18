@@ -37,6 +37,7 @@ async def start_simulation(
         battery_soc=payload.battery_soc,
         start_time=payload.start_time,
         end_time=payload.end_time,
+        forecast_model=payload.forecast_model,
     )
 
 
