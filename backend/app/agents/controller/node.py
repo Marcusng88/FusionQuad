@@ -143,7 +143,29 @@ def mock_inverter_dispatch(
 _AMBIENT_TEMP_C = 25.0
 _COOLING_RATE = 0.05  # fraction of (T - ambient) dissipated per 30-min tick
 
+_PEAK_END_HOUR = 22  # TNB C2: PEAK ends at 22:00
+
 _CONTROLLER_AGENT: Any | None = None
+
+
+def _compute_remaining_peak_ticks(current_time: Any, tariff_window: str) -> int:
+    """Return number of 30-min PEAK ticks remaining (including current tick), minimum 1."""
+    if tariff_window != "PEAK" or current_time is None:
+        return 1
+    peak_end_min = _PEAK_END_HOUR * 60
+    current_min = current_time.hour * 60 + current_time.minute
+    remaining_min = max(30, peak_end_min - current_min)
+    return remaining_min // 30
+
+
+def _extend_forecast_to_peak(forecast_values: list[float], remaining_ticks: int) -> list[float]:
+    """Pad forecast with last known value to cover the full remaining PEAK window."""
+    if not forecast_values:
+        return forecast_values
+    if remaining_ticks <= len(forecast_values):
+        return forecast_values[:remaining_ticks]
+    pad_value = forecast_values[-1]
+    return list(forecast_values) + [pad_value] * (remaining_ticks - len(forecast_values))
 
 
 def _build_controller_agent() -> Any:
@@ -179,7 +201,7 @@ async def controller_node(state: AgentState) -> dict:
 
     # Read tariff context from value object
     tariff = state.get("tariff") or {}
-    tariff_window = tariff.get("window") or "OFF_PEAK"
+    tariff_window = tariff.get("window") or "PEAK"
 
     md_limit_kw = float(state.get("md_limit_kw") or 800.0)
     max_discharge_kw = float(state.get("max_discharge_kw") or bess_capacity_kwh)
@@ -189,6 +211,10 @@ async def controller_node(state: AgentState) -> dict:
     baseline_load = state.get("baseline_load")
     if baseline_load is None:
         baseline_load = forecast_kw
+
+    current_time = state.get("current_time")
+    remaining_peak_ticks = _compute_remaining_peak_ticks(current_time, tariff_window)
+    milp_forecast = _extend_forecast_to_peak(forecast_values, remaining_peak_ticks)
 
     # Safety: force hold if SOC critically low
     forced_action: dict | None = None
@@ -208,6 +234,8 @@ async def controller_node(state: AgentState) -> dict:
         optimization_strategy=dict(optimization_strategy),
         temperature_c=temperature_c,
         baseline_load=baseline_load,
+        remaining_peak_ticks=remaining_peak_ticks,
+        milp_forecast=milp_forecast,
     )
 
     try:
@@ -237,7 +265,7 @@ async def controller_node(state: AgentState) -> dict:
 
     if forced_action is None:
         forced_action = _local_milp_fallback(
-            forecast_values=forecast_values,
+            forecast_values=milp_forecast,
             tariff_window=tariff_window,
             battery_soc=battery_soc,
             bess_capacity_kwh=bess_capacity_kwh,
@@ -248,19 +276,28 @@ async def controller_node(state: AgentState) -> dict:
 
     # Safety override: during PEAK, if actual load exceeds MD limit and battery has capacity,
     # ensure minimum discharge regardless of what the planner/agent decided.
-    # This prevents the monthly MD record being set by a single hold tick.
+    # Budget-aware: cap discharge rate so SOC is spread across remaining PEAK ticks, not
+    # burned on one tick while later (potentially worse) ticks are left unprotected.
     reserve_soc = float((optimization_strategy or {}).get("reserve_soc_pct", 0.25))
     if (
         tariff_window == "PEAK"
         and baseline_load > md_limit_kw
         and battery_soc > reserve_soc + 0.05
     ):
-        min_discharge_kw = min(baseline_load - md_limit_kw + 15.0, max_discharge_kw)
+        available_kwh = max(0.0, (battery_soc - reserve_soc) * bess_capacity_kwh)
+        max_sustainable_kw = available_kwh / (remaining_peak_ticks * 0.5)
+        min_discharge_kw = min(
+            baseline_load - md_limit_kw + 15.0,
+            max_discharge_kw,
+            max_sustainable_kw,
+        )
         current_kw = forced_action.get("discharge_kw") or 0.0
         if forced_action.get("action") != "discharge" or current_kw < min_discharge_kw:
             logger.info(
-                "controller | MD override: baseline=%.1f > limit=%.1f, forcing discharge %.1f kW",
+                "controller | MD override: baseline=%.1f > limit=%.1f, forcing discharge %.1f kW "
+                "(budget: %.1f kWh / %d ticks = %.1f kW max sustainable)",
                 baseline_load, md_limit_kw, min_discharge_kw,
+                available_kwh, remaining_peak_ticks, max_sustainable_kw,
             )
             forced_action = {
                 "action": "discharge",
@@ -343,31 +380,38 @@ def _build_controller_prompt(
     optimization_strategy: dict,
     temperature_c: float,
     baseline_load: float,
+    remaining_peak_ticks: int = 1,
+    milp_forecast: list[float] | None = None,
 ) -> str:
     strategy_str = str(optimization_strategy)
     forecast_str = ", ".join(f"{f:.1f}" for f in forecast_values[:6]) if forecast_values else "N/A"
+    full_forecast = milp_forecast or forecast_values
+    milp_str = ", ".join(f"{f:.1f}" for f in full_forecast) if full_forecast else "N/A"
 
     return f"""You are the Controller Agent for FusionQuad.
 
 CURRENT TICK STATE:
 - Facility: {facility or 'unknown'}
-- Forecast kW: {forecast_kw:.1f} (near-term: {forecast_str})
+- Forecast kW: {forecast_kw:.1f} (near-term 6 steps: {forecast_str})
 - Tariff window: {tariff_window}
 - Battery SOC: {battery_soc:.2%} ({bess_capacity_kwh:.0f} kWh capacity)
 - MD limit: {md_limit_kw:.0f} kW
 - Temperature: {temperature_c:.1f}°C
 - Baseline load: {baseline_load:.0f} kW
+- Remaining PEAK ticks: {remaining_peak_ticks} (full PEAK window forecast below)
+- Full PEAK forecast ({len(full_forecast)} steps): [{milp_str}]
 
 OPTIMIZATION STRATEGY (from Planner):
 {strategy_str}
 
 YOUR TASK:
-1. Call milp_optimizer with the state parameters above
+1. Call milp_optimizer with load_forecast=[{milp_str}] (use the full PEAK window forecast, not just near-term)
 2. Extract the dispatch_action from the result
 3. Respond with the dispatch action fields (action, discharge_kw, charge_kw, duration_min, expected_soc_after)
 
 IMPORTANT:
 - If SOC < 20%, respond with action="hold" and skip milp_optimizer
+- Use the full PEAK forecast so MILP can budget SOC across all remaining PEAK ticks
 - Do NOT call mock_inverter_dispatch — hardware simulation is handled externally
 - Respond ONLY with the structured dispatch action
 """
