@@ -28,35 +28,42 @@ _MODEL_CONFIGS: dict[str, dict[str, Any]] = {
 _MODEL_CACHE: dict[str, Any] = {}
 
 
-def _get_model(model_name: str) -> Any:
-    """Return cached model instance for model_name, loading on first call."""
+def _get_model(model_name: str, facility_key: str | None = None) -> Any:
+    """Return cached model for model_name. Tries facility-specific weights first, falls back to pooled."""
     name = model_name if model_name in _MODEL_CONFIGS else "gru_attention"
-    if name in _MODEL_CACHE:
-        return _MODEL_CACHE[name]
+    cache_key = f"{name}_{facility_key}" if facility_key else name
+    if cache_key in _MODEL_CACHE:
+        return _MODEL_CACHE[cache_key]
 
-    cfg = _MODEL_CONFIGS[name]
     if name == "gru_attention":
         from app.ml.gru_attention import GRUAttentionForecastModel
         model = GRUAttentionForecastModel()
+        if facility_key:
+            specific = _MODELS_DIR / f"gru_attention_{facility_key}.pt"
+            if specific.exists():
+                model.load(specific)
+                logger.info("forecast | loaded facility weights=%s", specific.name)
+                _MODEL_CACHE[cache_key] = model
+                return model
+        weights_path: Path = _MODEL_CONFIGS[name]["weights"]
     else:
         from app.ml.gru import GRUForecastModel
         model = GRUForecastModel()
+        weights_path = _MODEL_CONFIGS[name]["weights"]
 
-    weights_path: Path = cfg["weights"]
     if weights_path.exists():
         model.load(weights_path)
         logger.info("forecast | loaded model=%s weights=%s", name, weights_path.name)
     else:
-        logger.critical("forecast | weights not found at %s — predictions are random", weights_path)
+        logger.critical("forecast | weights not found at %s -- predictions are random", weights_path)
 
-    _MODEL_CACHE[name] = model
+    _MODEL_CACHE[cache_key] = model
     return model
 
 
 def forecast_node(state: AgentState) -> dict:
     """Generate rolling forecasts using only history available up to this tick."""
     model_name: str = state.get("forecast_model") or "gru_attention"
-    model = _get_model(model_name)
 
     forecasts: dict[str, list[float]] = {}
     confidences: dict[str, float] = {}
@@ -66,6 +73,7 @@ def forecast_node(state: AgentState) -> dict:
     current_index = state.get("current_record_index")
 
     for facility, payload in loaded.items():
+        model = _get_model(model_name, facility)
         df = pd.DataFrame(payload["data"])
         if "datetime" not in df.columns or "kw_import" not in df.columns:
             continue

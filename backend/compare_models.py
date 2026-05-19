@@ -10,25 +10,32 @@ from app.ml.gru import GRUForecastModel
 from app.ml.gru_attention import GRUAttentionForecastModel
 
 DATA_DIR = Path(__file__).parent / "data"
-GRU_WEIGHTS = Path(__file__).parent / "models" / "gru_weights.pt"
-ATTN_WEIGHTS = Path(__file__).parent / "models" / "gru_attention_weights.pt"
+MODELS_DIR = Path(__file__).parent / "models"
+GRU_WEIGHTS = MODELS_DIR / "gru_weights.pt"
+ATTN_WEIGHTS = MODELS_DIR / "gru_attention_weights.pt"  # pooled fallback
 SPLIT = 0.8
 
-FILES = [
-    "1. Load Profile (With Solar Installed) SoL.csv",
-    "2. Load Profile (No Solar) E.csv",
-    "3. Load Profile (No Solar) SuN.csv",
-    "4. Load Profile (With Solar) Mi2.csv",
-]
+# Map CSV filename -> facility key (matches train_gru_attention.py and forecast.py)
+FACILITY_KEYS = {
+    "1. Load Profile (With Solar Installed) SoL.csv": "solar_duck_curve",
+    "2. Load Profile (No Solar) E.csv":               "weekday",
+    "3. Load Profile (No Solar) SuN.csv":             "holiday",
+    "4. Load Profile (With Solar) Mi2.csv":           "large_weekday",
+}
+
+FILES = list(FACILITY_KEYS.keys())
 
 # ---------------------------------------------------------------------------
 # Check trained model weights exist
 # ---------------------------------------------------------------------------
 if not GRU_WEIGHTS.exists():
-    print(f"Missing {GRU_WEIGHTS} — run: python train_gru.py")
+    print(f"Missing {GRU_WEIGHTS} -- run: python train_gru.py")
     sys.exit(1)
-if not ATTN_WEIGHTS.exists():
-    print(f"Missing {ATTN_WEIGHTS} — run: python train_gru_attention.py")
+
+# Check at least one attention weights file exists
+attn_files = list(MODELS_DIR.glob("gru_attention_*.pt")) + ([ATTN_WEIGHTS] if ATTN_WEIGHTS.exists() else [])
+if not attn_files:
+    print("Missing GRU+Attention weights -- run: python train_gru_attention.py")
     sys.exit(1)
 
 # ---------------------------------------------------------------------------
@@ -67,11 +74,14 @@ for fname in FILES:
         print(f"{label:<22} {'GRU':<26} {'ERROR':>8}  {e}")
 
     # -----------------------------------------------------------------------
-    # GRU + Attention + Lag + Quantile (Phase 1)
+    # GRU + Attention + Lag + Quantile (Phase 1 — facility-specific weights)
     # -----------------------------------------------------------------------
     try:
         attn = GRUAttentionForecastModel()
-        attn.load(ATTN_WEIGHTS)
+        fkey = FACILITY_KEYS.get(fname)
+        specific = MODELS_DIR / f"gru_attention_{fkey}.pt" if fkey else None
+        weights = specific if (specific and specific.exists()) else ATTN_WEIGHTS
+        attn.load(weights)
         X2, y2 = attn.prepare_sequence(df)
         split2 = int(SPLIT * len(X2))
         X_val, y_val = X2[split2:], y2[split2:]
@@ -79,7 +89,8 @@ for fname in FILES:
         # compute q90 - q10 spread (avg over val set, first horizon step)
         q_preds = attn.predict_quantiles(X_val)
         spread = (q_preds["q90"][:, 0] - q_preds["q10"][:, 0]).mean().item()
-        print(f"{label:<22} {'GRU+Attn+Lag+Q':<26} {mape2:>8.2f} {spread:>9.1f} {len(X2)-split2:>9}")
+        tag = "GRU+Attn+Fac" if (specific and specific.exists()) else "GRU+Attn+Lag+Q"
+        print(f"{label:<22} {tag:<26} {mape2:>8.2f} {spread:>9.1f} {len(X2)-split2:>9}")
     except Exception as e:
         print(f"{label:<22} {'GRU+Attn+Lag+Q':<26} {'ERROR':>8}  {e}")
 

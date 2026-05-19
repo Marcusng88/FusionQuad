@@ -1,43 +1,36 @@
-"""Train GRU+Attention on all 4 datasets and save weights."""
+"""Train GRU+Attention per facility and save separate weights."""
 
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
-import torch
 from app.data.csv_loader import CSVLoader
 from app.ml.gru_attention import GRUAttentionForecastModel
 
 DATA_DIR = Path(__file__).parent / "data"
-SAVE_PATH = Path(__file__).parent / "models" / "gru_attention_weights.pt"
+MODELS_DIR = Path(__file__).parent / "models"
 EPOCHS = 30
 
-FILES = [
-    "1. Load Profile (With Solar Installed) SoL.csv",
-    "2. Load Profile (No Solar) E.csv",
-    "3. Load Profile (No Solar) SuN.csv",
-    "4. Load Profile (With Solar) Mi2.csv",
-]
+FACILITIES = {
+    "weekday":          "2. Load Profile (No Solar) E.csv",
+    "holiday":          "3. Load Profile (No Solar) SuN.csv",
+    "solar_duck_curve": "1. Load Profile (With Solar Installed) SoL.csv",
+    "large_weekday":    "4. Load Profile (With Solar) Mi2.csv",
+}
 
 loader = CSVLoader()
-model = GRUAttentionForecastModel()
-print(f"device: {model.device}")
 
-Xs, ys = [], []
-for fname in FILES:
+for key, fname in FACILITIES.items():
+    save_path = MODELS_DIR / f"gru_attention_{key}.pt"
+    print(f"\n--- {key} ({fname[:45]}) ---")
     try:
         df = loader.load(DATA_DIR / fname)
+        model = GRUAttentionForecastModel()
+        print(f"device: {model.device}")
         X, y = model.prepare_sequence(df)
-        Xs.append(X)
-        ys.append(y)
-        print(f"loaded {fname[:40]}  sequences={len(X)}")
+        print(f"sequences={len(X)}  shape={X.shape}")
+        model.train_model(X, y, epochs=EPOCHS, verbose=True)
+        model.save(save_path)
+        print(f"saved -> {save_path}")
     except Exception as e:
-        print(f"skip {fname[:40]}  {e}")
-
-X_all = torch.cat(Xs)
-y_all = torch.cat(ys)
-print(f"\ntotal sequences={len(X_all)}  shape={X_all.shape}")
-
-model.train_model(X_all, y_all, epochs=EPOCHS, verbose=True)
-model.save(SAVE_PATH)
-print(f"\nsaved -> {SAVE_PATH}")
+        print(f"ERROR: {e}")
