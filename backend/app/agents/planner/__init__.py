@@ -71,4 +71,15 @@ def get_forecast_context(state: dict[str, Any]) -> str:
                     f"({available_kwh:.0f} kWh available above reserve / {remaining_ticks} ticks)"
                 )
 
+    if feedback := state.get("planner_feedback"):
+        parts.append("Last Tick Audit:")
+        passed = feedback.get("rules_passed", True)
+        parts.append(f"  Rules: {'PASS' if passed else 'FAIL'}")
+        for v in feedback.get("rule_violations", []):
+            parts.append(f"  ! {v.get('severity', '').upper()}: {v.get('detail', '')}")
+        parts.append(f"  Delta Score: {feedback.get('delta_score', 0.0):.1f}/100")
+        parts.append(f"  Within MD Limit: {feedback.get('within_limit', False)}")
+        if rec := feedback.get("recommendation"):
+            parts.append(f"  Recommendation: {rec}")
+
     return "\n".join(parts) if parts else ""

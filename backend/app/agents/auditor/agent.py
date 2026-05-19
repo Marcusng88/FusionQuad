@@ -251,30 +251,30 @@ async def auditor_node(state: dict) -> dict:
     )
     llm_eval: LLMEvaluation | None = None
 
-    try:
-        invoke_config = {"configurable": {"thread_id": f"auditor-{state.get('session_id', 'default')}"}}
-        result = await agent.ainvoke(
-            {"messages": [{"role": "user", "content": prompt}]},
-            invoke_config,
-        )
-        messages = result.get("messages", []) if isinstance(result, dict) else []
-        last = messages[-1].content if messages else ""
-        parsed = _parse_llm_payload(str(last))
-        if parsed:
-            llm_eval = LLMEvaluation(
-                reasoning=parsed.get("reasoning", ""),
-                recommendation=parsed.get("recommendation", ""),
-                confidence=float(parsed.get("confidence", 0.75)),
+    if should_run_llm(delta_eval, rule_eval):
+        try:
+            invoke_config = {"configurable": {"thread_id": f"auditor-{state.get('session_id', 'default')}"}}
+            result = await agent.ainvoke(
+                {"messages": [{"role": "user", "content": prompt}]},
+                invoke_config,
             )
-    except Exception as exc:
-        logger.warning("auditor | agent invoke failed, using rule+delta eval: %s", exc)
-
-    if llm_eval is None and should_run_llm(delta_eval, rule_eval):
-        llm_eval = LLMEvaluation(
-            reasoning=_generate_llm_reasoning(delta_eval, rule_eval),
-            recommendation=_generate_recommendation(rule_eval, delta_eval),
-            confidence=0.75,
-        )
+            messages = result.get("messages", []) if isinstance(result, dict) else []
+            last = messages[-1].content if messages else ""
+            parsed = _parse_llm_payload(str(last))
+            if parsed:
+                llm_eval = LLMEvaluation(
+                    reasoning=parsed.get("reasoning", ""),
+                    recommendation=parsed.get("recommendation", ""),
+                    confidence=float(parsed.get("confidence", 0.75)),
+                )
+        except Exception as exc:
+            logger.warning("auditor | agent invoke failed, using deterministic fallback: %s", exc)
+        if llm_eval is None:
+            llm_eval = LLMEvaluation(
+                reasoning=_generate_llm_reasoning(delta_eval, rule_eval),
+                recommendation=_generate_recommendation(rule_eval, delta_eval),
+                confidence=0.75,
+            )
 
     auditor_result = AuditorResult(
         delta_eval=delta_eval,
@@ -321,8 +321,21 @@ async def auditor_node(state: dict) -> dict:
     total_shave = sum(entry["evaluate"]["delta_eval"]["shave_kw"] for entry in new_decision_log)
     shave_percentage = (total_shave / new_total_possible * 100) if new_total_possible > 0 else 0.0
 
+    planner_feedback = {
+        "rules_passed": rule_eval.get("passed", True),
+        "rule_violations": rule_eval.get("violations", []),
+        "delta_score": delta_eval.get("delta_score", 0.0),
+        "shave_kw": delta_eval.get("shave_kw", 0.0),
+        "within_limit": actual_load <= md_limit_kw,
+        "recommendation": (
+            llm_eval.get("recommendation", "") if llm_eval
+            else _generate_recommendation(rule_eval, delta_eval)
+        ),
+    }
+
     return {
         "auditor_result": auditor_result,
+        "planner_feedback": planner_feedback,
         "decision_log": new_decision_log,
         "total_savings_rm": new_total_savings,
         "within_limit_ticks": new_within_limit,

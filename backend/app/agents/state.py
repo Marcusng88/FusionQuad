@@ -103,6 +103,7 @@ class AgentState(TypedDict, total=False):
 
     # Auditor accumulation
     auditor_result: dict | None
+    planner_feedback: dict | None  # written by auditor, read by planner next tick
     decision_log: list[dict] | None
     agent_trace: list[dict] | None
     shave_percentage: float | None
