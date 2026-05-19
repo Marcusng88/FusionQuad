@@ -40,4 +40,4 @@ print(f"\ntotal sequences={len(X_all)}  shape={X_all.shape}")
 
 model.train_model(X_all, y_all, epochs=EPOCHS, verbose=True)
 model.save(SAVE_PATH)
-print(f"\nsaved → {SAVE_PATH}")
+print(f"\nsaved -> {SAVE_PATH}")
