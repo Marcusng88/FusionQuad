@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import torch
 from app.data.csv_loader import CSVLoader
+from app.data.weather_loader import fetch_ghi_historical, align_ghi_to_df
 from app.ml.gru import GRUForecastModel
 from app.ml.gru_attention import GRUAttentionForecastModel
 
@@ -24,6 +25,12 @@ FACILITY_KEYS = {
 }
 
 FILES = list(FACILITY_KEYS.keys())
+
+# Date ranges for GHI fetch (solar facilities only)
+SOLAR_DATE_RANGES = {
+    "solar_duck_curve": {"start": "2025-09-01", "end": "2025-09-30"},
+    "large_weekday":    {"start": "2025-11-01", "end": "2026-01-01"},
+}
 
 # ---------------------------------------------------------------------------
 # Check trained model weights exist
@@ -74,7 +81,7 @@ for fname in FILES:
         print(f"{label:<22} {'GRU':<26} {'ERROR':>8}  {e}")
 
     # -----------------------------------------------------------------------
-    # GRU + Attention + Lag + Quantile (Phase 1 — facility-specific weights)
+    # GRU + Attention + Lag + Quantile (facility-specific weights)
     # -----------------------------------------------------------------------
     try:
         attn = GRUAttentionForecastModel()
@@ -82,7 +89,17 @@ for fname in FILES:
         specific = MODELS_DIR / f"gru_attention_{fkey}.pt" if fkey else None
         weights = specific if (specific and specific.exists()) else ATTN_WEIGHTS
         attn.load(weights)
-        X2, y2 = attn.prepare_sequence(df)
+
+        # If model expects 12 features, fetch GHI and pass it
+        ghi_norm = None
+        if attn.config.input_size == 12 and hasattr(attn, "_ghi_max"):
+            info = SOLAR_DATE_RANGES.get(fkey, {})
+            if info:
+                ghi = fetch_ghi_historical(info["start"], info["end"])
+                ghi_aligned = align_ghi_to_df(df, ghi)
+                ghi_norm = (ghi_aligned.values / attn._ghi_max).astype("float32")
+
+        X2, y2 = attn.prepare_sequence(df, ghi=ghi_norm)
         split2 = int(SPLIT * len(X2))
         X_val, y_val = X2[split2:], y2[split2:]
         mape2 = attn.evaluate_mape(X_val, y_val)

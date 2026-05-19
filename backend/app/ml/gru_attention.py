@@ -78,8 +78,8 @@ def _quantile_loss(preds: List[torch.Tensor], target: torch.Tensor, quantiles: L
     return sum(losses)
 
 
-def _add_lag_features(df: pd.DataFrame) -> np.ndarray:
-    """Return (n, 11) array: [kw, lag48, lag336, rmean24, rstd24, rmean48, h_sin, h_cos, d_sin, d_cos, is_peak]."""
+def _add_lag_features(df: pd.DataFrame, ghi: np.ndarray | None = None) -> np.ndarray:
+    """Return (n, 11) or (n, 12) array. GHI appended as 12th column when provided."""
     kw = df["kw_import"].values.astype(np.float32)
     hour = df["datetime"].dt.hour.values.astype(np.float32)
     dow = df["datetime"].dt.dayofweek.values.astype(np.float32)
@@ -97,11 +97,11 @@ def _add_lag_features(df: pd.DataFrame) -> np.ndarray:
     day_cos = np.cos(2 * np.pi * dow / 7).astype(np.float32)
     is_peak = ((hour >= 14) & (hour < 22) & (dow < 5)).astype(np.float32)
 
-    return np.stack(
-        [kw, lag_48, lag_336, roll_mean_24, roll_std_24, roll_mean_48,
-         hour_sin, hour_cos, day_sin, day_cos, is_peak],
-        axis=1,
-    )
+    cols = [kw, lag_48, lag_336, roll_mean_24, roll_std_24, roll_mean_48,
+            hour_sin, hour_cos, day_sin, day_cos, is_peak]
+    if ghi is not None:
+        cols.append(ghi.astype(np.float32))
+    return np.stack(cols, axis=1)
 
 
 class GRUAttentionForecastModel:
@@ -112,11 +112,13 @@ class GRUAttentionForecastModel:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = _GRUAttentionNet(self.config).to(self.device)
 
-    def prepare_sequence(self, df: pd.DataFrame) -> tuple[torch.Tensor, torch.Tensor]:
+    def prepare_sequence(
+        self, df: pd.DataFrame, ghi: np.ndarray | None = None
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         if "kw_import" not in df.columns or "datetime" not in df.columns:
             raise KeyError("DataFrame must have 'kw_import' and 'datetime' columns")
         df = df.sort_values("datetime").reset_index(drop=True)
-        features = _add_lag_features(df)  # (n, 11)
+        features = _add_lag_features(df, ghi)  # (n, 11) or (n, 12)
         seq_len = self.config.seq_len
         horizon = self.config.horizon
         if len(features) < seq_len + horizon:
@@ -225,13 +227,13 @@ class GRUAttentionForecastModel:
             "config": cfg,
             "min_val": float(self._min_val) if hasattr(self, "_min_val") else None,
             "max_val": float(self._max_val) if hasattr(self, "_max_val") else None,
+            "ghi_max": float(self._ghi_max) if hasattr(self, "_ghi_max") else None,
         }, path)
 
     def load(self, path: Path | str) -> None:
         checkpoint = torch.load(Path(path), weights_only=True, map_location=self.device)
         if "config" in checkpoint:
             cfg = checkpoint["config"]
-            # Ensure quantiles is a list (may be serialized differently)
             if "quantiles" not in cfg:
                 cfg["quantiles"] = [0.1, 0.5, 0.9]
             self.config = GRUAttentionConfig(**cfg)
@@ -241,3 +243,5 @@ class GRUAttentionForecastModel:
             self._min_val = checkpoint["min_val"]
         if checkpoint.get("max_val") is not None:
             self._max_val = checkpoint["max_val"]
+        if checkpoint.get("ghi_max") is not None:
+            self._ghi_max = checkpoint["ghi_max"]
