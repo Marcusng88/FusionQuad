@@ -107,5 +107,4 @@ def data_loader_node(state: dict[str, Any]) -> dict[str, Any]:
         "loaded_data": loaded_data,
         "data_quality": data_quality,
         "current_facility": facility_key,
-        "md_limit_kw": DEFAULT_MD_LIMIT_KW,
     }

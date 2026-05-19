@@ -38,6 +38,8 @@ async def start_simulation(
         start_time=payload.start_time,
         end_time=payload.end_time,
         forecast_model=payload.forecast_model,
+        md_limit_kw=payload.md_limit_kw,
+        max_discharge_kw=payload.max_discharge_kw,
     )
 
 

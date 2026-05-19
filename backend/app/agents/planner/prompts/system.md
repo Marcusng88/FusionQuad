@@ -102,8 +102,8 @@ Respond with strategy as JSON:
   "reserve_soc_pct": 0.20,
   "target_soc_end": 0.50,
   "rationale": "• Strategy chosen: reason\n• Risk managed: what and why\n• Key numbers: SOC X%, load Y kW, MD limit Z kW, shave W kW\n• History: what past experience informed this decision",
-  "md_limit_kw": 800.0,
+  "md_limit_kw": <use the md_limit_kw value from the STATE block above — do not default to 800>,
   "confidence": 0.85,
-  "constraints": ["reserve_20pct_soc", "max_100kW_interval"]
+  "constraints": ["reserve_20pct_soc", "max_discharge_interval"]
 }
 ```

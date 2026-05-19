@@ -29,13 +29,13 @@
 
 **T1** means weekday semi-peak or morning period, which occurs Monday through Friday from 08:00 to 14:00, when electricity prices are medium and this period serves as a preparation window before peak hours begin.
 
-**T2** means weekday off-peak or night period, which occurs Monday through Friday from 22:00 to 08:00 the next morning, when electricity prices are lowest and this is the most economical time for charging the battery.
+**T2** means weekday off-peak or night period, which occurs Monday through Friday from 22:00 to 08:00 the next morning, when electricity prices are lowest and this is the most economical time for charging the battery.Charge the battery gradually during this period if the SoC is between B0 and B3 to take advantage of low prices and prepare for the next day, while avoiding aggressive charging that may reduce battery lifespan.
 
 **T3** means weekend, which includes all day Saturday and Sunday from 00:00 to 24:00, when electricity prices are low and Maximum Demand risk is minimal.
 
 **T4** means public holiday, which includes all gazetted national and state holidays from 00:00 to 24:00, when electricity prices are low and Maximum Demand risk is minimal.
 
-**T5** means pre-peak preparatory period, which occurs one to two hours before weekday peak hour begins (approximately 12:00 to 14:00), when the system should prepare the battery for upcoming high demand.
+**T5** means pre-peak preparatory period, which occurs one to two hours before weekday peak hour begins (approximately 12:00 to 14:00), when the system should prepare the battery for upcoming high demand.Priotize charging the battery in this period if the SoC is between B0 and B3 rather than hold to prepare for upcoming peak demand.
 
 ---
 

@@ -79,6 +79,8 @@ class SimulationService:
         start_time: datetime | None = None,
         end_time: datetime | None = None,
         forecast_model: str = "gru_attention",
+        md_limit_kw: float = 800.0,
+        max_discharge_kw: float | None = None,
     ) -> SimulationStateResponse:
         self._evict_completed_sessions()
         loop = asyncio.get_running_loop()
@@ -117,6 +119,8 @@ class SimulationService:
             **loaded,
             "session_id": session_id,
             "day_type": day_type,
+            "md_limit_kw": md_limit_kw,
+            "max_discharge_kw": max_discharge_kw if max_discharge_kw is not None else bess_capacity_kwh,
             "current_interval": 0,
             "current_record_index": record_offset,
             "forecast_window": FORECAST_WINDOW_INTERVALS,

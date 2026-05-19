@@ -79,6 +79,7 @@ class AgentState(TypedDict, total=False):
     forecast_model: str | None
     current_facility: str | None
     md_limit_kw: float | None
+    max_discharge_kw: float | None
     current_record_index: int | None
 
     # Raw data (flat — loaded once, referenced by all agents)

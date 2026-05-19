@@ -41,6 +41,7 @@ def milp_optimizer(
     battery_soc: float,
     bess_capacity_kwh: float,
     md_limit_kw: float,
+    max_discharge_kw: float = 500.0,
     strategy_name: str = "conservative_shaving",
     shave_kw: float = 80.0,
     target_soc_end: float = 0.5,
@@ -54,6 +55,7 @@ def milp_optimizer(
         battery_soc: Current state-of-charge (0-1)
         bess_capacity_kwh: Installed BESS capacity
         md_limit_kw: Maximum demand limit kW
+        max_discharge_kw: Maximum discharge rate kW
         strategy_name: Strategy from planner e.g. conservative_shaving
         shave_kw: Target peak shave amount in kW
         target_soc_end: Target SOC at end of horizon (0-1)
@@ -78,6 +80,7 @@ def milp_optimizer(
         md_limit_kw=md_limit_kw,
         current_dispatch_index=0,
         previous_dispatch_plan=None,
+        max_discharge_kw=max_discharge_kw,
     )
 
     result = solver.solve(input_data)
@@ -179,6 +182,7 @@ async def controller_node(state: AgentState) -> dict:
     tariff_window = tariff.get("window") or "OFF_PEAK"
 
     md_limit_kw = float(state.get("md_limit_kw") or 800.0)
+    max_discharge_kw = float(state.get("max_discharge_kw") or bess_capacity_kwh)
     optimization_strategy = state.get("optimization_strategy") or {}
 
     forecast_kw = forecast_values[0] if forecast_values else 0.0
@@ -238,6 +242,7 @@ async def controller_node(state: AgentState) -> dict:
             battery_soc=battery_soc,
             bess_capacity_kwh=bess_capacity_kwh,
             md_limit_kw=md_limit_kw,
+            max_discharge_kw=max_discharge_kw,
             optimization_strategy=dict(optimization_strategy),
         )
 
@@ -250,7 +255,7 @@ async def controller_node(state: AgentState) -> dict:
         and baseline_load > md_limit_kw
         and battery_soc > reserve_soc + 0.05
     ):
-        min_discharge_kw = min(baseline_load - md_limit_kw + 15.0, 100.0)
+        min_discharge_kw = min(baseline_load - md_limit_kw + 15.0, max_discharge_kw)
         current_kw = forced_action.get("discharge_kw") or 0.0
         if forced_action.get("action") != "discharge" or current_kw < min_discharge_kw:
             logger.info(
@@ -374,6 +379,7 @@ def _local_milp_fallback(
     battery_soc: float,
     bess_capacity_kwh: float,
     md_limit_kw: float,
+    max_discharge_kw: float,
     optimization_strategy: dict,
 ) -> dict:
     """Fallback MILP computation when the deep agent is unavailable."""
@@ -388,6 +394,7 @@ def _local_milp_fallback(
         md_limit_kw=md_limit_kw,
         current_dispatch_index=0,
         previous_dispatch_plan=None,
+        max_discharge_kw=max_discharge_kw,
     )
 
     result = solver.solve(input_data)

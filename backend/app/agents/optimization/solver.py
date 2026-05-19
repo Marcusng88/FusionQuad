@@ -43,9 +43,9 @@ class OptimizationInput:
     md_limit_kw: float
     current_dispatch_index: int
     previous_dispatch_plan: Optional[list] = None
+    max_discharge_kw: float = 100.0
 
 
-MAX_DISCHARGE_KW = 100.0
 MAX_CHARGE_KW = 50.0
 MIN_SOC = 0.20
 MAX_SOC = 0.95
@@ -111,26 +111,31 @@ class OptimizationSolver:
         n_intervals = len(input_data.load_forecast)
         strategy = input_data.optimization_strategy
         energy_rate = self._get_energy_rate(input_data.tariff_window)
+        max_d = input_data.max_discharge_kw
 
         prob = pulp.LpProblem("BESS_Dispatch", pulp.LpMinimize)
-        power = [pulp.LpVariable(f"power_{i}", -MAX_CHARGE_KW, MAX_DISCHARGE_KW) for i in range(n_intervals)]
+        power = [pulp.LpVariable(f"power_{i}", -MAX_CHARGE_KW, max_d) for i in range(n_intervals)]
         soc = [pulp.LpVariable(f"soc_{i}", MIN_SOC, MAX_SOC) for i in range(n_intervals)]
 
-        energy_cost = sum(energy_rate * power[i] * (DT_SECONDS / 3600) for i in range(n_intervals))
-        prob += energy_cost
+        # Minimize peak demand (MD billing) + energy cost as secondary term.
+        # Weight 100: MD charge is RM 97.06/kW vs energy RM 0.234/kWh — ratio ~415x.
+        # Using 100 makes peak-shaving dominate without causing MILP numeric issues.
+        peak_demand = pulp.LpVariable("peak_demand", lowBound=0)
+        for i in range(n_intervals):
+            if input_data.tariff_window == "PEAK":
+                prob += peak_demand >= input_data.load_forecast[i] - power[i], f"peak_dem_{i}"
 
-        # During PEAK, target 30 kW below the MD limit to absorb forecast error (GRU MAPE ~3-5%)
-        md_target = input_data.md_limit_kw - (30.0 if input_data.tariff_window == "PEAK" else 0.0)
+        energy_cost = pulp.lpSum(energy_rate * power[i] * (DT_SECONDS / 3600) for i in range(n_intervals))
+        prob += 100.0 * peak_demand + energy_cost
 
         for i in range(n_intervals):
-            prob += power[i] <= MAX_DISCHARGE_KW, f"max_discharge_{i}"
+            prob += power[i] <= max_d, f"max_discharge_{i}"
             prob += power[i] >= -MAX_CHARGE_KW, f"max_charge_{i}"
             if i == 0:
                 prob += soc[i] == input_data.battery_soc, f"initial_soc_{i}"
             else:
                 energy_kwh = power[i-1] * (DT_SECONDS / 3600)
                 prob += soc[i] == soc[i-1] - (energy_kwh / input_data.bess_capacity_kwh), f"soc_dynamics_{i}"
-            prob += input_data.load_forecast[i] - power[i] <= md_target, f"md_threshold_{i}"
 
         target_soc_end = strategy.get("target_soc_end", 0.50)
         reserve_soc_pct = strategy.get("reserve_soc_pct", 0.20)
@@ -141,7 +146,7 @@ class OptimizationSolver:
         solver = pulp.PULP_CBC_CMD(msg=0, timeLimit=1)
         prob.solve(solver)
 
-        if pulp.LpStatus[prob.status] not in ("Optimal", "Not Solved"):
+        if pulp.LpStatus[prob.status] != "Optimal":
             raise Exception(f"MILP infeasible: {pulp.LpStatus[prob.status]}")
 
         dispatch_plan = []
@@ -150,7 +155,7 @@ class OptimizationSolver:
             s_val = pulp.value(soc[i]) or input_data.battery_soc
             if p_val > 1.0:
                 action = "discharge"
-                d_kw = min(p_val, MAX_DISCHARGE_KW)
+                d_kw = min(p_val, max_d)
                 c_kw = None
             elif p_val < -1.0:
                 action = "charge"
@@ -185,7 +190,7 @@ class OptimizationSolver:
 
     def _fallback_discharge(self, input_data: OptimizationInput) -> OptimizationResult:
         shave_kw = input_data.optimization_strategy.get("shave_kw", 80.0)
-        discharge_kw = min(shave_kw, MAX_DISCHARGE_KW)
+        discharge_kw = min(shave_kw, input_data.max_discharge_kw)
         dispatch_plan = []
         soc = input_data.battery_soc
         for i, load in enumerate(input_data.load_forecast):

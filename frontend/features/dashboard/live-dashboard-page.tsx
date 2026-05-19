@@ -29,6 +29,10 @@ export default function LiveDashboardPage() {
     setBessCapacityKwh,
     batterySoc,
     setBatterySoc,
+    mdLimitKw,
+    setMdLimitKw,
+    maxDischargeKw,
+    setMaxDischargeKw,
     simulation,
     isBusy,
     errorMessage,
@@ -192,6 +196,64 @@ export default function LiveDashboardPage() {
                       <div className="mt-1 flex justify-between text-[10px] text-muted">
                         <span>10%</span>
                         <span>90%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* MD limit + max discharge */}
+                  <div className="rounded-xl border border-outline bg-surface px-4 py-4 space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <p className="font-label text-[10px] text-primary">
+                          MD Limit
+                          <Tip text="Maximum Demand limit in kW. TNB bills RM 97.06/kW on the single highest 30-min reading during PEAK (14:00–22:00 weekdays). Set this to your contracted limit." />
+                        </p>
+                        <p className="text-lg font-semibold text-foreground font-display">
+                          {mdLimitKw}{" "}
+                          <span className="text-xs text-muted font-normal">kW</span>
+                        </p>
+                      </div>
+                      <input
+                        aria-label="MD limit"
+                        className="mt-3 w-full accent-[var(--primary)]"
+                        disabled={isBusy}
+                        max={2000}
+                        min={100}
+                        onChange={(e) => setMdLimitKw(Number(e.target.value))}
+                        step={50}
+                        type="range"
+                        value={mdLimitKw}
+                      />
+                      <div className="mt-1 flex justify-between text-[10px] text-muted">
+                        <span>100 kW</span>
+                        <span>2000 kW</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <p className="font-label text-[10px] text-primary">
+                          Max Discharge
+                          <Tip text="Maximum BESS discharge rate in kW. Caps how fast the battery can release power in any single tick." />
+                        </p>
+                        <p className="text-lg font-semibold text-foreground font-display">
+                          {maxDischargeKw}{" "}
+                          <span className="text-xs text-muted font-normal">kW</span>
+                        </p>
+                      </div>
+                      <input
+                        aria-label="Max discharge rate"
+                        className="mt-3 w-full accent-[var(--primary)]"
+                        disabled={isBusy}
+                        max={2000}
+                        min={50}
+                        onChange={(e) => setMaxDischargeKw(Number(e.target.value))}
+                        step={50}
+                        type="range"
+                        value={maxDischargeKw}
+                      />
+                      <div className="mt-1 flex justify-between text-[10px] text-muted">
+                        <span>50 kW</span>
+                        <span>2000 kW</span>
                       </div>
                     </div>
                   </div>

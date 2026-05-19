@@ -13,6 +13,8 @@ type StartPayload = {
   startTime?: string | null;
   endTime?: string | null;
   forecastModel?: "gru_attention" | "gru";
+  mdLimitKw?: number;
+  maxDischargeKw?: number;
 };
 
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
@@ -82,6 +84,8 @@ export function startSimulation(
         start_time: payload.startTime ?? null,
         end_time: payload.endTime ?? null,
         forecast_model: payload.forecastModel ?? "gru_attention",
+        md_limit_kw: payload.mdLimitKw ?? 800,
+        max_discharge_kw: payload.maxDischargeKw ?? null,
       }),
     },
     baseUrl,

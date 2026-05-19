@@ -13,6 +13,8 @@ class StartSimulationRequest(BaseModel):
     start_time: datetime | None = Field(default=None, description="Optional tick window start — must fall within CSV datetime range")
     end_time: datetime | None = Field(default=None, description="Optional tick window end — must fall within CSV datetime range")
     forecast_model: Literal["gru_attention", "gru"] = Field(default="gru_attention", description="ML model for load forecasting")
+    md_limit_kw: float = Field(default=800.0, gt=0, description="Maximum demand limit in kW")
+    max_discharge_kw: float | None = Field(default=None, gt=0, description="Max BESS discharge rate kW; defaults to bess_capacity_kwh (1C)")
 
 
 class SimulationSessionRequest(BaseModel):
