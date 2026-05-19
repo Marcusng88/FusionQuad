@@ -21,18 +21,16 @@ Cross-cutting rules for BESS operation that apply regardless of tariff window or
 - **50% DoD**: Conservative mode for normal PEAK shaving
 - **25% DoD**: Minimum discharge for light grid support
 
-## Temperature Considerations
-- **Below 0C**: Reduce charge/discharge rates by 50%
-- **Below -10C**: Suspend all BESS operations (safety mode)
-- **Above 40C**: Reduce charge/discharge rates by 30%
-- **Above 45C**: Suspend all BESS operations (safety mode)
+## Temperature Considerations (Malaysia — tropical, ambient 26–35°C year-round)
+- **Above 40°C**: Reduce charge/discharge rates by 30%
+- **Above 45°C**: Suspend all BESS operations (safety mode — thermal runaway risk)
 
 ## Emergency Rules (Always Apply)
 1. Never discharge below 10% SOC
 2. Never charge above 100% SOC
 3. If BESS experiences fault, go to IDLE mode immediately
-4. If grid frequency drops below 59.5 Hz, disconnect and idle
-5. If grid frequency rises above 60.5 Hz, disconnect and idle
+4. If grid frequency drops below 49.5 Hz, disconnect and idle (Malaysia grid: 50 Hz nominal)
+5. If grid frequency rises above 50.5 Hz, disconnect and idle
 
 ## Lifecycle Preservation
 - Avoid sustained high-rate charge/discharge cycles

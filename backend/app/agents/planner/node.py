@@ -13,7 +13,9 @@ from deepagents.backends.state import StateBackend
 from deepagents.backends.composite import CompositeBackend
 import logging
 
-from app.agents.planner import STRATEGIES_DIR, EXPERIENCE_DIR, get_forecast_context, search_guidelines
+from app.agents.planner import STRATEGIES_DIR, EXPERIENCE_DIR, get_forecast_context
+
+SKILLS_DIR = Path(__file__).parent.parent.parent.parent / "skills"
 from app.agents.shared_middleware import OutputFormatGuardMiddleware
 from app.agents.state import AgentState, OptimizationStrategy
 from app.core.model_selection import resolve_deepagents_model
@@ -67,9 +69,10 @@ def _get_planner_agent() -> Any:
             tools=tools,
             backend=_build_planner_backend(),
             middleware=[OutputFormatGuardMiddleware(
-                required_fields=["strategy", "shave"],
+                required_fields=["strategy_name", "shave_kw"],
                 agent_name="planner",
             )],
+            skills=[str(SKILLS_DIR)] if SKILLS_DIR.exists() else [],
         )
     return _PLANNER_AGENT
 
@@ -125,11 +128,6 @@ def _fallback_strategy(state: AgentState) -> OptimizationStrategy:
 
 async def planner_node(state: AgentState) -> dict:
     context = get_forecast_context(state)
-    tariff = state.get("tariff") or {}
-    guidelines = search_guidelines(f"{tariff.get('window', '')} {state.get('day_type', '')}")
-    guidelines_text = chr(10).join(
-        f"=== {item['source']} ===" + chr(10) + item['content'] for item in guidelines
-    )
 
     current_time = state.get("current_time")
     if current_time is not None:
@@ -143,11 +141,12 @@ async def planner_node(state: AgentState) -> dict:
 
     prompt = (
         date_header + chr(10) + chr(10) +
-        "Based on the following state and guidelines, select the optimal BESS strategy." + chr(10) + chr(10) +
-        f"STATE:" + chr(10) + context + chr(10) + chr(10) + "GUIDELINES:" + chr(10) + guidelines_text + chr(10) + chr(10) +
-        "You have access to /strategies/ and /experience/ via the filesystem backend." + chr(10) +
-        "Use read_file to read strategy files as needed, then respond with the strategy as JSON with fields: " +
-        "strategy_name, shave_kw, reserve_soc_pct, target_soc_end, rationale, confidence, md_limit_kw, constraints."
+        "Select the optimal BESS strategy for the current state." + chr(10) + chr(10) +
+        "STATE:" + chr(10) + context + chr(10) + chr(10) +
+        "Use the strategy-selector skill to determine which /strategies/ file to read, " +
+        "then use read_file to load it. Respond with the strategy as JSON with fields: " +
+        "strategy_name, shave_kw, reserve_soc_pct, target_soc_end, rationale, confidence, md_limit_kw, constraints. " +
+        "Write rationale as bullet points (• prefix), one point per line: strategy chosen, risk managed, key numbers, history."
     )
 
     try:

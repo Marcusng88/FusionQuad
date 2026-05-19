@@ -72,12 +72,7 @@ Follow this decision tree every tick:
 
 3. **Read /experience/ folder** — use `read_file` to check recent experience files (e.g. `/experience/[last-date]-[day_type].md`) to understand what strategies worked or failed recently.
 
-4. **Read /strategies/ folder** — load the most relevant strategy file:
-   - PEAK + weekday → `/strategies/aggressive_peak_shaving.md`
-   - OFF_PEAK → `/strategies/offpeak_valley_fill.md`
-   - WEEKEND → `/strategies/holiday_surge.md`
-   - Solar integration signals → `/strategies/solar_duck_curve.md`
-   - General rules → `/strategies/general_bess_guidelines.md`
+4. **Load the `strategy-selector` skill** to determine which `/strategies/` file to read for the current conditions. The skill encodes the correct priority order (solar facility check before generic weekday PEAK). Follow the skill's decision tree — it is the single source of truth for strategy file selection.
 
 5. **Apply strategy rules** to current state — compute shave_kw, reserve_soc_pct, target_soc_end.
 
@@ -106,7 +101,7 @@ Respond with strategy as JSON:
   "shave_kw": 0.0,
   "reserve_soc_pct": 0.20,
   "target_soc_end": 0.50,
-  "rationale": "Clear explanation of why this strategy was chosen, what risk is being managed, what history informed the decision.",
+  "rationale": "• Strategy chosen: reason\n• Risk managed: what and why\n• Key numbers: SOC X%, load Y kW, MD limit Z kW, shave W kW\n• History: what past experience informed this decision",
   "md_limit_kw": 800.0,
   "confidence": 0.85,
   "constraints": ["reserve_20pct_soc", "max_100kW_interval"]

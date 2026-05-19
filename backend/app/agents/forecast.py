@@ -80,7 +80,9 @@ def forecast_node(state: AgentState) -> dict:
 
         df["datetime"] = pd.to_datetime(df["datetime"])
         df = df.sort_values("datetime").reset_index(drop=True)
-        if len(df) < 49:
+        min_rows = getattr(getattr(model, "config", None), "seq_len", 48) + horizon
+        if len(df) < min_rows:
+            logger.warning("forecast | facility=%s skipped: need %d rows, got %d", facility, min_rows, len(df))
             forecasts[facility] = []
             confidences[facility] = 0.0
             continue
@@ -90,6 +92,7 @@ def forecast_node(state: AgentState) -> dict:
             ghi_norm = _fetch_ghi_for_model(model, history)
             confidence = _estimate_confidence(model, history, ghi_norm)
             forecast_values = model.predict_horizon(history, horizon, ghi=ghi_norm)
+            forecast_values = [0.0 if (v != v or v == float("inf") or v == float("-inf")) else float(v) for v in forecast_values]
             forecasts[facility] = forecast_values
             confidences[facility] = confidence
             logger.info(

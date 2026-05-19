@@ -85,8 +85,9 @@ def _add_lag_features(df: pd.DataFrame, ghi: np.ndarray | None = None) -> np.nda
     dow = df["datetime"].dt.dayofweek.values.astype(np.float32)
 
     s = pd.Series(kw)
-    lag_48 = s.shift(48).bfill().values.astype(np.float32)
-    lag_336 = s.shift(336).bfill().values.astype(np.float32)
+    mean_kw = float(s.mean()) if len(s) > 0 else 0.0
+    lag_48 = s.shift(48).bfill().fillna(mean_kw).values.astype(np.float32)
+    lag_336 = s.shift(336).bfill().fillna(mean_kw).values.astype(np.float32)
     roll_mean_24 = s.rolling(24, min_periods=1).mean().values.astype(np.float32)
     roll_std_24 = s.rolling(24, min_periods=1).std().fillna(0).values.astype(np.float32)
     roll_mean_48 = s.rolling(48, min_periods=1).mean().values.astype(np.float32)

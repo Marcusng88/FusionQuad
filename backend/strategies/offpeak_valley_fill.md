@@ -30,3 +30,16 @@ OFF_PEAK charging is the lowest-cost energy procurement strategy. BESS should ma
 ## Load Forecast Considerations
 - If next day PEAK demand is forecast to be high (load_forecast > 80 kW), prioritize reaching 95% SOC
 - If forecast confidence is low, maintain 80% SOC target to avoid over-charging on uncertain high-demand days
+
+---
+
+## T5 Pre-Peak Preparatory Period (12:00–14:00, weekdays)
+
+**Objective**: Maximize SOC before PEAK window opens at 14:00. This window is still OFF_PEAK — MD charge does not apply yet.
+
+1. **Action**: HOLD if SOC ≥ 80%. Charge at 50 kW if SOC < 75%.
+2. **Shave Target**: 0 kW — do NOT discharge during T5. Discharging before 14:00 wastes capacity needed for the PEAK window.
+3. **Exception**: Only discharge if SOC > 90% AND load > 110% of md_limit_kw (extreme headroom case only).
+4. **Target by 14:00**: SOC ≥ 80% entering PEAK window.
+
+**Why T5 matters**: Every percent of SOC lost before 14:00 reduces the available discharge buffer during the most expensive window of the day.

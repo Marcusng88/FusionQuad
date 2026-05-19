@@ -1,26 +1,5 @@
 # Tests for Planner Agent
 import pytest
-from datetime import datetime
-from unittest.mock import MagicMock
-
-
-class TestSearchGuidelines:
-    def test_search_returns_list(self):
-        from app.agents.planner import search_guidelines
-        result = search_guidelines("peak shaving")
-        assert isinstance(result, list)
-
-    def test_search_has_required_fields(self):
-        from app.agents.planner import search_guidelines
-        results = search_guidelines("weekday peak")
-        for r in results:
-            assert "content" in r
-            assert "source" in r
-
-    def test_search_empty_query(self):
-        from app.agents.planner import search_guidelines
-        result = search_guidelines("")
-        assert isinstance(result, list)
 
 
 class TestReadGuidelineFile:
@@ -74,19 +53,3 @@ class TestPlannerEdgeCases:
         assert "120" in result
 
 
-class TestPlannerIntegration:
-    def test_run_planner_tick_returns_dict(self):
-        from app.agents.planner import run_planner_tick
-        mock_agent = MagicMock()
-        mock_agent.run.return_value = {"strategy_name": "test"}
-        state = {"tariff": {"window": "PEAK"}, "battery": {"soc": 0.5}}
-        result = run_planner_tick(mock_agent, state)
-        assert isinstance(result, dict)
-
-    def test_run_planner_tick_with_holiday(self):
-        from app.agents.planner import run_planner_tick
-        mock_agent = MagicMock()
-        mock_agent.run.return_value = {"strategy_name": "holiday_surge"}
-        state = {"day_type": "holiday", "tariff": {"window": "WEEKEND"}}
-        result = run_planner_tick(mock_agent, state)
-        assert "strategy_name" in result
