@@ -2,6 +2,8 @@
 from pathlib import Path
 from typing import Any
 
+from app.agents.config import PEAK_END_HOUR, RESERVE_SOC
+
 STRATEGIES_DIR = Path(__file__).parent.parent.parent.parent / "strategies"
 EXPERIENCE_DIR = Path(__file__).parent.parent.parent.parent / "experience"
 
@@ -49,7 +51,24 @@ def get_forecast_context(state: dict[str, Any]) -> str:
     if confidence := forecast.get("confidence"):
         parts.append(f"Forecast Confidence: {confidence}")
 
-    if time := state.get("current_time"):
-        parts.append(f"Current Time: {time}")
+    current_time = state.get("current_time")
+    if current_time:
+        parts.append(f"Current Time: {current_time}")
+
+        tariff_window = tariff.get("window") or ""
+        if tariff_window == "PEAK" and hasattr(current_time, "hour"):
+            peak_end_min = PEAK_END_HOUR * 60
+            current_min = current_time.hour * 60 + current_time.minute
+            remaining_ticks = max(1, (peak_end_min - current_min) // 30)
+            parts.append(f"Remaining PEAK Ticks: {remaining_ticks}")
+
+            bess_capacity_kwh = float(battery.get("capacity_kwh") or 1000.0)
+            if raw_soc is not None and bess_capacity_kwh > 0:
+                available_kwh = max(0.0, (float(raw_soc) - RESERVE_SOC) * bess_capacity_kwh)
+                soc_budget_kw = available_kwh / (remaining_ticks * 0.5)
+                parts.append(
+                    f"SOC Budget: {soc_budget_kw:.1f} kW max sustainable discharge "
+                    f"({available_kwh:.0f} kWh available above reserve / {remaining_ticks} ticks)"
+                )
 
     return "\n".join(parts) if parts else ""

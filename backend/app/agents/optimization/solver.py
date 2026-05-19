@@ -4,6 +4,7 @@ from typing import Literal, Optional
 
 import pulp
 
+from app.agents.config import MAX_CHARGE_KW, MAX_SOC, MIN_SOC
 from app.agents.tariff.rates import get_energy_rate as _get_central_rate
 
 
@@ -46,9 +47,6 @@ class OptimizationInput:
     max_discharge_kw: float = 100.0
 
 
-MAX_CHARGE_KW = 50.0
-MIN_SOC = 0.20
-MAX_SOC = 0.95
 DT_SECONDS = 1800
 
 

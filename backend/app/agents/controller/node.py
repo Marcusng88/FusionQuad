@@ -10,6 +10,7 @@ from typing import Any
 from deepagents import create_deep_agent
 from langchain.tools import tool
 
+from app.agents.config import PEAK_END_HOUR, RESERVE_SOC
 from app.agents.controller.middleware import DispatchValidationMiddleware
 from app.agents.optimization.solver import OptimizationInput, OptimizationSolver
 from app.agents.state import AgentState, BatteryState, DispatchAction, DispatchResult
@@ -143,8 +144,6 @@ def mock_inverter_dispatch(
 _AMBIENT_TEMP_C = 25.0
 _COOLING_RATE = 0.05  # fraction of (T - ambient) dissipated per 30-min tick
 
-_PEAK_END_HOUR = 22  # TNB C2: PEAK ends at 22:00
-
 _CONTROLLER_AGENT: Any | None = None
 
 
@@ -152,7 +151,7 @@ def _compute_remaining_peak_ticks(current_time: Any, tariff_window: str) -> int:
     """Return number of 30-min PEAK ticks remaining (including current tick), minimum 1."""
     if tariff_window != "PEAK" or current_time is None:
         return 1
-    peak_end_min = _PEAK_END_HOUR * 60
+    peak_end_min = PEAK_END_HOUR * 60
     current_min = current_time.hour * 60 + current_time.minute
     remaining_min = max(30, peak_end_min - current_min)
     return remaining_min // 30
@@ -278,7 +277,7 @@ async def controller_node(state: AgentState) -> dict:
     # ensure minimum discharge regardless of what the planner/agent decided.
     # Budget-aware: cap discharge rate so SOC is spread across remaining PEAK ticks, not
     # burned on one tick while later (potentially worse) ticks are left unprotected.
-    reserve_soc = float((optimization_strategy or {}).get("reserve_soc_pct", 0.25))
+    reserve_soc = float((optimization_strategy or {}).get("reserve_soc_pct", RESERVE_SOC))
     if (
         tariff_window == "PEAK"
         and baseline_load > md_limit_kw

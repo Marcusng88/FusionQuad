@@ -13,6 +13,7 @@ from deepagents.backends.state import StateBackend
 from deepagents.backends.composite import CompositeBackend
 import logging
 
+from app.agents.config import RESERVE_SOC
 from app.agents.planner import STRATEGIES_DIR, EXPERIENCE_DIR, get_forecast_context
 
 SKILLS_DIR = Path(__file__).parent.parent.parent.parent / "skills"
@@ -117,7 +118,7 @@ def _fallback_strategy(state: AgentState) -> OptimizationStrategy:
     return OptimizationStrategy(
         strategy_name="conservative_shaving",
         shave_kw=50.0,
-        reserve_soc_pct=0.30,
+        reserve_soc_pct=RESERVE_SOC,
         target_soc_end=0.50,
         rationale="Fallback strategy used due to missing or invalid planner output.",
         confidence=confidence,
