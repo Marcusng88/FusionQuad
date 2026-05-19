@@ -87,8 +87,9 @@ def forecast_node(state: AgentState) -> dict:
 
         try:
             history = _historical_window(df, current_index, model.config.seq_len)
-            confidence = _estimate_confidence(model, history)
-            forecast_values = model.predict_horizon(history, horizon)
+            ghi_norm = _fetch_ghi_for_model(model, history)
+            confidence = _estimate_confidence(model, history, ghi_norm)
+            forecast_values = model.predict_horizon(history, horizon, ghi=ghi_norm)
             forecasts[facility] = forecast_values
             confidences[facility] = confidence
             logger.info(
@@ -116,6 +117,26 @@ def forecast_node(state: AgentState) -> dict:
     }
 
 
+def _fetch_ghi_for_model(model: Any, history: pd.DataFrame):
+    """Fetch and normalize GHI for solar models (input_size=12). Returns None for non-solar."""
+    if getattr(getattr(model, "config", None), "input_size", 11) != 12:
+        return None
+    if not hasattr(model, "_ghi_max"):
+        return None
+    try:
+        from app.data.weather_loader import fetch_ghi_historical, align_ghi_to_df
+        import numpy as np
+        dt = history["datetime"]
+        start = dt.min().strftime("%Y-%m-%d")
+        end = dt.max().strftime("%Y-%m-%d")
+        ghi_series = fetch_ghi_historical(start, end)
+        ghi_aligned = align_ghi_to_df(history, ghi_series)
+        return (ghi_aligned.values / model._ghi_max).astype("float32")
+    except Exception as exc:
+        logger.warning("forecast | GHI fetch failed, using zeros: %s", exc)
+        return None
+
+
 def _historical_window(df: pd.DataFrame, current_index: int | None, seq_len: int) -> pd.DataFrame:
     if current_index is None:
         end_index = len(df) - 1
@@ -128,8 +149,8 @@ def _historical_window(df: pd.DataFrame, current_index: int | None, seq_len: int
     return history
 
 
-def _estimate_confidence(model: Any, history: pd.DataFrame) -> float:
-    X, y = model.prepare_sequence(history)
+def _estimate_confidence(model: Any, history: pd.DataFrame, ghi=None) -> float:
+    X, y = model.prepare_sequence(history, ghi=ghi) if hasattr(model, "config") and model.config.input_size == 12 else model.prepare_sequence(history)
     n = len(X)
     if n <= 10:
         return 0.5

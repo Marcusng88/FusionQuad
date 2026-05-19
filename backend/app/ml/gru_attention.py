@@ -195,9 +195,9 @@ class GRUAttentionForecastModel:
                 result[key] = p
         return result
 
-    def predict_horizon(self, df: pd.DataFrame, horizon: int) -> list[float]:
+    def predict_horizon(self, df: pd.DataFrame, horizon: int, ghi: np.ndarray | None = None) -> list[float]:
         """Single-shot multi-step q50 forecast from last sequence in df."""
-        X, _ = self.prepare_sequence(df)
+        X, _ = self.prepare_sequence(df, ghi=ghi)
         pred = self.predict(X[-1:])  # (1, horizon)
         steps = min(horizon, self.config.horizon)
         return pred[0, :steps].tolist()
