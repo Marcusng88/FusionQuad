@@ -21,7 +21,7 @@ Manage BESS dispatch during holidays and weekends where TNB C2 **Maximum Demand 
 
 ## Charging Rules
 1. Prioritize reaching 90% SOC overnight if next day is a weekday (PEAK MD risk returns).
-2. Charge rate: 50–80 kW per 30-minute interval during OFF_PEAK hours.
+2. Charge rate: Up to 80 kW per 30-minute interval during OFF_PEAK hours.
 
 ## Constraints
 - `no_md_shaving_on_holidays`
