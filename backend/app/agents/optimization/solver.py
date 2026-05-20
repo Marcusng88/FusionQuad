@@ -78,6 +78,32 @@ class OptimizationSolver:
         )
 
     def _conservative_fallback(self, input_data: OptimizationInput) -> OptimizationResult:
+        if input_data.tariff_window != "PEAK" and input_data.battery_soc < MAX_SOC:
+            charge_kw = min(MAX_CHARGE_KW, input_data.max_discharge_kw)
+            action_type = "charge"
+            dispatch_plan = []
+            soc = input_data.battery_soc
+            for i, _ in enumerate(input_data.load_forecast):
+                energy_kwh = charge_kw * (DT_SECONDS / 3600)
+                soc = min(MAX_SOC, soc + energy_kwh * 0.95 / input_data.bess_capacity_kwh)
+                dispatch_plan.append(DispatchInterval(
+                    interval=i,
+                    action=action_type,
+                    discharge_kw=None,
+                    charge_kw=charge_kw,
+                    target_soc=soc,
+                    expected_savings_rm=0.0,
+                ))
+            return OptimizationResult(
+                dispatch_plan=dispatch_plan,
+                current_dispatch_index=input_data.current_dispatch_index,
+                dispatch_action=DispatchAction(
+                    action=action_type,
+                    charge_kw=charge_kw,
+                    duration_min=30,
+                    expected_soc_after=soc,
+                ),
+            )
         discharge_kw = 50.0 if input_data.battery_soc > 0.30 else None
         action_type = "discharge" if discharge_kw else "hold"
         dispatch_plan = []

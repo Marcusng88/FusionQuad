@@ -56,6 +56,7 @@ class DispatchResult(TypedDict, total=False):
 class OptimizationStrategy(TypedDict, total=False):
     """Dispatch strategy selected by the Planner agent."""
     strategy_name: str
+    action: str  # explicit intent: charge | discharge | hold
     shave_kw: float
     reserve_soc_pct: float
     target_soc_end: float

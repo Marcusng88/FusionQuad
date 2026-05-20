@@ -105,7 +105,8 @@ def _select_facility_forecast(state: AgentState) -> tuple[str | None, list[float
 
 def _compute_remaining_peak_ticks(current_time: Any, tariff_window: str, remaining_sim_ticks: int) -> int:
     if tariff_window != "PEAK" or current_time is None:
-        return 1
+        # OFF_PEAK: use up to 8-tick (4-hour) horizon so SOC dynamics work in MILP
+        return min(remaining_sim_ticks, 8)
     peak_end_min = PEAK_END_HOUR * 60
     current_min = current_time.hour * 60 + current_time.minute
     clock_ticks = max(1, (peak_end_min - current_min) // 30)
@@ -175,6 +176,7 @@ async def controller_node(state: AgentState) -> dict:
     milp_forecast = [baseline_load] + raw_forecast[:-1] if raw_forecast else [baseline_load]
     revision_count = state.get("revision_count") or 0
 
+    planner_action = str((optimization_strategy or {}).get("action", "unspecified"))
     strategy_str = str(optimization_strategy)
     forecast_str = ", ".join(f"{f:.1f}" for f in milp_forecast[:6]) if milp_forecast else "N/A"
     milp_str = ", ".join(f"{f:.1f}" for f in milp_forecast) if milp_forecast else "N/A"
@@ -187,8 +189,9 @@ async def controller_node(state: AgentState) -> dict:
 - Temperature: {temperature_c:.1f}°C | Cycle count: {cycle_count:.0f}
 - MD limit: {md_limit_kw:.0f} kW | Max discharge: {max_discharge_kw:.0f} kW
 - Baseline load: {baseline_load:.0f} kW
-- Remaining PEAK ticks: {remaining_peak_ticks}
-- Full PEAK forecast ({len(milp_forecast)} steps): [{milp_str}]
+- Remaining ticks in window: {remaining_peak_ticks}
+- Full forecast ({len(milp_forecast)} steps): [{milp_str}]
+- Planner requested action: {planner_action}
 - Revision attempt: {revision_count} of 2
 
 PLANNER STRATEGY:

@@ -20,8 +20,20 @@ Computes the optimal dispatch schedule via MILP. Returns `dispatch_action` dict.
    - If `allowed=false` → respond with `action="hold"`, `rejected=false`. Hardware limit — do NOT reject.
 2. Validate the Planner's strategy for logical/strategic errors (see below).
    - If strategy is fundamentally flawed → respond with `rejected=true, rejection_reason="<specific reason>"`.
-3. Call `run_milp_optimization` with the full PEAK window forecast and current state values.
+3. Call `run_milp_optimization` with the full forecast and current state values.
+   - **Always call this tool — for PEAK and OFF_PEAK both.**
 4. Respond with the dispatch action from the MILP result.
+
+---
+
+## OFF_PEAK Charging (Valley Fill)
+
+When `tariff_window` is `OFF_PEAK` or `WEEKEND` and `Planner requested action` is `charge`:
+- The goal is valley fill: charge the BESS at cheap off-peak rates to prepare for PEAK.
+- Call `run_milp_optimization` — it will compute the optimal charge schedule.
+- Output `action="charge"` with the `charge_kw` value from MILP.
+- Do **NOT** default to "hold" just because there is no peak shaving to do. Charging is the correct action.
+- Only output "hold" if guardrails blocked charging (SOC ≥ 95%, temp ≥ 45°C, cycle ≥ 3000).
 
 ---
 

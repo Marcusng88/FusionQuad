@@ -98,6 +98,7 @@ Respond with strategy as JSON:
 ```json
 {
   "strategy_name": "...",
+  "action": "charge | discharge | hold",
   "shave_kw": 0.0,
   "reserve_soc_pct": 0.20,
   "target_soc_end": 0.50,
@@ -107,3 +108,10 @@ Respond with strategy as JSON:
   "constraints": ["reserve_20pct_soc", "max_discharge_interval"]
 }
 ```
+
+### `action` field rules:
+- `"charge"` — tariff_window is OFF_PEAK and battery_soc < 0.90. Default for all OFF_PEAK intervals unless SOC is already ≥ 90%.
+- `"discharge"` — tariff_window is PEAK and baseline_load > md_limit_kw, OR any window with explicit shave_kw > 0.
+- `"hold"` — SOC already at target, no shaving needed, or guardrail limit (SOC < 20%, temp ≥ 45°C).
+
+**During OFF_PEAK: always set `action = "charge"` unless SOC ≥ 90%.** This is the valley-fill signal the Controller needs to schedule charging via MILP.
