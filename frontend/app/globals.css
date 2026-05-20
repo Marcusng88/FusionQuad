@@ -119,6 +119,10 @@ a {
   box-shadow: 0 24px 60px rgba(3, 8, 20, 0.35);
 }
 
+[data-theme="light"] .panel-shadow {
+  box-shadow: 0 4px 24px rgba(12, 20, 60, 0.08);
+}
+
 .chart-grid {
   background-image:
     linear-gradient(to right, rgba(60, 74, 66, 0.42) 1px, transparent 1px),

@@ -141,7 +141,7 @@ function buildEnergyPoint(
     battery_soc_percent: Math.round(snapshot.battery_soc * 100),
     shifted_load_kw: Math.max(snapshot.baseline_load - snapshot.actual_load - Math.abs(Math.min(batteryPowerKw, 0)), 0),
     demand_limit_kw: mdLimitKw,
-    is_peak_period: (snapshot.tariff_window || "").toUpperCase().includes("PEAK"),
+    is_peak_period: (snapshot.tariff_window || "").toUpperCase() === "PEAK",
   };
 }
 
