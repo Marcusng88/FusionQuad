@@ -137,6 +137,14 @@ class OptimizationSolver:
 
         target_soc_end = strategy.get("target_soc_end", 0.50)
         reserve_soc_pct = strategy.get("reserve_soc_pct", 0.20)
+        # Cap target to what MAX_CHARGE_KW can actually reach — prevents infeasibility
+        # when planner sets an over-ambitious target given the current SOC and charge rate.
+        max_achievable_soc = min(
+            MAX_SOC,
+            input_data.battery_soc
+            + MAX_CHARGE_KW * n_intervals * (DT_SECONDS / 3600) * 0.95 / input_data.bess_capacity_kwh,
+        )
+        target_soc_end = min(target_soc_end, max_achievable_soc)
         prob += soc[n_intervals - 1] >= target_soc_end, "target_soc_end"
         for i in range(n_intervals):
             prob += soc[i] >= reserve_soc_pct, f"reserve_soc_{i}"
@@ -194,10 +202,10 @@ class OptimizationSolver:
         for i, load in enumerate(input_data.load_forecast):
             energy_kwh = discharge_kw * (DT_SECONDS / 3600)
             new_soc = soc - energy_kwh / input_data.bess_capacity_kwh
-            if new_soc < MIN_SOC:
+            if discharge_kw <= 0 or new_soc < MIN_SOC:
                 action = "hold"
                 d_kw = None
-                actual_soc = soc  # SOC doesn't change when holding
+                actual_soc = soc
             else:
                 action = "discharge"
                 d_kw = discharge_kw

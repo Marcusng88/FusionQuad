@@ -140,8 +140,18 @@ async def planner_node(state: AgentState) -> dict:
     else:
         date_header = "Simulation Date: unknown"
 
+    day_type = state.get("day_type") or ""
+    if day_type:
+        holiday_note = (
+            f"HOLIDAY STATUS CONFIRMED: day_type='{day_type}' is pre-verified by the simulation harness. "
+            f"Do NOT call tavily_search to check holidays — it is already known.\n\n"
+        )
+    else:
+        holiday_note = ""
+
     prompt = (
         date_header + chr(10) + chr(10) +
+        holiday_note +
         "Select the optimal BESS strategy for the current state." + chr(10) + chr(10) +
         "STATE:" + chr(10) + context + chr(10) + chr(10) +
         "Use the strategy-selector skill to determine which /strategies/ file to read, " +

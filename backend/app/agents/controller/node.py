@@ -124,7 +124,7 @@ def mock_inverter_dispatch(
         new_soc = min(current_soc + (energy_kwh * charge_efficiency / bess_capacity_kwh), 0.95)
         temp_increase = 0.2 * (power_kw / 100)
         cycle_increment = 0.0
-        actual_kw = power_kw
+        actual_kw = 0.0  # charge ticks have no discharge; field represents discharge kW
     else:
         new_soc = current_soc
         temp_increase = 0.1
