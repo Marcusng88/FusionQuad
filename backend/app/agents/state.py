@@ -81,6 +81,7 @@ class AgentState(TypedDict, total=False):
     md_limit_kw: float | None
     max_discharge_kw: float | None
     current_record_index: int | None
+    current_interval: int | None
 
     # Raw data (flat — loaded once, referenced by all agents)
     loaded_data: dict | None
@@ -104,6 +105,8 @@ class AgentState(TypedDict, total=False):
     # Auditor accumulation
     auditor_result: dict | None
     planner_feedback: dict | None  # written by auditor, read by planner next tick
+    forecast_error_history: list[float] | None  # rolling per-tick |actual-forecast|/actual errors
+    predicted_next_kw: float | None  # GRU's T+1 prediction stored each tick for next-tick error calc
     decision_log: list[dict] | None
     agent_trace: list[dict] | None
     shave_percentage: float | None

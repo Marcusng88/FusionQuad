@@ -103,13 +103,13 @@ def _select_facility_forecast(state: AgentState) -> tuple[str | None, list[float
     return None, []
 
 
-def _compute_remaining_peak_ticks(current_time: Any, tariff_window: str) -> int:
+def _compute_remaining_peak_ticks(current_time: Any, tariff_window: str, remaining_sim_ticks: int) -> int:
     if tariff_window != "PEAK" or current_time is None:
         return 1
     peak_end_min = PEAK_END_HOUR * 60
     current_min = current_time.hour * 60 + current_time.minute
-    remaining_min = max(30, peak_end_min - current_min)
-    return remaining_min // 30
+    clock_ticks = max(1, (peak_end_min - current_min) // 30)
+    return min(clock_ticks, remaining_sim_ticks)
 
 
 def _extend_forecast_to_peak(forecast_values: list[float], remaining_ticks: int) -> list[float]:
@@ -160,16 +160,23 @@ async def controller_node(state: AgentState) -> dict:
     max_discharge_kw = float(state.get("max_discharge_kw") or bess_capacity_kwh)
     optimization_strategy = state.get("optimization_strategy") or {}
 
-    forecast_kw = forecast_values[0] if forecast_values else 0.0
-    baseline_load = state.get("baseline_load") or forecast_kw
+    # baseline_load is the real current-tick load (from CSV) — use it as interval-0 truth.
+    # forecast_values[0] is T+1 (predict_horizon starts one step ahead), so prepend
+    # baseline_load and drop the last forecast element to keep the horizon length correct.
+    baseline_load = float(state.get("baseline_load") or 0.0)
+    forecast_kw = baseline_load
 
     current_time = state.get("current_time")
-    remaining_peak_ticks = _compute_remaining_peak_ticks(current_time, tariff_window)
-    milp_forecast = _extend_forecast_to_peak(forecast_values, remaining_peak_ticks)
+    current_interval = int(state.get("current_interval") or 0)
+    total_intervals = int(state.get("total_intervals") or 1)
+    remaining_sim_ticks = max(1, total_intervals - current_interval)
+    remaining_peak_ticks = _compute_remaining_peak_ticks(current_time, tariff_window, remaining_sim_ticks)
+    raw_forecast = _extend_forecast_to_peak(forecast_values, remaining_peak_ticks)
+    milp_forecast = [baseline_load] + raw_forecast[:-1] if raw_forecast else [baseline_load]
     revision_count = state.get("revision_count") or 0
 
     strategy_str = str(optimization_strategy)
-    forecast_str = ", ".join(f"{f:.1f}" for f in forecast_values[:6]) if forecast_values else "N/A"
+    forecast_str = ", ".join(f"{f:.1f}" for f in milp_forecast[:6]) if milp_forecast else "N/A"
     milp_str = ", ".join(f"{f:.1f}" for f in milp_forecast) if milp_forecast else "N/A"
 
     prompt = f"""CURRENT TICK STATE:
@@ -195,7 +202,7 @@ PLANNER STRATEGY:
     try:
         agent = _get_controller_agent()
         session_id = state.get("session_id", "default")
-        invoke_config = {"configurable": {"thread_id": f"controller-{session_id}"}}
+        invoke_config = {"configurable": {"thread_id": f"controller-{session_id}-{state.get('current_interval', 0)}"}}
         result = await agent.ainvoke(
             {"messages": [{"role": "user", "content": prompt}]},
             invoke_config,
@@ -298,5 +305,6 @@ PLANNER STRATEGY:
         "last_dispatch_kw": exec_result.actual_discharge_kw,
         "last_dispatch_duration_min": duration_min,
         "rejection_reason": None,
+        "predicted_next_kw": raw_forecast[0] if raw_forecast else None,
         "messages": messages,
     }

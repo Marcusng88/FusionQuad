@@ -152,7 +152,7 @@ async def planner_node(state: AgentState) -> dict:
     try:
         agent = _get_planner_agent()
         session_id = state.get("session_id", "default")
-        invoke_config = {"configurable": {"thread_id": f"planner-{session_id}"}}
+        invoke_config = {"configurable": {"thread_id": f"planner-{session_id}-{state.get('current_interval', 0)}"}}
         result = await agent.ainvoke(
             {"messages": [{"role": "user", "content": prompt}]},
             invoke_config,

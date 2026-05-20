@@ -253,7 +253,7 @@ async def auditor_node(state: dict) -> dict:
 
     if should_run_llm(delta_eval, rule_eval):
         try:
-            invoke_config = {"configurable": {"thread_id": f"auditor-{state.get('session_id', 'default')}"}}
+            invoke_config = {"configurable": {"thread_id": f"auditor-{state.get('session_id', 'default')}-{state.get('current_interval', 0)}"}}
             result = await agent.ainvoke(
                 {"messages": [{"role": "user", "content": prompt}]},
                 invoke_config,
@@ -306,6 +306,17 @@ async def auditor_node(state: dict) -> dict:
         "evaluate": auditor_result,
     }
 
+    # Rolling forecast error: compare last tick's GRU T+1 prediction against this tick's actual load.
+    # predicted_next_kw was written by the previous tick's controller; baseline_load is this tick's truth.
+    _ROLLING_WINDOW = 6
+    predicted_prev = state.get("predicted_next_kw")
+    error_history: list[float] = list(state.get("forecast_error_history") or [])
+    if predicted_prev is not None and baseline_load > 0:
+        tick_err = abs(baseline_load - predicted_prev) / baseline_load * 100.0
+        error_history = (error_history + [tick_err])[-_ROLLING_WINDOW:]
+    trailing_mape = sum(error_history) / len(error_history) if error_history else None
+    forecast_confidence = max(0.0, 1.0 - trailing_mape / 100.0) if trailing_mape is not None else None
+
     decision_log = state.get("decision_log", [])
     new_decision_log = decision_log + [decision_entry]
 
@@ -340,6 +351,8 @@ async def auditor_node(state: dict) -> dict:
             llm_eval.get("recommendation", "") if llm_eval
             else _generate_recommendation(rule_eval, delta_eval)
         ),
+        "forecast_confidence": forecast_confidence,
+        "trailing_mape": trailing_mape,
     }
 
     return {
@@ -352,6 +365,7 @@ async def auditor_node(state: dict) -> dict:
         "total_possible_shave_kw": new_total_possible,
         "peak_ticks": new_peak_ticks,
         "peak_reduction_kw": new_peak_reduction_kw,
+        "forecast_error_history": error_history,
     }
 
 

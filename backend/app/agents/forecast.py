@@ -90,7 +90,10 @@ def forecast_node(state: AgentState) -> dict:
         try:
             history = _historical_window(df, current_index, model.config.seq_len)
             ghi_norm = _fetch_ghi_for_model(model, history)
-            confidence = _estimate_confidence(model, history, ghi_norm)
+            # Use live trailing-MAPE confidence from previous tick's auditor when available;
+            # fall back to static single-step estimate only on tick 0.
+            live_conf = (state.get("planner_feedback") or {}).get("forecast_confidence")
+            confidence = live_conf if live_conf is not None else _estimate_confidence(model, history, ghi_norm)
             forecast_values = model.predict_horizon(history, horizon, ghi=ghi_norm)
             forecast_values = [0.0 if (v != v or v == float("inf") or v == float("-inf")) else float(v) for v in forecast_values]
             forecasts[facility] = forecast_values

@@ -149,6 +149,15 @@ class OptimizationSolver:
         for i in range(n_intervals):
             prob += soc[i] >= reserve_soc_pct, f"reserve_soc_{i}"
 
+        # Binding discharge floor: cover the MD-limit breach on every PEAK interval.
+        # If infeasible (undersized BESS), the caller's try/except falls back to _fallback_discharge.
+        if input_data.tariff_window == "PEAK":
+            for i in range(n_intervals):
+                needed = max(0.0, input_data.load_forecast[i] - input_data.md_limit_kw)
+                floor_kw = min(needed, max_d)
+                if floor_kw > 1.0:
+                    prob += power[i] >= floor_kw, f"md_floor_{i}"
+
         solver = pulp.PULP_CBC_CMD(msg=0, timeLimit=1)
         prob.solve(solver)
 
