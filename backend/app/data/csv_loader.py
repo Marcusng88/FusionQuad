@@ -42,11 +42,38 @@ class CSVLoader:
         df["start_time"] = pd.to_datetime(df["start_time"])
         df["end_time"] = pd.to_datetime(df["end_time"])
         df["datetime"] = df["start_time"]
-        return df
+        df = df.dropna(how="all")
+        if "kw_import" not in df.columns:
+            raise ValueError("CSV missing required 'kw_import' column")
+        return df.sort_values("datetime").reset_index(drop=True)
+
+    @staticmethod
+    def _detect_dayfirst(lines: list[str], header_idx: int) -> bool:
+        """Return True if date format is DD/MM/YYYY, False if MM/DD/YYYY.
+
+        Scans all data rows. If any second positional token in 'XX/YY/' exceeds
+        12, the second field must be a day → MM/DD (dayfirst=False).
+        If any first token exceeds 12, first field is a day → DD/MM (dayfirst=True).
+        Falls back to dayfirst=True when genuinely ambiguous.
+        """
+        import re
+        first_vals: set[int] = set()
+        second_vals: set[int] = set()
+        for line in lines[header_idx + 1:]:
+            m = re.match(r"^(\d{2})/(\d{2})/", line)
+            if m:
+                first_vals.add(int(m.group(1)))
+                second_vals.add(int(m.group(2)))
+            if len(second_vals) > 31 and len(first_vals) > 12:
+                break  # enough data, no need to scan further
+        if any(v > 12 for v in second_vals):
+            return False  # MM/DD
+        if any(v > 12 for v in first_vals):
+            return True   # DD/MM
+        return True       # ambiguous — default DD/MM
 
     def _load_old_format(self, file_path: Path) -> pd.DataFrame:
         """Load old format CSV with 'Date / End Time' column, skipping metadata rows."""
-        # Find the header row (contains "Date / End Time")
         with open(file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
@@ -59,24 +86,27 @@ class CSVLoader:
         if header_idx is None:
             raise ValueError(f"Could not find header in {file_path}")
 
+        dayfirst = self._detect_dayfirst(lines, header_idx)
+
         df = pd.read_csv(file_path, skiprows=header_idx)
         df.columns = df.columns.str.strip()
 
-        # Normalize column names for consistent access
         col_map = {col: col.strip().lower().replace(" ", "_").replace("/", "_") for col in df.columns}
         df = df.rename(columns=col_map)
 
-        # Parse datetime - try multiple formats
         datetime_col = "date__end_time" if "date__end_time" in df.columns else "date_end_time"
         if datetime_col not in df.columns:
-            # Try original name
             datetime_col = [c for c in df.columns if "date" in c.lower() and "time" in c.lower()][0]
 
-        df["datetime"] = pd.to_datetime(df[datetime_col], dayfirst=True, errors="coerce")
+        df["datetime"] = pd.to_datetime(df[datetime_col], dayfirst=dayfirst, errors="coerce")
         if df["datetime"].isna().all():
             df["datetime"] = pd.to_datetime(df[datetime_col], yearfirst=True, errors="coerce")
 
-        return df
+        df = df.dropna(subset=["datetime"])
+        if "kw_import" not in df.columns:
+            raise ValueError("CSV missing required 'kw_import' column")
+
+        return df.sort_values("datetime").reset_index(drop=True)
 
     def extract_metadata(self, file_path: Path) -> ScenarioMetadata:
         """Extract scenario metadata from CSV file headers."""

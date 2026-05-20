@@ -1,11 +1,5 @@
-from datetime import datetime
-from typing import Optional
-from typing_extensions import TypedDict
+"""AgentState schema re-export for shared typing."""
 
+from app.agents.state import AgentState
 
-class AgentState(TypedDict, total=False):
-    tariff_window: str | None
-    energy_rate: float | None
-    demand_charge: float | None
-    tariff_type: str | None
-    current_time: datetime | None
+__all__ = ["AgentState"]

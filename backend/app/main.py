@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -5,12 +6,21 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.core.logging_config import setup_logging
+from app.services.simulation import SimulationService
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(app: FastAPI):
     """Application lifecycle hooks."""
+    setup_logging()
+    logger.info("startup | multi-agent backend starting")
+    app.state.simulation_service = SimulationService()
     yield
+    logger.info("shutdown | cleaning up simulation service")
+    await app.state.simulation_service.shutdown()
 
 
 def create_application() -> FastAPI:

@@ -1,14 +1,17 @@
 @import "tailwindcss";
 
 :root {
+  --header-h: 56px;
+
+  /* dark theme (default) */
   --background: #0b1326;
   --surface: #131b2e;
   --surface-2: #171f33;
   --surface-3: #222a3d;
   --surface-4: #2d3449;
   --foreground: #dae2fd;
-  --muted: #bbcabf;
-  --outline: #3c4a42;
+  --muted: #8a99b8;
+  --outline: #2e3a52;
   --primary: #4edea3;
   --primary-strong: #10b981;
   --secondary: #adc6ff;
@@ -17,6 +20,25 @@
   --tertiary-strong: #e29100;
   --danger: #ff8c7a;
   --danger-strong: #93000a;
+}
+
+[data-theme="light"] {
+  --background: #f0f4ff;
+  --surface: #ffffff;
+  --surface-2: #f5f7fe;
+  --surface-3: #e8ecf8;
+  --surface-4: #dae0f4;
+  --foreground: #0c1428;
+  --muted: #52607a;
+  --outline: #c4cee8;
+  --primary: #0d9668;
+  --primary-strong: #047857;
+  --secondary: #2563eb;
+  --secondary-strong: #1d4ed8;
+  --tertiary: #c2740a;
+  --tertiary-strong: #a35f06;
+  --danger: #dc2626;
+  --danger-strong: #991b1b;
 }
 
 @theme inline {
@@ -58,6 +80,13 @@ body {
     var(--background);
   color: var(--foreground);
   font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+
+[data-theme="light"] body {
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 32%),
+    radial-gradient(circle at top right, rgba(13, 150, 104, 0.07), transparent 28%),
+    var(--background);
 }
 
 button,
@@ -110,4 +139,30 @@ a {
   background:
     linear-gradient(135deg, rgba(173, 198, 255, 0.05), transparent 45%),
     linear-gradient(315deg, rgba(78, 222, 163, 0.04), transparent 50%);
+}
+
+.panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 153, 184, 0.6) transparent;
+}
+
+.panel-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(138, 153, 184, 0.45);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(173, 198, 255, 0.6);
+  background-clip: padding-box;
 }

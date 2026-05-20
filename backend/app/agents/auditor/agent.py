@@ -1,13 +1,29 @@
-"""Auditor Agent - post-dispatch verification with 3 evaluation modes.
+"""Auditor Agent — Deep Agent for post-dispatch evaluation.
 
-Per SPEC-auditor.md:
-- evaluate_rules runs FIRST (safety non-negotiable)
-- evaluate_delta runs SECOND (numeric scoring)
-- evaluate_llm runs ONLY when: delta_score < 50 OR forecast_error > 20% OR violations
+Performs tool-based evaluations every tick:
+1. evaluate_rules_tool — safety checks (non-negotiable)
+2. evaluate_delta_tool — numeric scoring (always)
+
+The deep agent uses CompositeBackend with FilesystemBackend scoped to
+/experience/ and /strategies/ only — no access to other paths.
+At end-of-day, it reads past audit reports and appends a summary.
 """
 
 from datetime import datetime
+import logging
+from pathlib import Path
+import json
 from typing import TypedDict
+
+logger = logging.getLogger(__name__)
+
+_PROMPTS_DIR = Path(__file__).parent / "prompts"
+
+from deepagents import create_deep_agent
+from deepagents.backends import FilesystemBackend
+from deepagents.backends.state import StateBackend
+from deepagents.backends.composite import CompositeBackend
+from langchain.tools import tool
 
 from app.agents.auditor.evaluation import (
     DeltaEvaluation,
@@ -17,6 +33,73 @@ from app.agents.auditor.evaluation import (
     evaluate_rules,
     should_run_llm,
 )
+from app.core.model_selection import resolve_deepagents_model
+
+_DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
+_EXPERIENCE_DIR = Path(__file__).parent.parent.parent.parent / "experience"
+_STRATEGIES_DIR = Path(__file__).parent.parent.parent.parent / "strategies"
+_LOGS_DIR = Path(__file__).parent.parent.parent / "logs"
+
+_AUDITOR_PROMPT_TICK = (_PROMPTS_DIR / "tick.md").read_text(encoding="utf-8")
+_AUDITOR_PROMPT_EOD = (_PROMPTS_DIR / "end_of_day.md").read_text(encoding="utf-8")
+
+
+@tool
+def evaluate_rules_tool(
+    dispatch_result: dict | None,
+    battery_soc: float,
+    cycle_count: float,
+    tariff_window: str,
+    dispatch_action: dict | None,
+) -> dict:
+    """Mode 1 Safety checks — runs FIRST, non-negotiable.
+
+    Args:
+        dispatch_result: Result from mock_inverter_dispatch {new_soc, temp_increase_c, action_taken, actual_discharge_kw}
+        battery_soc: Current BESS state-of-charge (0-1)
+        cycle_count: Accumulated BESS cycle count
+        tariff_window: PEAK | OFF_PEAK | WEEKEND
+        dispatch_action: Planner's dispatch action {action, discharge_kw, charge_kw, duration_min}
+    """
+    return evaluate_rules(
+        dispatch_result=dispatch_result,
+        battery_soc=battery_soc,
+        cycle_count=cycle_count,
+        tariff_window=tariff_window,
+        dispatch_action=dispatch_action,
+    )
+
+
+@tool
+def evaluate_delta_tool(
+    dispatch_result: dict | None,
+    dispatch_action: dict | None,
+    baseline_load: float,
+    actual_load: float,
+    forecast_kw: float,
+    tariff_window: str,
+    md_limit_kw: float = 800.0,
+) -> dict:
+    """Mode 2 Numeric scoring — calculate shave metrics and delta score.
+
+    Args:
+        dispatch_result: Result from mock_inverter_dispatch
+        dispatch_action: Planner's dispatch action
+        baseline_load: Grid import before BESS dispatch (kW)
+        actual_load: Grid import after BESS dispatch (kW)
+        forecast_kw: Forecasted load for this interval (kW)
+        tariff_window: PEAK | OFF_PEAK | WEEKEND
+        md_limit_kw: Maximum demand limit (default 800)
+    """
+    return evaluate_delta(
+        dispatch_result=dispatch_result,
+        dispatch_action=dispatch_action,
+        baseline_load=baseline_load,
+        actual_load=actual_load,
+        forecast_kw=forecast_kw,
+        tariff_window=tariff_window,
+        md_limit_kw=md_limit_kw,
+    )
 
 
 class AuditorResult(TypedDict):
@@ -31,24 +114,83 @@ class AuditorResult(TypedDict):
     act: str
 
 
-def auditor_node(state: dict) -> dict:
-    """Main auditor node - evaluates Controller dispatch results."""
+_AUDITOR_AGENT_TICK: object | None = None
+
+
+def _build_tick_backend() -> CompositeBackend:
+    """Tick auditor backend — /experience/ and /strategies/ only. No log access."""
+    return CompositeBackend(
+        default=StateBackend(),
+        routes={
+            "/experience/": FilesystemBackend(root_dir=str(_EXPERIENCE_DIR), virtual_mode=True),
+            "/strategies/": FilesystemBackend(root_dir=str(_STRATEGIES_DIR), virtual_mode=True),
+        },
+    )
+
+
+def _build_eod_backend() -> CompositeBackend:
+    """EOD auditor backend — adds /logs/ read access for post-finalize audit."""
+    return CompositeBackend(
+        default=StateBackend(),
+        routes={
+            "/logs/": FilesystemBackend(root_dir=str(_LOGS_DIR), virtual_mode=True),
+            "/experience/": FilesystemBackend(root_dir=str(_EXPERIENCE_DIR), virtual_mode=True),
+            "/strategies/": FilesystemBackend(root_dir=str(_STRATEGIES_DIR), virtual_mode=True),
+        },
+    )
+
+
+def _get_tick_agent() -> object:
+    global _AUDITOR_AGENT_TICK
+    if _AUDITOR_AGENT_TICK is None:
+        model = resolve_deepagents_model(_DEFAULT_MODEL)
+        logger.info("auditor | initializing tick agent model=%s", model)
+        _AUDITOR_AGENT_TICK = create_deep_agent(
+            name="auditor-agent-tick",
+            model=model,
+            system_prompt=_AUDITOR_PROMPT_TICK,
+            tools=[evaluate_rules_tool, evaluate_delta_tool],
+            backend=_build_tick_backend(),
+        )
+    return _AUDITOR_AGENT_TICK
+
+
+def _parse_llm_payload(payload: str) -> dict | None:
+    try:
+        return json.loads(payload)
+    except json.JSONDecodeError:
+        pass
+
+    start = payload.find("{")
+    end = payload.rfind("}")
+    if start >= 0 and end > start:
+        try:
+            return json.loads(payload[start : end + 1])
+        except json.JSONDecodeError:
+            return None
+    return None
+
+
+async def auditor_node(state: dict) -> dict:
+    """Main auditor node — delegates tick evaluation to the deep agent."""
+    # Read from value objects
     dispatch_result = state.get("dispatch_result")
     dispatch_action = state.get("dispatch_action")
     baseline_load = state.get("baseline_load", 0.0)
     actual_load = state.get("actual_load", 0.0)
-    battery_soc = state.get("battery_soc", 0.0)
-    cycle_count = state.get("cycle_count", 0.0)
-    tariff_window = state.get("tariff_window", "PEAK")
-    current_time = state.get("current_time")
     forecast_kw = state.get("forecast_kw", 0.0)
     md_limit_kw = state.get("md_limit_kw", 800.0)
-
+    current_time = state.get("current_time")
     current_interval = state.get("current_interval", 0)
-    decision_log = state.get("decision_log", [])
-    total_savings_rm = state.get("total_savings_rm", 0.0)
-    within_limit_ticks = state.get("within_limit_ticks", 0)
-    total_intervals = state.get("total_intervals", 0)
+
+    battery = state.get("battery") or {}
+    battery_soc = float(battery.get("soc") or 0.0)
+    cycle_count = float(battery.get("cycle_count") or 0.0)
+
+    tariff = state.get("tariff") or {}
+    tariff_window = tariff.get("window") or "PEAK"
+
+    timestamp_str = current_time.strftime("%Y-%m-%d %H:%M") if isinstance(current_time, datetime) else str(current_time or "")
 
     import_kw = actual_load
     perceive = f"Grid import {import_kw:.0f}kW"
@@ -77,17 +219,28 @@ def auditor_node(state: dict) -> dict:
     else:
         act = "No dispatch result available"
 
-    # MODE 1: Safety rules FIRST
-    rule_eval = evaluate_rules(
+    prompt = _build_tick_prompt(
+        dispatch_result=dispatch_result,
+        dispatch_action=dispatch_action,
+        baseline_load=baseline_load,
+        actual_load=actual_load,
+        battery_soc=battery_soc,
+        cycle_count=cycle_count,
+        tariff_window=tariff_window,
+        forecast_kw=forecast_kw,
+        md_limit_kw=md_limit_kw,
+    )
+    agent = _get_tick_agent()
+
+    # Always run deterministic safety checks first — non-negotiable (fix 2.2)
+    rule_eval: RuleEvaluation = evaluate_rules(
         dispatch_result=dispatch_result,
         battery_soc=battery_soc,
         cycle_count=cycle_count,
         tariff_window=tariff_window,
         dispatch_action=dispatch_action,
     )
-
-    # MODE 2: Delta scoring ALWAYS
-    delta_eval = evaluate_delta(
+    delta_eval: DeltaEvaluation = evaluate_delta(
         dispatch_result=dispatch_result,
         dispatch_action=dispatch_action,
         baseline_load=baseline_load,
@@ -96,24 +249,32 @@ def auditor_node(state: dict) -> dict:
         tariff_window=tariff_window,
         md_limit_kw=md_limit_kw,
     )
+    llm_eval: LLMEvaluation | None = None
 
-    interval_savings = delta_eval["interval_savings_rm"]
-    new_total_savings = total_savings_rm + interval_savings
-
-    new_within_limit = within_limit_ticks
-    if actual_load <= md_limit_kw:
-        new_within_limit += 1
-
-    # MODE 3: LLM reasoning only when needed
-    llm_eval = None
     if should_run_llm(delta_eval, rule_eval):
-        llm_eval = LLMEvaluation(
-            reasoning=_generate_llm_reasoning(delta_eval, rule_eval),
-            recommendation=_generate_recommendation(rule_eval, delta_eval),
-            confidence=0.85 if rule_eval["passed"] else 0.6,
-        )
-
-    timestamp_str = current_time.strftime("%Y-%m-%d %H:%M") if isinstance(current_time, datetime) else str(current_time or "")
+        try:
+            invoke_config = {"configurable": {"thread_id": f"auditor-{state.get('session_id', 'default')}"}}
+            result = await agent.ainvoke(
+                {"messages": [{"role": "user", "content": prompt}]},
+                invoke_config,
+            )
+            messages = result.get("messages", []) if isinstance(result, dict) else []
+            last = messages[-1].content if messages else ""
+            parsed = _parse_llm_payload(str(last))
+            if parsed:
+                llm_eval = LLMEvaluation(
+                    reasoning=parsed.get("reasoning", ""),
+                    recommendation=parsed.get("recommendation", ""),
+                    confidence=float(parsed.get("confidence", 0.75)),
+                )
+        except Exception as exc:
+            logger.warning("auditor | agent invoke failed, using deterministic fallback: %s", exc)
+        if llm_eval is None:
+            llm_eval = LLMEvaluation(
+                reasoning=_generate_llm_reasoning(delta_eval, rule_eval),
+                recommendation=_generate_recommendation(rule_eval, delta_eval),
+                confidence=0.75,
+            )
 
     auditor_result = AuditorResult(
         delta_eval=delta_eval,
@@ -126,6 +287,16 @@ def auditor_node(state: dict) -> dict:
         act=act,
     )
 
+    logger.info(
+        "auditor | tick=%d rules=%s delta_score=%.1f shave_kw=%.1f savings_rm=%.4f within_limit=%s",
+        current_interval,
+        "PASS" if rule_eval.get("passed") else "FAIL",
+        delta_eval.get("delta_score", 0.0),
+        delta_eval.get("shave_kw", 0.0),
+        delta_eval.get("interval_savings_rm", 0.0),
+        actual_load <= md_limit_kw,
+    )
+
     decision_entry = {
         "timestamp": timestamp_str,
         "interval": current_interval,
@@ -134,23 +305,107 @@ def auditor_node(state: dict) -> dict:
         "act": act,
         "evaluate": auditor_result,
     }
+
+    decision_log = state.get("decision_log", [])
     new_decision_log = decision_log + [decision_entry]
 
-    total_possible_shave = baseline_load - md_limit_kw if baseline_load > md_limit_kw else 0
-    if total_possible_shave > 0:
-        total_shave = sum(entry["evaluate"]["delta_eval"]["shave_kw"] for entry in new_decision_log)
-        shave_percentage = (total_shave / (total_possible_shave * len(new_decision_log))) * 100 if new_decision_log else 0
-    else:
-        shave_percentage = 0.0
+    interval_savings = delta_eval["interval_savings_rm"]
+    new_total_savings = state.get("total_savings_rm", 0.0) + interval_savings
+
+    new_within_limit = state.get("within_limit_ticks", 0)
+    if actual_load <= md_limit_kw:
+        new_within_limit += 1
+
+    # Accumulate possible shave across all ticks (fix 2.7: was using only current tick)
+    new_total_possible = float(state.get("total_possible_shave_kw") or 0.0) + max(baseline_load - md_limit_kw, 0.0)
+    total_shave = sum(entry["evaluate"]["delta_eval"]["shave_kw"] for entry in new_decision_log)
+    shave_percentage = (total_shave / new_total_possible * 100) if new_total_possible > 0 else 0.0
+
+    planner_feedback = {
+        "rules_passed": rule_eval.get("passed", True),
+        "rule_violations": rule_eval.get("violations", []),
+        "delta_score": delta_eval.get("delta_score", 0.0),
+        "shave_kw": delta_eval.get("shave_kw", 0.0),
+        "within_limit": actual_load <= md_limit_kw,
+        "recommendation": (
+            llm_eval.get("recommendation", "") if llm_eval
+            else _generate_recommendation(rule_eval, delta_eval)
+        ),
+    }
 
     return {
         "auditor_result": auditor_result,
+        "planner_feedback": planner_feedback,
         "decision_log": new_decision_log,
         "total_savings_rm": new_total_savings,
         "within_limit_ticks": new_within_limit,
-        "total_intervals": total_intervals + 1,
         "shave_percentage": shave_percentage,
+        "total_possible_shave_kw": new_total_possible,
     }
+
+
+async def run_eod_audit(log_path: Path, day_type: str, date_str: str) -> None:
+    """Fire-and-forget EOD audit. Reads JSON log, writes experience file.
+
+    Called from simulation.py after finalize() — log_path is guaranteed to exist.
+    """
+    model = resolve_deepagents_model(_DEFAULT_MODEL)
+    agent = create_deep_agent(
+        name="auditor-agent-eod",
+        model=model,
+        system_prompt=_AUDITOR_PROMPT_EOD,
+        tools=[evaluate_rules_tool, evaluate_delta_tool],
+        backend=_build_eod_backend(),
+    )
+    log_filename = log_path.name
+    prompt = _build_eod_prompt(log_filename=log_filename, date_str=date_str, day_type=day_type)
+    invoke_config = {"configurable": {"thread_id": f"eod-{date_str}-{day_type}"}}
+    await agent.ainvoke({"messages": [{"role": "user", "content": prompt}]}, invoke_config)
+
+
+def _build_eod_prompt(log_filename: str, date_str: str, day_type: str) -> str:
+    return (
+        f"END OF DAY AUDIT — {date_str} ({day_type})\n\n"
+        f"The simulation has completed. The full tick log is at /logs/{log_filename}.\n\n"
+        f"Steps:\n"
+        f"1. Read /logs/{log_filename} for complete tick-by-tick data (ticks, summary)\n"
+        f"2. Read past experience files in /experience/ for pattern comparison (same day_type)\n"
+        f"3. Call evaluate_rules_tool and evaluate_delta_tool on the final tick state\n"
+        f"4. Write end-of-day summary to /experience/{date_str}-{day_type}.md\n\n"
+        f"Do NOT write to /logs/.\n\n"
+        f"Return final JSON: {{\"reasoning\": \"...\", \"recommendation\": \"...\", \"confidence\": 0.0}}"
+    )
+
+
+def _build_tick_prompt(
+    dispatch_result: dict | None,
+    dispatch_action: dict | None,
+    baseline_load: float,
+    actual_load: float,
+    battery_soc: float,
+    cycle_count: float,
+    tariff_window: str,
+    forecast_kw: float,
+    md_limit_kw: float,
+) -> str:
+    return (
+        f"Evaluate this tick's BESS dispatch using your tools.\n\n"
+        f"State:\n"
+        f"  dispatch_result: {dispatch_result}\n"
+        f"  dispatch_action: {dispatch_action}\n"
+        f"  baseline_load: {baseline_load}\n"
+        f"  actual_load: {actual_load}\n"
+        f"  battery_soc: {battery_soc}\n"
+        f"  cycle_count: {cycle_count}\n"
+        f"  tariff_window: {tariff_window}\n"
+        f"  forecast_kw: {forecast_kw}\n"
+        f"  md_limit_kw: {md_limit_kw}\n\n"
+        f"Steps:\n"
+        f"1. Call evaluate_rules_tool\n"
+        f"2. Call evaluate_delta_tool\n\n"
+        f"Return final JSON: {{'reasoning': '...', 'recommendation': '...', 'confidence': 0.0}}"
+    )
+
 
 
 def _generate_llm_reasoning(delta_eval: DeltaEvaluation, rule_eval: RuleEvaluation) -> str:
@@ -172,31 +427,3 @@ def _generate_recommendation(rule_eval: RuleEvaluation, delta_eval: DeltaEvaluat
     if delta_eval["delta_score"] < 50:
         return "Performance below target. Consider adjusting dispatch strategy."
     return "Operations within parameters."
-
-
-def end_of_day_summary(state: dict) -> dict:
-    decision_log = state.get("decision_log", [])
-    total_intervals = len(decision_log)
-    within_limit_ticks = state.get("within_limit_ticks", 0)
-    compliance_rate = within_limit_ticks / total_intervals if total_intervals > 0 else 0.0
-    total_savings = state.get("total_savings_rm", 0.0)
-    shave_pct = state.get("shave_percentage", 0.0)
-    critical_violations = []
-    for entry in decision_log:
-        eval_data = entry.get("evaluate", {})
-        rule = eval_data.get("rule_eval", {})
-        for v in rule.get("violations", []):
-            if v["severity"] == "critical":
-                critical_violations.append(v["detail"])
-    return {
-        "total_intervals": total_intervals,
-        "within_limit_ticks": within_limit_ticks,
-        "compliance_rate": compliance_rate,
-        "total_savings_rm": total_savings,
-        "peak_shave_pct": shave_pct,
-        "avg_soc": 0.0,
-        "max_temp_c": 0.0,
-        "total_cycles_used": 0.0,
-        "critical_violations": critical_violations,
-        "recommendation": "Review critical violations before next dispatch cycle." if critical_violations else "All systems nominal.",
-    }
