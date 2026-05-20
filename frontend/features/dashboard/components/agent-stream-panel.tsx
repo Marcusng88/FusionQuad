@@ -173,7 +173,7 @@ function DetailsModal({
   const data = extractJson(entry.tokens) ?? {};
 
   let fields: { label: string; value: string }[] = [];
-  let longText: { title: string; content: string }[] = [];
+  const longText: { title: string; content: string }[] = [];
 
   if (entry.node === "planner") {
     const d = data as {

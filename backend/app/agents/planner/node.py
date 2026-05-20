@@ -14,7 +14,7 @@ from deepagents.backends.composite import CompositeBackend
 import logging
 
 from app.agents.config import RESERVE_SOC
-from app.agents.planner import STRATEGIES_DIR, EXPERIENCE_DIR, get_forecast_context
+from app.agents.planner import STRATEGIES_DIR, EXPERIENCE_DIR, LOGS_DIR, get_forecast_context
 
 SKILLS_DIR = Path(__file__).parent.parent.parent.parent / "skills"
 from app.agents.shared_middleware import OutputFormatGuardMiddleware
@@ -29,14 +29,13 @@ _PLANNER_PROMPT = (Path(__file__).parent / "prompts" / "system.md").read_text(en
 
 
 def _build_planner_backend() -> CompositeBackend:
-    """Build a CompositeBackend scoped to /experience/ and /strategies/ only."""
-    return CompositeBackend(
-        default=StateBackend(),
-        routes={
-            "/experience/": FilesystemBackend(root_dir=str(EXPERIENCE_DIR), virtual_mode=True),
-            "/strategies/": FilesystemBackend(root_dir=str(STRATEGIES_DIR), virtual_mode=True),
-        },
-    )
+    routes = {
+        "/experience/": FilesystemBackend(root_dir=str(EXPERIENCE_DIR), virtual_mode=True),
+        "/strategies/": FilesystemBackend(root_dir=str(STRATEGIES_DIR), virtual_mode=True),
+    }
+    if LOGS_DIR.exists():
+        routes["/logs/"] = FilesystemBackend(root_dir=str(LOGS_DIR), virtual_mode=True)
+    return CompositeBackend(default=StateBackend(), routes=routes)
 
 
 _PLANNER_AGENT: Any | None = None
@@ -178,12 +177,17 @@ async def planner_node(state: AgentState) -> dict:
     if not strategy.get("md_limit_kw"):
         strategy = OptimizationStrategy(**{**strategy, "md_limit_kw": float(state.get("md_limit_kw") or 800.0)})
 
+    is_revision = state.get("rejection_reason") is not None
     logger.info(
-        "planner | strategy=%s shave_kw=%.1f reserve_soc=%.0f%% confidence=%.2f",
+        "planner | strategy=%s shave_kw=%.1f reserve_soc=%.0f%% confidence=%.2f revision=%s",
         strategy.get("strategy_name", "unknown"),
         strategy.get("shave_kw", 0.0),
         float(strategy.get("reserve_soc_pct", 0.0)) * 100,
         strategy.get("confidence", 0.0),
+        is_revision,
     )
 
-    return {"optimization_strategy": strategy}
+    result: dict = {"optimization_strategy": strategy, "rejection_reason": None}
+    if not is_revision:
+        result["revision_count"] = 0
+    return result

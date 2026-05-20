@@ -136,6 +136,8 @@ class SimulationService:
             "agent_trace": [],
             "total_savings_rm": 0.0,
             "within_limit_ticks": 0,
+            "peak_ticks": 0,
+            "peak_reduction_kw": 0.0,
             "total_intervals": len(records),
             "shave_percentage": 0.0,
             "total_possible_shave_kw": 0.0,
@@ -467,6 +469,12 @@ class SimulationService:
             total_savings_rm=float(state.get("total_savings_rm", 0.0) or 0.0),
             shave_percentage=float(state.get("shave_percentage", 0.0) or 0.0),
             within_limit_ticks=int(state.get("within_limit_ticks", 0) or 0),
+            peak_ticks=int(state.get("peak_ticks", 0) or 0),
+            avg_peak_reduction_kw=round(
+                float(state.get("peak_reduction_kw", 0.0) or 0.0)
+                / max(int(state.get("peak_ticks", 0) or 0), 1),
+                2,
+            ),
             decision_log=list(state.get("decision_log", [])),
             agent_trace=agent_trace,
             last_dispatch_kw=float(state.get("last_dispatch_kw", 0.0) or 0.0),

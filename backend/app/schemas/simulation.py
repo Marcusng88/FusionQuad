@@ -62,7 +62,9 @@ class SimulationStateResponse(BaseModel):
     tariff_window: str | None
     total_savings_rm: float
     shave_percentage: float
-    within_limit_ticks: int
+    within_limit_ticks: int        # PEAK ticks where actual_load <= md_limit_kw
+    peak_ticks: int = 0            # total PEAK ticks seen
+    avg_peak_reduction_kw: float = 0.0  # avg kW shaved during PEAK
     decision_log: list[dict[str, Any]]
     agent_trace: list[AgentTraceEntry] = Field(default_factory=list)
     last_dispatch_kw: float = 0.0

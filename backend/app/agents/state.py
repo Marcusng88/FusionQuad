@@ -108,8 +108,14 @@ class AgentState(TypedDict, total=False):
     agent_trace: list[dict] | None
     shave_percentage: float | None
     total_savings_rm: float | None
-    within_limit_ticks: int | None
+    within_limit_ticks: int | None  # PEAK ticks only where actual_load <= md_limit_kw
     total_intervals: int | None
+    peak_ticks: int | None          # total PEAK ticks seen
+    peak_reduction_kw: float | None  # cumulative kW reduction across PEAK ticks
+    # Controller revision loop
+    revision_count: int | None       # incremented each time controller rejects planner plan
+    rejection_reason: str | None     # set by controller on rejection, cleared by planner on revision
+
     # Workflow metadata
     session_id: str | None
     messages: Annotated[list, add_messages]

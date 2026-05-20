@@ -105,6 +105,8 @@ export type SimulationApiState = {
   total_savings_rm: number;
   shave_percentage: number;
   within_limit_ticks: number;
+  peak_ticks: number;
+  avg_peak_reduction_kw: number;
   decision_log: Array<Record<string, unknown>>;
   agent_trace: DecisionLog[];
   last_dispatch_kw: number;
@@ -155,6 +157,8 @@ export type SimulationViewModel = {
   totalSavingsRm: number;
   shavePercentage: number;
   withinLimitTicks: number;
+  peakTicks: number;
+  avgPeakReductionKw: number;
   mdLimitKw: number;
   lastDispatchKw: number;
   agentTrace: DecisionLog[];

@@ -312,9 +312,16 @@ async def auditor_node(state: dict) -> dict:
     interval_savings = delta_eval["interval_savings_rm"]
     new_total_savings = state.get("total_savings_rm", 0.0) + interval_savings
 
+    # within_limit_ticks counts PEAK ticks only — MD charges only apply in PEAK
     new_within_limit = state.get("within_limit_ticks", 0)
-    if actual_load <= md_limit_kw:
+    is_peak = tariff_window == "PEAK"
+    if is_peak and actual_load <= md_limit_kw:
         new_within_limit += 1
+
+    new_peak_ticks = int(state.get("peak_ticks") or 0) + (1 if is_peak else 0)
+    new_peak_reduction_kw = float(state.get("peak_reduction_kw") or 0.0)
+    if is_peak:
+        new_peak_reduction_kw += max(0.0, baseline_load - actual_load)
 
     # Accumulate possible shave across all ticks (fix 2.7: was using only current tick)
     new_total_possible = float(state.get("total_possible_shave_kw") or 0.0) + max(baseline_load - md_limit_kw, 0.0)
@@ -326,7 +333,9 @@ async def auditor_node(state: dict) -> dict:
         "rule_violations": rule_eval.get("violations", []),
         "delta_score": delta_eval.get("delta_score", 0.0),
         "shave_kw": delta_eval.get("shave_kw", 0.0),
-        "within_limit": actual_load <= md_limit_kw,
+        # within_limit only meaningful in PEAK — OFF_PEAK exceedance has no MD penalty
+        "within_limit": (actual_load <= md_limit_kw) if tariff_window == "PEAK" else None,
+        "tariff_window": tariff_window,
         "recommendation": (
             llm_eval.get("recommendation", "") if llm_eval
             else _generate_recommendation(rule_eval, delta_eval)
@@ -341,6 +350,8 @@ async def auditor_node(state: dict) -> dict:
         "within_limit_ticks": new_within_limit,
         "shave_percentage": shave_percentage,
         "total_possible_shave_kw": new_total_possible,
+        "peak_ticks": new_peak_ticks,
+        "peak_reduction_kw": new_peak_reduction_kw,
     }
 
 
