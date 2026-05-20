@@ -11,7 +11,7 @@ Charge BESS during OFF_PEAK tariff windows when electricity rates are lowest, pr
 
 ## Charging Rules
 1. **Charge Target**: Bring SOC to 90-95% by start of next PEAK window
-2. **Charge Rate**: 50-80 kW per 15-minute interval (respect inverter limits)
+2. **Charge Rate**: 50-80 kW per 30-minute interval (respect inverter limits)
 3. **Max Charge**: Do not exceed 95% SOC (preserve cycle life)
 4. **Duration**: Charge until SOC target reached or OFF_PEAK window ends
 

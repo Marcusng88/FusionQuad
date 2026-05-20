@@ -11,9 +11,10 @@ Optimize BESS dispatch for commercial/industrial facilities (800–1200 kW) with
 - The monthly bill is determined by the WORST single tick in the billing period
 
 ## Trigger Conditions
-- `day_type`: solar_duck_curve
+- `day_type`: solar_duck_curve OR large_weekday
+- `facility`: SoL, Mi2
 - `tariff_window`: PEAK or OFF_PEAK
-- `load_forecast`: 800–1200 kW range
+- `load_forecast`: 800–1400 kW range
 - `battery_soc`: > 20%
 
 ---
@@ -34,7 +35,7 @@ Optimize BESS dispatch for commercial/industrial facilities (800–1200 kW) with
 2. **Shave Target formula**: `shave_kw = max(0, forecast_kw - md_limit_kw + 15)`
    - The +15 kW buffer accounts for forecast error (GRU model ~3–5% MAPE at this scale)
 3. **Reserve SOC**: 20% minimum
-4. **Max Interval Discharge**: 100 kW
+4. **Max Interval Discharge**: 100 kW per 30-minute interval
 
 ### MANDATORY RULE (non-negotiable during PEAK)
 ```

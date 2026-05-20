@@ -18,7 +18,7 @@ The +15 kW buffer accounts for forecast error. Never cap shave_kw at an arbitrar
 ## Discharge Rules
 1. **Act immediately at 14:00** — do not defer. Every PEAK tick above md_limit_kw sets a potential monthly MD record.
 2. **Reserve SOC**: Maintain minimum 20% SOC after discharge.
-3. **Max Interval Discharge**: 100 kW per 15-minute interval (inverter limit).
+3. **Max Interval Discharge**: 100 kW per 30-minute interval (inverter limit).
 4. **Cycle Budget**: If `cycle_count > 3000`, limit DoD to 50% of remaining usable capacity.
 5. **SOC triage during PEAK**:
    - SOC > 80%: discharge full shave target

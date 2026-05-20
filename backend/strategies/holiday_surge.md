@@ -16,12 +16,12 @@ Manage BESS dispatch during holidays and weekends where TNB C2 **Maximum Demand 
 ## Discharge Rules
 1. **Shave Target**: Only discharge to reduce energy cost, not MD. `shave_kw` should be modest (20–40 kW) unless load is extreme.
 2. **Reserve SOC**: Maintain minimum 30% SOC (unpredictable follow-on loads on holidays).
-3. **Max Interval Discharge**: 80 kW per 15-minute interval.
+3. **Max Interval Discharge**: 80 kW per 30-minute interval.
 4. **Anticipatory Charging**: If SOC < 50% by 18:00, charge overnight for the next weekday PEAK.
 
 ## Charging Rules
 1. Prioritize reaching 90% SOC overnight if next day is a weekday (PEAK MD risk returns).
-2. Charge rate: 50–80 kW per interval during OFF_PEAK hours.
+2. Charge rate: 50–80 kW per 30-minute interval during OFF_PEAK hours.
 
 ## Constraints
 - `no_md_shaving_on_holidays`

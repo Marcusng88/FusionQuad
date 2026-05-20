@@ -7,7 +7,7 @@ Cross-cutting rules for BESS operation that apply regardless of tariff window or
 - **Hard Minimum**: 10% SOC — BESS protection cutoff, never discharge below this
 - **Soft Minimum**: 20% SOC — Recommended reserve for emergency demand response
 - **Charge Target**: 90-95% for normal full charge cycle
-- **Charge Ceiling**: 100% SOC — Absolute maximum, do not over-charge
+- **Charge Ceiling**: 95% SOC — do not exceed to prevent overcharge and preserve cycle life
 
 ## Cycle Count Thresholds
 - **0-2000 cycles**: Normal operation — full charge/discharge cycles permitted
