@@ -49,36 +49,7 @@ export type ScenarioMetadata = {
   total_rows: number;
 };
 
-export type ScenarioKey =
-  | "baseline"
-  | "solarOnly"
-  | "batteryOnly"
-  | "loadShiftingOnly"
-  | "batteryAndShifting";
-
-export type ScenarioAccent = "primary" | "secondary" | "tertiary";
-
-export type ScenarioData = {
-  key: ScenarioKey;
-  label: string;
-  blurb: string;
-  accent: ScenarioAccent;
-  summary: SimulationSummary;
-  timeseries: EnergyPoint[];
-  decisionLogs: DecisionLog[];
-};
-
-export type NavItem = {
-  href: string;
-  label: string;
-};
-
 export type SimulationDayType = "weekday" | "holiday" | "solar_duck_curve" | "large_weekday";
-
-export type DateTimeRange = {
-  start: string | null;
-  end: string | null;
-};
 
 export type SimulationRunStatus = "idle" | "paused" | "playing" | "completed";
 

@@ -6,11 +6,6 @@ import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/", label: "Overview" },
-  { href: "/baseline", label: "Baseline" },
-  { href: "/simulation", label: "Simulation" },
-  { href: "/decisions", label: "AI Decisions" },
-  { href: "/scenarios", label: "Scenarios" },
-  { href: "/setup", label: "Setup" },
 ];
 
 export function HeaderNav() {

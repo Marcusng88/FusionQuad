@@ -47,7 +47,7 @@ export function useSimulationController() {
   const [bessCapacityKwh, setBessCapacityKwh] = useState(1000);
   const [batterySoc, setBatterySoc] = useState(0.5);
   const [mdLimitKw, setMdLimitKw] = useState(800);
-  const [maxDischargeKw, setMaxDischargeKw] = useState(500);
+  const [maxDischargeKw, setMaxDischargeKw] = useState(100);
   const [timeRange, setTimeRange] = useState<{ start: string | null; end: string | null }>({
     start: null,
     end: null,
