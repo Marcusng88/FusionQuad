@@ -482,6 +482,7 @@ class SimulationService:
             md_rate=MD_RATE,
             dispatch_action=state.get("dispatch_action"),
             scenarios=SCENARIO_META,
+            predicted_next_kw=_coerce_optional_float(state.get("predicted_next_kw")),
         )
 
     async def get_scenario_metadata(self, day_type: str) -> ScenarioMetadataResponse:

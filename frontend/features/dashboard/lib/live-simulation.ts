@@ -142,6 +142,7 @@ function buildEnergyPoint(
     shifted_load_kw: Math.max(snapshot.baseline_load - snapshot.actual_load - Math.abs(Math.min(batteryPowerKw, 0)), 0),
     demand_limit_kw: mdLimitKw,
     is_peak_period: (snapshot.tariff_window || "").toUpperCase() === "PEAK",
+    predicted_kw: snapshot.predicted_next_kw ?? null,
   };
 }
 

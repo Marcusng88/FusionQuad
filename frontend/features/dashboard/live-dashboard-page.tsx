@@ -558,11 +558,6 @@ export default function LiveDashboardPage() {
                       value={`${simulation.summary.battery_energy_used_kwh} kWh`}
                       detail="throughput"
                     />
-                    <MiniStat
-                      label="Shifted Load"
-                      value={`${simulation.summary.shifted_load_kwh} kWh`}
-                      detail="delta vs baseline"
-                    />
                   </div>
                   <div className="grid gap-4 xl:grid-cols-3">
                     <SocChart points={points} />
@@ -588,8 +583,8 @@ export default function LiveDashboardPage() {
                 </p>
               </div>
 
-              {/* KPI strip — compact 3-column row */}
-              <div className="flex-shrink-0 grid grid-cols-3 divide-x divide-outline border-b border-outline">
+              {/* KPI strip — compact 2-column row */}
+              <div className="flex-shrink-0 grid grid-cols-2 divide-x divide-outline border-b border-outline">
                 <div className="px-3 py-2.5">
                   <p className="font-label text-[9px] text-muted uppercase tracking-wide">Batt SoC</p>
                   <p className="font-display text-lg font-semibold text-foreground mt-0.5">
@@ -603,13 +598,6 @@ export default function LiveDashboardPage() {
                     {Math.round(simulation.lastDispatchKw)}<span className="text-xs text-muted font-normal ml-0.5">kW</span>
                   </p>
                   <p className="text-[9px] text-muted truncate">last issued</p>
-                </div>
-                <div className="px-3 py-2.5">
-                  <p className="font-label text-[9px] text-muted uppercase tracking-wide">Savings</p>
-                  <p className="font-display text-lg font-semibold text-foreground mt-0.5">
-                    <span className="text-xs text-muted font-normal mr-0.5">RM</span>{formatCurrencyValue(simulation.totalSavingsRm)}
-                  </p>
-                  <p className="text-[9px] text-muted truncate">{simulation.shavePercentage.toFixed(1)}% shave</p>
                 </div>
               </div>
 
@@ -727,7 +715,7 @@ export default function LiveDashboardPage() {
                 ✕
               </button>
             </div>
-            <div className="flex-shrink-0 grid grid-cols-3 divide-x divide-outline border-b border-outline">
+            <div className="flex-shrink-0 grid grid-cols-2 divide-x divide-outline border-b border-outline">
               <div className="px-3 py-2.5">
                 <p className="font-label text-[9px] text-muted uppercase tracking-wide">Batt SoC</p>
                 <p className="font-display text-lg font-semibold text-foreground mt-0.5">
@@ -741,13 +729,6 @@ export default function LiveDashboardPage() {
                   {Math.round(simulation.lastDispatchKw)}<span className="text-xs text-muted font-normal ml-0.5">kW</span>
                 </p>
                 <p className="text-[9px] text-muted truncate">last issued</p>
-              </div>
-              <div className="px-3 py-2.5">
-                <p className="font-label text-[9px] text-muted uppercase tracking-wide">Savings</p>
-                <p className="font-display text-lg font-semibold text-foreground mt-0.5">
-                  <span className="text-xs text-muted font-normal mr-0.5">RM</span>{formatCurrencyValue(simulation.totalSavingsRm)}
-                </p>
-                <p className="text-[9px] text-muted truncate">{simulation.shavePercentage.toFixed(1)}% shave</p>
               </div>
             </div>
             <div className="flex-shrink-0 px-4 pt-3 pb-2">

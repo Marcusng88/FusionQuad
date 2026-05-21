@@ -9,6 +9,7 @@ export type EnergyPoint = {
   shifted_load_kw: number;
   demand_limit_kw: number;
   is_peak_period: boolean;
+  predicted_kw: number | null;
 };
 
 export type SimulationSummary = {
@@ -85,6 +86,7 @@ export type SimulationApiState = {
   md_rate: number;
   dispatch_action: SimulationDispatchAction;
   scenarios: Array<{ key: SimulationDayType; label: string; blurb: string }>;
+  predicted_next_kw: number | null;
 };
 
 export type AgentUpdatePayload = {

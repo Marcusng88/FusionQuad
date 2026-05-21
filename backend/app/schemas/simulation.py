@@ -72,3 +72,4 @@ class SimulationStateResponse(BaseModel):
     md_rate: float = 97.06
     dispatch_action: dict[str, Any] | None = None
     scenarios: list[ScenarioMeta] = Field(default_factory=list)
+    predicted_next_kw: float | None = None
