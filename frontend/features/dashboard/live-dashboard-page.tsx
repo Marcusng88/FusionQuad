@@ -465,24 +465,42 @@ export default function LiveDashboardPage() {
               <div className="grid grid-cols-3 gap-4">
                 <KpiCard
                   title="Original Maximum Demand"
-                  value={String(simulation.summary.original_md_kw || 0)}
-                  suffix="kW"
-                  detail="Observed baseline import"
+                  value={simulation.summary.original_md_kw != null ? String(simulation.summary.original_md_kw) : "—"}
+                  suffix={simulation.summary.original_md_kw != null ? "kW" : undefined}
+                  detail="Peak-hour baseline import"
                   tone="secondary"
                 />
                 <KpiCard
                   title="Optimized Maximum Demand"
-                  value={String(simulation.summary.optimized_md_kw || 0)}
-                  suffix="kW"
-                  detail={`${simulation.summary.peak_reduction_kw} kW shaved`}
+                  value={simulation.summary.optimized_md_kw != null ? String(simulation.summary.optimized_md_kw) : "—"}
+                  suffix={simulation.summary.optimized_md_kw != null ? "kW" : undefined}
+                  detail={simulation.summary.optimized_md_kw != null ? `${simulation.summary.peak_reduction_kw} kW shaved · peak hours` : "No peak hours in simulation"}
                   tone="primary"
                 />
                 <KpiCard
-                  title="Projected Monthly Savings"
+                  title="Simulation MD Savings"
                   value={formatCurrencyValue(simulation.summary.md_savings_rm)}
                   prefix="RM"
                   detail={`${complianceRate}% PEAK ticks within MD limit · avg ${simulation.avgPeakReductionKw.toFixed(1)} kW reduction`}
                   tone="tertiary"
+                />
+              </div>
+
+              {/* MD cost cards */}
+              <div className="grid grid-cols-2 gap-4">
+                <KpiCard
+                  title="Original MD Cost"
+                  value={simulation.summary.original_md_kw != null ? formatCurrencyValue(simulation.summary.original_md_cost_rm) : "—"}
+                  prefix={simulation.summary.original_md_kw != null ? "RM" : undefined}
+                  detail="Baseline peak demand charge"
+                  tone="secondary"
+                />
+                <KpiCard
+                  title="Optimized MD Cost"
+                  value={simulation.summary.optimized_md_kw != null ? formatCurrencyValue(simulation.summary.optimized_md_cost_rm) : "—"}
+                  prefix={simulation.summary.optimized_md_kw != null ? "RM" : undefined}
+                  detail={simulation.summary.optimized_md_kw != null ? `RM ${formatCurrencyValue(simulation.summary.md_savings_rm)} saved vs baseline` : "No peak hours in simulation"}
+                  tone="primary"
                 />
               </div>
 

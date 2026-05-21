@@ -307,6 +307,7 @@ PLANNER STRATEGY:
         "forecast_kw": forecast_kw,
         "baseline_load": baseline_load,
         "actual_load": actual_load,
+        "previous_soc": battery_soc,
         "last_dispatch_kw": exec_result.actual_discharge_kw,
         "last_dispatch_duration_min": duration_min,
         "rejection_reason": None,

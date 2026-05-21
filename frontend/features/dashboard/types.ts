@@ -12,8 +12,8 @@ export type EnergyPoint = {
 };
 
 export type SimulationSummary = {
-  original_md_kw: number;
-  optimized_md_kw: number;
+  original_md_kw: number | null;
+  optimized_md_kw: number | null;
   peak_reduction_kw: number;
   original_md_cost_rm: number;
   optimized_md_cost_rm: number;
