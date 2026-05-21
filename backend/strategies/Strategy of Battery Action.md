@@ -103,49 +103,43 @@
 
 ---
 
+## Conflict Resolution Rules
+
+When multiple action codes match the same T/S/D/B state, these rules determine which action wins:
+
+1. **T0 (PEAK) — discharge priority**: Higher-intensity discharge wins. D4 → A8≻A7≻A6. D3 → A6≻A5. D2 → A5≻A4.
+2. **T1/T5 — charge priority**: Higher-intensity charge wins when SOC is low (B0/B1).
+3. **T2/T3/T4 — preservation priority**: Lower-intensity action wins to protect cycle life.
+4. **NEVER charge from grid during T0**: A0/A1/A2 do not apply during PEAK hours. Grid-to-battery charging during PEAK raises MD reading. Exception: solar-to-battery DC-coupled only (not via grid meter).
+5. **Thermal override always wins**: Temperature > 40°C → cap at A1/A5. Temperature > 45°C → A4 only (thermal runaway risk).
+
+---
+
 ## Action Strategies by Condition
 
 ### A0 - Forced Charge (100% charging power)
 
 A0 strategy can be used when:
 
-1. T0, S0, D4, B0
-2. T0, S0, D3, B0
-3. T0, S0, D2, B0
-4. T0, S0, D1, B0
-5. T0, S0, D0, B0
-6. T0, S1, D4, B0
-7. T0, S1, D3, B0
-8. T0, S1, D2, B0
-9. T0, S1, D1, B0
-10. T0, S1, D0, B0
-11. T0, S2, D4, B0
-12. T0, S2, D3, B0
-13. T0, S2, D2, B0
-14. T0, S2, D1, B0
-15. T0, S2, D0, B0
-16. T0, S3, D4, B0
-17. T0, S3, D3, B0
-18. T0, S3, D2, B0
-19. T0, S3, D1, B0
-20. T0, S3, D0, B0
-21. T1, S0, D0-4, B0
-22. T1, S1, D0-4, B0
-23. T1, S2, D0-4, B0
-24. T1, S3, D0-4, B0
-25. T2, S0, D0-4, B0
-26. T3, S0, D0-4, B0
-27. T3, S1, D0-4, B0
-28. T3, S2, D0-4, B0
-29. T3, S3, D0-4, B0
-30. T4, S0, D0-4, B0
-31. T4, S1, D0-4, B0
-32. T4, S2, D0-4, B0
-33. T4, S3, D0-4, B0
-34. T5, S0, D0-4, B0
-35. T5, S1, D0-4, B0
-36. T5, S2, D0-4, B0
-37. T5, S3, D0-4, B0
+> **NOT applicable during T0 (PEAK).** Charging from grid during PEAK raises MD reading. T0+B0 → use A4 (hold/protect battery).
+
+1. T1, S0, D0-4, B0
+2. T1, S1, D0-4, B0
+3. T1, S2, D0-4, B0
+4. T1, S3, D0-4, B0
+5. T2, S0, D0-4, B0
+6. T3, S0, D0-4, B0
+7. T3, S1, D0-4, B0
+8. T3, S2, D0-4, B0
+9. T3, S3, D0-4, B0
+10. T4, S0, D0-4, B0
+11. T4, S1, D0-4, B0
+12. T4, S2, D0-4, B0
+13. T4, S3, D0-4, B0
+14. T5, S0, D0-4, B0
+15. T5, S1, D0-4, B0
+16. T5, S2, D0-4, B0
+17. T5, S3, D0-4, B0
 
 ---
 
@@ -153,27 +147,9 @@ A0 strategy can be used when:
 
 A1 strategy can be used when:
 
-1. T0, S0, D4, B0
-2. T0, S0, D3, B0
-3. T0, S0, D2, B0
-4. T0, S0, D1, B0
-5. T0, S0, D0, B0
-6. T0, S1, D4, B0
-7. T0, S1, D3, B0
-8. T0, S1, D2, B0
-9. T0, S1, D1, B0
-10. T0, S1, D0, B0
-11. T0, S2, D4, B0
-12. T0, S2, D3, B0
-13. T0, S2, D2, B0
-14. T0, S2, D1, B0
-15. T0, S2, D0, B0
-16. T0, S3, D4, B0
-17. T0, S3, D3, B0
-18. T0, S3, D2, B0
-19. T0, S3, D1, B0
-20. T0, S3, D0, B0
-21. T1, S0, D4, B3
+> **NOT applicable during T0 (PEAK).** See Conflict Resolution Rule 4.
+
+1. T1, S0, D4, B3
 22. T1, S0, D3, B3
 23. T1, S0, D2, B3
 24. T1, S0, D1, B3
@@ -203,9 +179,9 @@ A1 strategy can be used when:
 
 A2 strategy can be used when:
 
-1. T0, S3, D1, B0
-2. T0, S3, D0, B0
-3. T1, S0, D0-4, B1
+> **NOT applicable during T0 (PEAK).** See Conflict Resolution Rule 4.
+
+1. T1, S0, D0-4, B1
 4. T1, S0, D0-4, B2
 5. T1, S1, D0-4, B1
 6. T1, S1, D0-4, B2
@@ -270,46 +246,47 @@ A3 strategy can be used when:
 
 A4 strategy can be used when:
 
-1. T0, S0, D2, B2
-2. T0, S0, D2, B3
-3. T0, S0, D1, B2
-4. T0, S0, D1, B3
-5. T0, S0, D0, B2
-6. T0, S0, D0, B3
-7. T0, S1, D2, B2
-8. T0, S1, D2, B3
-9. T0, S1, D1, B2
-10. T0, S1, D1, B3
-11. T0, S2, D2, B2
-12. T0, S2, D2, B3
-13. T0, S2, D1, B2
-14. T0, S2, D1, B3
-15. T0, S3, D1, B2
-16. T0, S3, D1, B3
-17. T1, S0, D0-4, B3
-18. T1, S0, D0-4, B4
-19. T1, S1, D0-4, B3
-20. T1, S2, D0-4, B3
-21. T1, S3, D0-4, B3
-22. T1, S3, D0-4, B4
-23. T2, S0, D0-4, B3
-24. T2, S0, D0-4, B4
-25. T3, S0, D0-4, B2
-26. T3, S0, D0-4, B3
-27. T3, S1, D0-4, B2
-28. T3, S1, D0-4, B3
-29. T3, S2, D0-4, B3
-30. T3, S3, D0-4, B3
-31. T4, S0, D0-4, B2
-32. T4, S0, D0-4, B3
-33. T4, S1, D0-4, B3
-34. T4, S2, D0-4, B3
-35. T4, S3, D0-4, B3
-36. T5, S0, D0-4, B3
-37. T5, S1, D0-4, B3
-38. T5, S2, D0-4, B3
-39. T5, S3, D0-4, B3
-40. T5, S3, D0-4, B4
+1. T0, S0-3, D0-4, B0 — PEAK + emergency low SOC: HOLD, do not charge from grid, do not discharge further
+2. T0, S0, D2, B2
+3. T0, S0, D2, B3
+4. T0, S0, D1, B2
+5. T0, S0, D1, B3
+6. T0, S0, D0, B2
+7. T0, S0, D0, B3
+8. T0, S1, D2, B2
+9. T0, S1, D2, B3
+10. T0, S1, D1, B2
+11. T0, S1, D1, B3
+12. T0, S2, D2, B2
+13. T0, S2, D2, B3
+14. T0, S2, D1, B2
+15. T0, S2, D1, B3
+16. T0, S3, D1, B2
+17. T0, S3, D1, B3
+18. T1, S0, D0-4, B3
+19. T1, S0, D0-4, B4
+20. T1, S1, D0-4, B3
+21. T1, S2, D0-4, B3
+22. T1, S3, D0-4, B3
+23. T1, S3, D0-4, B4
+24. T2, S0, D0-4, B3
+25. T2, S0, D0-4, B4
+26. T3, S0, D0-4, B2
+27. T3, S0, D0-4, B3
+28. T3, S1, D0-4, B2
+29. T3, S1, D0-4, B3
+30. T3, S2, D0-4, B3
+31. T3, S3, D0-4, B3
+32. T4, S0, D0-4, B2
+33. T4, S0, D0-4, B3
+34. T4, S1, D0-4, B3
+35. T4, S2, D0-4, B3
+36. T4, S3, D0-4, B3
+37. T5, S0, D0-4, B3
+38. T5, S1, D0-4, B3
+39. T5, S2, D0-4, B3
+40. T5, S3, D0-4, B3
+41. T5, S3, D0-4, B4
 
 ---
 
@@ -318,7 +295,8 @@ A4 strategy can be used when:
 A5 strategy can be used when:
 
 1. T0, S0, D3, B1
-2. T0, S0, D3, B2
+2. T0, S0, D4, B1 — critical demand but SOC only 10-20%: low discharge only, preserve remaining charge to avoid hard cutoff
+3. T0, S0, D3, B2
 3. T0, S0, D3, B3
 4. T0, S0, D2, B2
 5. T0, S0, D2, B3
@@ -353,8 +331,7 @@ A6 strategy can be used when:
 1. T0, S0, D3, B2
 2. T0, S0, D3, B3
 3. T0, S0, D3, B4
-4. T0, S0, D4, B1
-5. T0, S0, D4, B2
+4. T0, S0, D4, B2
 6. T0, S0, D4, B3
 7. T0, S0, D4, B4
 8. T0, S1, D3, B2
@@ -411,15 +388,14 @@ A8 strategy can be used when:
 7. T0, S2, D4, B4
 8. T0, S3, D4, B3
 9. T0, S3, D4, B4
-10. Any T, Any S, Any D, B5
-11. Any T, S3, D0-1, B4
-12. Any T, S3, D0-1, B5
-13. T2, S0, D0-4, B5
-14. T3, S3, D0-4, B5
-15. T4, S3, D0-4, B5
-16. Any T (grid emergency), Any S, Any D, Any B
-17. Any T (demand response), Any S, D4, B2-4
-18. Any T (BMS thermal), Any S, Any D, Any B
+10. T0, Any S, Any D, B5 — PEAK + overcharge: forced discharge justified (MD shaving and overcharge protection align)
+11. Any T, S3, D0-1, B4 — strong solar + very low demand: solar pushing SOC toward overcharge, discharge to protect cells
+12. Any T, S3, D0-1, B5 — strong solar + very low demand + overcharge emergency
+13. Any T (grid emergency), Any S, Any D, Any B
+14. Any T (demand response), Any S, D4, B2-4
+15. Any T (BMS thermal runaway risk), Any S, Any D, Any B
+
+> **Non-PEAK B5 overcharge protection**: T1/T2/T3/T4/T5 with B5 and D2-4 → use A6 (medium discharge) instead of A8. Full 100% discharge is unnecessary; moderate discharge bleeds the excess without accelerating cycle degradation. A8 is reserved for T0 where discharge also serves MD shaving.
 
 ---
 

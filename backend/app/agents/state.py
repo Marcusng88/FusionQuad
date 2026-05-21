@@ -56,6 +56,7 @@ class DispatchResult(TypedDict, total=False):
 class OptimizationStrategy(TypedDict, total=False):
     """Dispatch strategy selected by the Planner agent."""
     strategy_name: str
+    action: str  # explicit intent: charge | discharge | hold
     shave_kw: float
     reserve_soc_pct: float
     target_soc_end: float
@@ -81,6 +82,7 @@ class AgentState(TypedDict, total=False):
     md_limit_kw: float | None
     max_discharge_kw: float | None
     current_record_index: int | None
+    current_interval: int | None
 
     # Raw data (flat — loaded once, referenced by all agents)
     loaded_data: dict | None
@@ -104,12 +106,20 @@ class AgentState(TypedDict, total=False):
     # Auditor accumulation
     auditor_result: dict | None
     planner_feedback: dict | None  # written by auditor, read by planner next tick
+    forecast_error_history: list[float] | None  # rolling per-tick |actual-forecast|/actual errors
+    predicted_next_kw: float | None  # GRU's T+1 prediction stored each tick for next-tick error calc
     decision_log: list[dict] | None
     agent_trace: list[dict] | None
     shave_percentage: float | None
     total_savings_rm: float | None
-    within_limit_ticks: int | None
+    within_limit_ticks: int | None  # PEAK ticks only where actual_load <= md_limit_kw
     total_intervals: int | None
+    peak_ticks: int | None          # total PEAK ticks seen
+    peak_reduction_kw: float | None  # cumulative kW reduction across PEAK ticks
+    # Controller revision loop
+    revision_count: int | None       # incremented each time controller rejects planner plan
+    rejection_reason: str | None     # set by controller on rejection, cleared by planner on revision
+
     # Workflow metadata
     session_id: str | None
     messages: Annotated[list, add_messages]

@@ -1,0 +1,456 @@
+{
+  "ticks": [
+    {
+      "tick": 0,
+      "datetime": "2025-09-09T12:00:00",
+      "forecast_kw": 788.0,
+      "forecast_confidence": 0.8,
+      "tariff_window": "OFF_PEAK",
+      "optimization_strategy": {
+        "strategy_name": "OFF_PEAK_valley_fill_charge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.7,
+        "rationale": "\u2022 Strategy chosen: OFF_PEAK valley-fill charging because tariff_window=OFF_PEAK (MD charge not applicable) and day_type=solar_duck_curve suggests solar will help later but we still pre-charge for the coming PEAK ramp.\n\u2022 Risk managed: respect SOC bounds (hard min 10%, soft reserve 20%) by targeting end SOC 70% with reserve_soc_pct=20% and not discharging in OFF_PEAK.\n\u2022 Key numbers: OFF_PEAK at 12:00; current SOC=50% (0.50); md_limit_kw=800 kW; forecast_kW around 12:00\u201317:00 is ~728\u2013779 kW; since OFF_PEAK, set shave_kw=0.\n\u2022 History: strategy-selector skill file was not found in the available skills path, so history-based adjustment could not be applied.",
+        "confidence": 0.45,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.538,
+        "temp_increase_c": -0.08999999999999997,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 788.0,
+      "actual_load_kw": 868.0,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 1,
+      "datetime": "2025-09-09T12:30:00",
+      "forecast_kw": 817.0,
+      "forecast_confidence": 0.9238556218026253,
+      "tariff_window": "OFF_PEAK",
+      "optimization_strategy": {
+        "strategy_name": "OFF_PEAK_valley_fill_charge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.72,
+        "rationale": "\u2022 Strategy chosen: OFF_PEAK valley-fill charging (tariff_window=OFF_PEAK) to prepare for the upcoming PEAK window; solar_duck_curve supports charging while load is moderate and we avoid unnecessary cycling.\n\u2022 Risk managed: keep SOC within bounds (current SOC=53.8% > soft reserve; hard min 10% not threatened) and reserve_soc_pct=20% to support emergency/fault response; do not discharge in OFF_PEAK.\n\u2022 Key numbers: time=12:30 (OFF_PEAK); md_limit_kw=800 kW; forecast_kW=[751.7, 765.2, 774.6, 786.2, 789.3, 795.8] all remain < md_limit_kw, so no PEAK-shaving requirement; therefore shave_kw=0.\n\u2022 History: last tick audit indicates performance below target (Delta Score 35.9/100), but since rules already PASS and md not exceeded, the corrective action is to improve PEAK readiness by increasing valley-fill charging (target_soc_end raised to 72%).",
+        "confidence": 0.43,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.538
+      },
+      "dispatch_result": {
+        "new_soc": 0.5760000000000001,
+        "temp_increase_c": -0.08549999999999999,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 817.0,
+      "actual_load_kw": 897.0,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 2,
+      "datetime": "2025-09-09T13:00:00",
+      "forecast_kw": 806.0,
+      "forecast_confidence": 0.9219793673052676,
+      "tariff_window": "OFF_PEAK",
+      "optimization_strategy": {
+        "strategy_name": "OFF_PEAK_valley_fill_charge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.74,
+        "rationale": "\u2022 Strategy chosen: OFF_PEAK valley-fill charging to increase SOC headroom before the PEAK ramp (tariff_window=OFF_PEAK, so MD shaving is not required).\n\u2022 Risk managed: maintain soft reserve SOC reserve_soc_pct=20% (current SOC=57.6% well above reserve) and avoid unnecessary cycling; no discharge in OFF_PEAK.\n\u2022 Key numbers: time=13:00 (OFF_PEAK); md_limit_kw=800 kW; forecast_kW increases up to ~800.9 kW but this is still OFF_PEAK so shave_kw=0.\n\u2022 History: last tick audit notes Delta Score 36.1/100 (performance below target); adjust by charging more steadily now to improve PEAK readiness rather than attempting PEAK shaving during OFF_PEAK.",
+        "confidence": 0.41,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.576
+      },
+      "dispatch_result": {
+        "new_soc": 0.6140000000000001,
+        "temp_increase_c": -0.08122499999999999,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 806.0,
+      "actual_load_kw": 886.0,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 3,
+      "datetime": "2025-09-09T13:30:00",
+      "forecast_kw": 816.0,
+      "forecast_confidence": 0.9309729853484922,
+      "tariff_window": "OFF_PEAK",
+      "optimization_strategy": {
+        "strategy_name": "OFF_PEAK_valley_fill_charge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.76,
+        "rationale": "\u2022 Strategy chosen: OFF_PEAK valley-fill charging to build SOC headroom for the upcoming PEAK window (tariff_window=OFF_PEAK so MD shaving is not applicable).\n\u2022 Risk managed: keep reserve_soc_pct=20% (current SOC=61.4% leaves buffer) and avoid discharging in OFF_PEAK.\n\u2022 Key numbers: time=13:30 (OFF_PEAK); md_limit_kw=800 kW; forecast climbs to ~810.63 kW and ~810.45 kW, but this is still OFF_PEAK, so set shave_kw=0 and focus on preparation.\n\u2022 History: last tick audit Delta Score 36.0/100 (performance below target); adjust by increasing/maintaining charging rate now to be better positioned for PEAK shaving later.",
+        "confidence": 0.4,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.614
+      },
+      "dispatch_result": {
+        "new_soc": 0.6520000000000001,
+        "temp_increase_c": -0.07716375,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 816.0,
+      "actual_load_kw": 896.0,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 4,
+      "datetime": "2025-09-09T14:00:00",
+      "forecast_kw": 830.0,
+      "forecast_confidence": 0.9371935019304771,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "PEAK_mandatory_md_shave_discharge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.58,
+        "rationale": "\u2022 Strategy chosen: Mandatory PEAK MD override check + discharge only if baseline_load > md_limit_kw. Since baseline_load at 14:00 is expected below/around the MD limit, shave is not required.\n\u2022 Risk managed: reserve_soc_pct=20% (soft floor) to preserve SOC; hard minimum 10% not approached (current SOC=65.2%).\n\u2022 Key numbers: tariff_window=PEAK (14:00\u201322:00 weekdays), md_limit_kw=800 kW, forecast at 14:00=777.41 kW (<800), so mandatory override condition (load > md_limit_kw) is false; therefore shave_kw=0.0.\n\u2022 History: last tick audit Delta Score ~36/100 suggests performance below target, but PEAK MD shaving is not justified unless load exceeds md_limit_kw at this tick.",
+        "confidence": 0.44,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 53.833333,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.652
+      },
+      "dispatch_result": {
+        "new_soc": 0.6264291668250002,
+        "temp_increase_c": 0.03586110250000002,
+        "cycle_count_delta": 0.013458333250000001,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 53.833333,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 830.0,
+      "actual_load_kw": 776.166667,
+      "peak_reduction_kw": 53.83333300000004,
+      "within_limit": true,
+      "savings_rm": 8.320583294333339
+    },
+    {
+      "tick": 5,
+      "datetime": "2025-09-09T14:30:00",
+      "forecast_kw": 815.0,
+      "forecast_confidence": 0.9370825794528908,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "PEAK_hold_no_md_shave",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.62,
+        "rationale": "\u2022 Strategy chosen: PEAK hold because mandatory MD override only triggers when baseline_load > md_limit_kw, and the current forecasted peak load is below the MD limit.\n\u2022 Risk managed: preserve SOC for later PEAK ticks (reserve_soc_pct=20% soft reserve); avoid unnecessary cycling/degradation.\n\u2022 Key numbers: time=14:30 within PEAK; md_limit_kw=800 kW; baseline/forecast at this tick ~769.87 kW (<800) so mandatory shave condition is false; shave_kw=0.\n\u2022 History: last tick audit Delta Score 45.2/100 and Within MD Limit=True indicates no MD violation; focus on conserving SOC rather than forcing discharge while still under the threshold.",
+        "confidence": 0.62,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 30.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": null
+      },
+      "dispatch_result": {
+        "new_soc": 0.6121791668250002,
+        "temp_increase_c": -0.08509861762500004,
+        "cycle_count_delta": 0.0075,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 30.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 815.0,
+      "actual_load_kw": 785.0,
+      "peak_reduction_kw": 30.0,
+      "within_limit": true,
+      "savings_rm": 4.521041666666667
+    },
+    {
+      "tick": 6,
+      "datetime": "2025-09-09T15:00:00",
+      "forecast_kw": 820.0,
+      "forecast_confidence": 0.9383402506592341,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "PEAK_hold_no_md_shave",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.6,
+        "rationale": "\u2022 Strategy chosen: PEAK hold (shave_kw=0) because mandatory MD override only applies when baseline_load > md_limit_kw, and current forecasted load is below the MD limit.\n\u2022 Risk managed: preserve SOC with reserve_soc_pct=20% (current SOC=61.2% well above soft reserve) to keep discharge available for any later PEAK tick that might exceed 800 kW.\n\u2022 Key numbers: time=15:00 (PEAK); md_limit_kw=800 kW; forecast at this tick ~744.57 kW (<800) so mandatory discharge condition is false; therefore no MD shaving now.\n\u2022 History: last tick audit Rules=PASS and Within MD Limit=True; Delta Score 42.9/100 indicates \u201cbelow target\u201d performance, but since there is no MD violation risk at 15:00, conserving SOC is the correct action.",
+        "confidence": 0.7,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 55.225,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.6122
+      },
+      "dispatch_result": {
+        "new_soc": 0.5859472918250002,
+        "temp_increase_c": 0.04528131325625001,
+        "cycle_count_delta": 0.01380625,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 55.225,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 820.0,
+      "actual_load_kw": 764.775,
+      "peak_reduction_kw": 55.22500000000002,
+      "within_limit": true,
+      "savings_rm": 7.809380555555559
+    },
+    {
+      "tick": 7,
+      "datetime": "2025-09-09T15:30:00",
+      "forecast_kw": 824.0,
+      "forecast_confidence": 0.9356989118922379,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "PEAK_hold_no_md_shave",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.56,
+        "rationale": "\u2022 Strategy chosen: PEAK hold with shave_kw=0 because mandatory MD override requires baseline_load (at this tick) > md_limit_kw, and the current forecasted load is below the MD limit.\n\u2022 Risk managed: keep reserve_soc_pct=20% to protect the soft emergency reserve; current SOC=58.6% (0.586) remains safely above the reserve.\n\u2022 Key numbers: time=15:30 (PEAK); md_limit_kw=800 kW; forecast at this tick ~743.38 kW (<800) so mandatory discharge override is not triggered; shave_kw remains 0.\n\u2022 History: last tick audit Rules=PASS and Within MD Limit=True (Delta Score 45.4/100 indicates under target performance, but there is still no MD risk\u2014so conserving SOC is preferred over unnecessary cycling).",
+        "confidence": 0.72,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 67.4,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5859
+      },
+      "dispatch_result": {
+        "new_soc": 0.5539322918250001,
+        "temp_increase_c": 0.10389224759343749,
+        "cycle_count_delta": 0.01685,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 67.4,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 824.0,
+      "actual_load_kw": 756.6,
+      "peak_reduction_kw": 67.39999999999998,
+      "within_limit": true,
+      "savings_rm": 9.503466666666665
+    },
+    {
+      "tick": 8,
+      "datetime": "2025-09-09T16:00:00",
+      "forecast_kw": 844.0,
+      "forecast_confidence": 0.9327078338666704,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "PEAK_hold_no_md_shave",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.54,
+        "rationale": "\u2022 Strategy chosen: PEAK hold with shave_kw=0 because mandatory PEAK MD override only activates when baseline_load > md_limit_kw, and the forecasted load at 16:00 is below the 800 kW MD limit.\n\u2022 Risk managed: preserve SOC for any later PEAK tick that might breach MD; keep reserve_soc_pct=20% (current SOC=55.4% remains above reserve).\n\u2022 Key numbers: time=16:00 (PEAK); md_limit_kw=800 kW; forecast_kW at/near this tick ~735.17 kW (<800) so no MD shaving needed; shave_kw=0.\n\u2022 History: last tick audit Rules=PASS and Within MD Limit=True (Delta Score 46.5/100 indicates below target performance, but still no MD violation risk at this moment).",
+        "confidence": 0.74,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 68.3,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5539
+      },
+      "dispatch_result": {
+        "new_soc": 0.5214897918250001,
+        "temp_increase_c": 0.10319763521376549,
+        "cycle_count_delta": 0.017075,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 68.3,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 844.0,
+      "actual_load_kw": 775.7,
+      "peak_reduction_kw": 68.29999999999995,
+      "within_limit": true,
+      "savings_rm": 10.956822222222218
+    },
+    {
+      "tick": 9,
+      "datetime": "2025-09-09T16:30:00",
+      "forecast_kw": 799.0,
+      "forecast_confidence": 0.9197235801392879,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "PEAK_hold_no_md_shave",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.52,
+        "rationale": "\u2022 Strategy chosen: PEAK hold with shave_kw=0 because the mandatory MD override only triggers when baseline_load > md_limit_kw, and forecasted load remains under 800 kW.\n\u2022 Risk managed: SOC protection\u2014reserve_soc_pct=20% with current SOC=52.1% (above reserve). Hold avoids unnecessary cycling and preserves discharge capability for any later unexpected PEAK spike.\n\u2022 Key numbers: time=16:30 (PEAK); md_limit_kw=800 kW; forecast ~740.60 kW now and ~749.39 kW next (both <800) \u21d2 no PEAK MD record risk \u21d2 shave_kw=0.\n\u2022 History: last tick audit Rules=PASS and Within MD Limit=True; Delta Score 46.5/100 suggests \u201cbelow target,\u201d but there is no MD violation to correct at 16:30, so conserving SOC is the safest optimal move.",
+        "confidence": 0.78,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 3.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5215
+      },
+      "dispatch_result": {
+        "new_soc": 0.5200647918250001,
+        "temp_increase_c": -0.2284622465469227,
+        "cycle_count_delta": 0.00075,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 3.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 799.0,
+      "actual_load_kw": 796.0,
+      "peak_reduction_kw": 3.0,
+      "within_limit": true,
+      "savings_rm": 0.35100000000000003
+    },
+    {
+      "tick": 10,
+      "datetime": "2025-09-09T17:00:00",
+      "forecast_kw": 796.0,
+      "forecast_confidence": 0.9148995670784434,
+      "tariff_window": "PEAK",
+      "optimization_strategy": {
+        "strategy_name": "PEAK_hold_no_md_shave",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.2,
+        "target_soc_end": 0.51,
+        "rationale": "\u2022 Strategy chosen: PEAK hold with shave_kw=0 since mandatory PEAK MD override applies only if baseline_load > md_limit_kw, and the forecasted load at 17:00 is below 800 kW.\n\u2022 Risk managed: maintain reserve_soc_pct=20% (current SOC=52.0% safely above reserve). Holding avoids unnecessary cycling while preserving SOC for any unexpected late-peak spike.\n\u2022 Key numbers: time=17:00 (PEAK); md_limit_kw=800 kW; forecast load=736.50 kW (<800) \u21d2 no MD record risk right now \u21d2 shave_kw=0.\n\u2022 History: last tick audit Rules=PASS and Within MD Limit=True (Delta Score 40.3/100 indicates below target performance, but no MD violation exists to correct at this tick).",
+        "confidence": 0.8,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_20pct_soc",
+          "max_discharge_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "discharge",
+        "discharge_kw": 100.0,
+        "charge_kw": null,
+        "duration_min": 30,
+        "expected_soc_after": 0.5201
+      },
+      "dispatch_result": {
+        "new_soc": 0.4725647918250001,
+        "temp_increase_c": 0.26796086578042344,
+        "cycle_count_delta": 0.025,
+        "action_taken": "discharge",
+        "actual_discharge_kw": 100.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 796.0,
+      "actual_load_kw": 696.0,
+      "peak_reduction_kw": 100.0,
+      "within_limit": true,
+      "savings_rm": 11.700000000000001
+    }
+  ],
+  "summary": {
+    "total_ticks": 11,
+    "peak_ticks": 7,
+    "peak_within_limit_ticks": 7,
+    "peak_compliance_rate": 1.0,
+    "avg_peak_reduction_kw": 53.97,
+    "max_baseline_kw": 844.0,
+    "max_actual_kw": 796.0,
+    "total_savings_rm": 53.16229440544445,
+    "shave_percentage": 219.6269377906977,
+    "final_soc_percent": 47
+  }
+}

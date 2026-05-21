@@ -98,11 +98,19 @@ function AgentCard({
       </div>
     );
   } else if (entry.node === "planner") {
-    const d = data as { strategy_name?: string; shave_kw?: number; confidence?: number };
+    const d = data as { strategy_name?: string; shave_kw?: number; reserve_soc_pct?: number; target_soc_end?: number; confidence?: number };
+    const reservePct = d.reserve_soc_pct != null ? `${(d.reserve_soc_pct * 100).toFixed(0)}%` : "—";
+    const targetPct = d.target_soc_end != null ? `${(d.target_soc_end * 100).toFixed(0)}%` : "—";
     body = (
       <div className="space-y-1.5">
         <Row label="Strategy" value={String(d.strategy_name ?? "—")} />
         <Row label="Shave" value={d.shave_kw != null ? `${d.shave_kw} kW` : "—"} />
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-muted">Action</span>
+          <span className="rounded border border-primary/35 bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-semibold">
+            Reserve {reservePct} → Target {targetPct}
+          </span>
+        </div>
         {d.confidence != null && <ConfBar value={Number(d.confidence)} />}
       </div>
     );
@@ -112,26 +120,34 @@ function AgentCard({
       charge_kw?: number;
       discharge_kw?: number;
       expected_soc_after?: number;
+      current_soc?: number;
+      duration_min?: number;
+      baseline_load?: number;
+      actual_load?: number;
     };
     const kw = d.charge_kw ?? d.discharge_kw ?? 0;
-    const soc =
-      d.expected_soc_after != null
-        ? `${(d.expected_soc_after * 100).toFixed(0)}%`
-        : "—";
+    const socBefore = d.expected_soc_after != null ? `${(d.expected_soc_after * 100).toFixed(0)}%` : "—";
+    const socAfter = d.current_soc != null ? `${(d.current_soc * 100).toFixed(0)}%` : "—";
     body = (
       <div className="space-y-1.5">
         <ActionBadge action={d.action} />
         <Row label="Power" value={`${kw} kW`} />
-        <Row label="SoC after" value={soc} />
+        <Row label="SoC" value={`${socBefore} → ${socAfter}`} />
+        {d.duration_min != null && <Row label="Duration" value={`${d.duration_min} min`} />}
+        {d.baseline_load != null && <Row label="Baseline" value={`${d.baseline_load.toFixed(1)} kW`} />}
+        {d.actual_load != null && <Row label="Actual" value={`${d.actual_load.toFixed(1)} kW`} />}
       </div>
     );
   } else if (entry.node === "auditor") {
-    const d = data as { confidence?: number };
-    const summary =
-      (entry.traceEntry?.decision ?? entry.tokens.slice(0, 80).trim()) || "—";
+    const d = data as { confidence?: number; recommendation?: string; delta_score?: number; interval_savings_rm?: number; shave_kw?: number };
+    const summary = entry.traceEntry?.decision ?? "";
     body = (
       <div className="space-y-1.5">
-        <p className="text-[10px] text-foreground/80 leading-snug line-clamp-2">{summary}</p>
+        {summary && <p className="text-[10px] text-foreground/80 leading-snug line-clamp-2">{summary}</p>}
+        {d.delta_score != null && <Row label="Score" value={`${d.delta_score.toFixed(0)} / 100`} />}
+        {d.shave_kw != null && <Row label="Shave" value={`${d.shave_kw.toFixed(1)} kW`} />}
+        {d.interval_savings_rm != null && <Row label="Savings" value={`RM ${d.interval_savings_rm.toFixed(3)}`} />}
+        {d.recommendation && <p className="text-[10px] text-muted leading-snug line-clamp-2 italic">{d.recommendation}</p>}
         {d.confidence != null && <ConfBar value={Number(d.confidence)} />}
       </div>
     );
@@ -173,7 +189,7 @@ function DetailsModal({
   const data = extractJson(entry.tokens) ?? {};
 
   let fields: { label: string; value: string }[] = [];
-  let longText: { title: string; content: string }[] = [];
+  const longText: { title: string; content: string }[] = [];
 
   if (entry.node === "planner") {
     const d = data as {
@@ -210,23 +226,26 @@ function DetailsModal({
       discharge_kw?: number;
       duration_min?: number;
       expected_soc_after?: number;
+      current_soc?: number;
+      baseline_load?: number;
+      actual_load?: number;
     };
     fields = [
       { label: "Action", value: String(d.action ?? "—").toUpperCase() },
       { label: "Charge kW", value: d.charge_kw != null ? `${d.charge_kw} kW` : "—" },
       { label: "Discharge kW", value: d.discharge_kw != null ? `${d.discharge_kw} kW` : "—" },
       { label: "Duration", value: d.duration_min != null ? `${d.duration_min} min` : "—" },
-      {
-        label: "SoC After",
-        value:
-          d.expected_soc_after != null
-            ? `${(d.expected_soc_after * 100).toFixed(0)}%`
-            : "—",
-      },
+      { label: "SoC Before", value: d.expected_soc_after != null ? `${(d.expected_soc_after * 100).toFixed(0)}%` : "—" },
+      { label: "SoC After", value: d.current_soc != null ? `${(d.current_soc * 100).toFixed(0)}%` : "—" },
+      { label: "Baseline Load", value: d.baseline_load != null ? `${d.baseline_load.toFixed(1)} kW` : "—" },
+      { label: "Actual Load", value: d.actual_load != null ? `${d.actual_load.toFixed(1)} kW` : "—" },
     ];
   } else if (entry.node === "auditor") {
-    const d = data as { reasoning?: string; recommendation?: string; confidence?: number };
+    const d = data as { reasoning?: string; recommendation?: string; confidence?: number; delta_score?: number; interval_savings_rm?: number; shave_kw?: number };
     fields = [
+      { label: "Score", value: d.delta_score != null ? `${d.delta_score.toFixed(0)} / 100` : "—" },
+      { label: "Shave", value: d.shave_kw != null ? `${d.shave_kw.toFixed(1)} kW` : "—" },
+      { label: "Savings", value: d.interval_savings_rm != null ? `RM ${d.interval_savings_rm.toFixed(3)}` : "—" },
       { label: "Confidence", value: d.confidence != null ? d.confidence.toFixed(2) : "—" },
     ];
     const reasoning = d.reasoning ?? entry.traceEntry?.reason ?? "";

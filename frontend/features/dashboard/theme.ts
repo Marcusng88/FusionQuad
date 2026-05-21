@@ -1,4 +1,4 @@
-import type { DecisionAgent, ScenarioAccent } from "@/features/dashboard/types";
+import type { DecisionAgent } from "@/features/dashboard/types";
 
 export type AccentStyle = {
   hex: string;
@@ -11,7 +11,7 @@ export type AccentStyle = {
   cardBg: string;
 };
 
-export const ACCENT_STYLES: Record<ScenarioAccent, AccentStyle> = {
+export const ACCENT_STYLES: Record<"primary" | "secondary" | "tertiary", AccentStyle> = {
   primary: {
     hex: "#4edea3",
     text: "text-primary",

@@ -20,5 +20,5 @@ AGENT_MODELS: dict[str, str] = {
 MIN_SOC = 0.20       # hard floor: hold-only below this
 RESERVE_SOC = 0.25   # soft reserve: MD override threshold base
 MAX_SOC = 0.95       # charge ceiling
-MAX_CHARGE_KW = 50.0 # conservative charge rate (0.05C for 1000 kWh)
+MAX_CHARGE_KW = 80.0 # valley-fill charge rate (0.08C for 1000 kWh — typical Malaysian commercial BESS)
 PEAK_END_HOUR = 22   # TNB C2: PEAK window ends at 22:00

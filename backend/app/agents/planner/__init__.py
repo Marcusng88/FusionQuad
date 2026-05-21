@@ -6,6 +6,7 @@ from app.agents.config import PEAK_END_HOUR, RESERVE_SOC
 
 STRATEGIES_DIR = Path(__file__).parent.parent.parent.parent / "strategies"
 EXPERIENCE_DIR = Path(__file__).parent.parent.parent.parent / "experience"
+LOGS_DIR = Path(__file__).parent.parent.parent / "logs"
 
 
 def read_guideline_file(path: str) -> str:
@@ -70,6 +71,10 @@ def get_forecast_context(state: dict[str, Any]) -> str:
                     f"SOC Budget: {soc_budget_kw:.1f} kW max sustainable discharge "
                     f"({available_kwh:.0f} kWh available above reserve / {remaining_ticks} ticks)"
                 )
+
+    if rejection_reason := state.get("rejection_reason"):
+        parts.append(f"PLAN REJECTED BY CONTROLLER: {rejection_reason}")
+        parts.append("Revise your strategy to address this issue before responding.")
 
     if feedback := state.get("planner_feedback"):
         parts.append("Last Tick Audit:")

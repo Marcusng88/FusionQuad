@@ -34,6 +34,8 @@ export function createSimulationViewModel(
     totalSavingsRm: 0,
     shavePercentage: 0,
     withinLimitTicks: 0,
+    peakTicks: 0,
+    avgPeakReductionKw: 0,
     mdLimitKw: DEFAULT_DEMAND_LIMIT_KW,
     lastDispatchKw: 0,
     agentTrace: [],
@@ -67,6 +69,8 @@ export function mergeSimulationSnapshot(
     totalSavingsRm: snapshot.total_savings_rm,
     shavePercentage: snapshot.shave_percentage,
     withinLimitTicks: snapshot.within_limit_ticks,
+    peakTicks: snapshot.peak_ticks ?? 0,
+    avgPeakReductionKw: snapshot.avg_peak_reduction_kw ?? 0,
     mdLimitKw,
     lastDispatchKw: snapshot.last_dispatch_kw,
     scenarios: snapshot.scenarios ?? [],
@@ -97,6 +101,8 @@ export function mergeAgentUpdate(
     next.totalSavingsRm = snapshot.total_savings_rm ?? current.totalSavingsRm;
     next.shavePercentage = snapshot.shave_percentage ?? current.shavePercentage;
     next.withinLimitTicks = snapshot.within_limit_ticks ?? current.withinLimitTicks;
+    next.peakTicks = snapshot.peak_ticks ?? current.peakTicks;
+    next.avgPeakReductionKw = snapshot.avg_peak_reduction_kw ?? current.avgPeakReductionKw;
     next.lastDispatchKw = snapshot.last_dispatch_kw ?? current.lastDispatchKw;
   }
 
@@ -135,7 +141,7 @@ function buildEnergyPoint(
     battery_soc_percent: Math.round(snapshot.battery_soc * 100),
     shifted_load_kw: Math.max(snapshot.baseline_load - snapshot.actual_load - Math.abs(Math.min(batteryPowerKw, 0)), 0),
     demand_limit_kw: mdLimitKw,
-    is_peak_period: (snapshot.tariff_window || "").toUpperCase().includes("PEAK"),
+    is_peak_period: (snapshot.tariff_window || "").toUpperCase() === "PEAK",
   };
 }
 

@@ -1,0 +1,465 @@
+{
+  "ticks": [
+    {
+      "tick": 0,
+      "datetime": "2026-01-07T12:00:00",
+      "forecast_kw": 226.4048,
+      "forecast_confidence": 0.8,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday, no MD charge exposure; focus on preserving SOC for next expensive PEAK period)\n\u2022 Risk managed: no MD-shaving on holidays; avoid unnecessary cycling at midday and keep reserve above 20\u201330% buffer\n\u2022 Key numbers: SOC=50.0%, tariff_window=WEEKEND/holiday (MD charge not applicable), load forecast ~212.8\u2013226.4 kW (below md_limit_kw=800 kW), shave_kw=0 kW\n\u2022 History: no applicable recent experience file provided for this run; decision follows the holiday/weekend strategy constraints in /strategies/holiday_surge.md",
+        "confidence": 0.72,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.5
+      },
+      "dispatch_result": {
+        "new_soc": 0.538,
+        "temp_increase_c": -0.08999999999999997,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 226.4048,
+      "actual_load_kw": 306.4048,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 1,
+      "datetime": "2026-01-07T12:30:00",
+      "forecast_kw": 232.7164,
+      "forecast_confidence": 0.9612942485321784,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.5,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday, MD charge does NOT apply; preserve SOC for upcoming weekday PEAK risk)\n\u2022 Risk managed: no MD-shaving on holidays; avoid unnecessary cycling in the 12:00\u201314:00 window and keep \u226520\u201330% SOC buffer\n\u2022 Key numbers: current SOC=53.8%; md_limit_kw=800 kW; forecast holiday loads ~209\u2013224 kW (well below md_limit_kw, so shave_kw remains 0)\n\u2022 History: last tick audit shows underperformance, but rules indicate no MD penalty during holiday/weekend\u2014so adjustment is to maintain preservation/charging readiness rather than discharge",
+        "confidence": 0.68,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.538
+      },
+      "dispatch_result": {
+        "new_soc": 0.5760000000000001,
+        "temp_increase_c": -0.08549999999999999,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 232.7164,
+      "actual_load_kw": 312.7164,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 2,
+      "datetime": "2026-01-07T13:00:00",
+      "forecast_kw": 229.1144,
+      "forecast_confidence": 0.9502509983817677,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.55,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday; MD charge does NOT apply)\n\u2022 Risk managed: no MD-shaving on holidays; preserve SOC for upcoming weekday PEAK while keeping a 30% reserve buffer\n\u2022 Key numbers: SOC=57.6%; md_limit_kw=800 kW; forecast holiday load ~206\u2013222 kW (<< md_limit_kw) \u21d2 no need to discharge; shave_kw=0 kW\n\u2022 History: last tick audit indicates underperformance, but since the system is already far below MD limit and MD penalties are inactive during holiday/weekend, the correct adjustment is to avoid unnecessary cycling rather than increasing discharge",
+        "confidence": 0.66,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.576
+      },
+      "dispatch_result": {
+        "new_soc": 0.6140000000000001,
+        "temp_increase_c": -0.08122499999999999,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 229.1144,
+      "actual_load_kw": 309.1144,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 3,
+      "datetime": "2026-01-07T13:30:00",
+      "forecast_kw": 225.577,
+      "forecast_confidence": 0.9506311220593062,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.6,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday; MD charge does NOT apply)\n\u2022 Risk managed: avoid unnecessary cycling/energy-cost-only discharge; maintain reserve for potential follow-on loads and protect cycle life\n\u2022 Key numbers: SOC=61.4%; md_limit_kw=800 kW; forecast holiday load ~206\u2013219 kW (far below md_limit_kw) \u21d2 no MD-driven discharge needed, shave_kw=0 kW\n\u2022 History: previous tick audit showed performance below target, but with MD penalties inactive on holidays and demand comfortably under MD, adjusting toward discharge would likely worsen degradation without cost benefit",
+        "confidence": 0.67,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.614
+      },
+      "dispatch_result": {
+        "new_soc": 0.6520000000000001,
+        "temp_increase_c": -0.07716375,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 225.577,
+      "actual_load_kw": 305.577,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 4,
+      "datetime": "2026-01-07T14:00:00",
+      "forecast_kw": 225.4264,
+      "forecast_confidence": 0.9529168643826659,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.65,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday; MD charge does NOT apply)\n\u2022 Risk managed: no MD-shaving on holidays; avoid unnecessary cycling at/near 14:00 (pre-peak preparation would be for weekdays, not required here) and keep \u226530% SOC reserve\n\u2022 Key numbers: SOC=65.2%; md_limit_kw=800 kW; forecast holiday load ~207\u2013221 kW (<< md_limit_kw) \u21d2 no shave needed, shave_kw=0 kW\n\u2022 History: audit remains below target, but since current dispatch is not constrained by MD risk during the holiday/weekend, the safest improvement is to preserve SOC rather than discharge without a tariff-driven penalty",
+        "confidence": 0.66,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.652
+      },
+      "dispatch_result": {
+        "new_soc": 0.6900000000000002,
+        "temp_increase_c": -0.07330556249999998,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 225.4264,
+      "actual_load_kw": 305.4264,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 5,
+      "datetime": "2026-01-07T14:30:00",
+      "forecast_kw": 237.0816,
+      "forecast_confidence": 0.9563868948867302,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.7,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday; MD charge does NOT apply)\n\u2022 Risk managed: no MD-shaving on holidays; with SOC already high (69.0%), avoid unnecessary cycling and preserve headroom for any next-day requirements\n\u2022 Key numbers: SOC=69.0%; md_limit_kw=800 kW; forecast holiday load ~206\u2013218 kW (well below md_limit_kw) \u21d2 shave_kw=0 kW\n\u2022 History: last tick audit stays below target, but there is no MD penalty driver here; discharging now would increase degradation risk without clear cost benefit",
+        "confidence": 0.65,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.69
+      },
+      "dispatch_result": {
+        "new_soc": 0.7280000000000002,
+        "temp_increase_c": -0.069640284375,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 237.0816,
+      "actual_load_kw": 317.0816,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 6,
+      "datetime": "2026-01-07T15:00:00",
+      "forecast_kw": 247.7262,
+      "forecast_confidence": 0.9494857273713098,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.75,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday; MD charge does NOT apply)\n\u2022 Risk managed: avoid unnecessary discharge while SOC is already high (72.8%); preserve 30% reserve buffer and limit cycling for degradation\n\u2022 Key numbers: SOC=72.8%; md_limit_kw=800 kW; forecast holiday loads ~208\u2013217 kW (<< md_limit_kw) \u21d2 no MD-driven shaving, shave_kw=0 kW\n\u2022 History: audit shows performance below target, but with loads far under MD and no MD penalty on holidays, the cost-effective correction is to keep holding rather than forcing arbitrage discharge",
+        "confidence": 0.64,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.728
+      },
+      "dispatch_result": {
+        "new_soc": 0.7660000000000002,
+        "temp_increase_c": -0.06615827015624992,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 247.7262,
+      "actual_load_kw": 327.7262,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 7,
+      "datetime": "2026-01-07T15:30:00",
+      "forecast_kw": 245.436,
+      "forecast_confidence": 0.9352022007480192,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.8,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday; MD charge does NOT apply)\n\u2022 Risk managed: with SOC already high (76.6%), avoid unnecessary discharge/cycling; preserve \u226530% reserve for any unexpected loads and protect remaining cycle life\n\u2022 Key numbers: SOC=76.6%; md_limit_kw=800 kW; forecast holiday load ~209\u2013218 kW (<< md_limit_kw) \u21d2 no MD-driven action; shave_kw=0 kW\n\u2022 History: last tick audit still under target, but since there\u2019s no MD penalty driver during holiday/weekend and shaving would mainly spend SOC for limited benefit, continuing hold is the lowest-risk adjustment",
+        "confidence": 0.62,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.766
+      },
+      "dispatch_result": {
+        "new_soc": 0.8040000000000003,
+        "temp_increase_c": -0.06285035664843738,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 245.436,
+      "actual_load_kw": 325.43600000000004,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 8,
+      "datetime": "2026-01-07T16:00:00",
+      "forecast_kw": 233.8022,
+      "forecast_confidence": 0.9266071093490296,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.8,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday; MD charge does NOT apply)\n\u2022 Risk managed: SOC is already very high (80.4%); avoid discharge that would increase cycle degradation without any MD penalty pressure (load forecast well below md_limit_kw)\n\u2022 Key numbers: SOC=80.4%; md_limit_kw=800 kW; forecast holiday load ~207\u2013214 kW (<< 800) \u21d2 no shave, shave_kw=0 kW\n\u2022 History: despite \u201cperformance below target\u201d in the audit, there is no operational constraint being violated (rules pass, within MD limit none). Best corrective action is to preserve SOC/headroom rather than force discharge",
+        "confidence": 0.6,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.804
+      },
+      "dispatch_result": {
+        "new_soc": 0.8420000000000003,
+        "temp_increase_c": -0.059707838816015574,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 233.8022,
+      "actual_load_kw": 313.80219999999997,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 9,
+      "datetime": "2026-01-07T16:30:00",
+      "forecast_kw": 237.5332,
+      "forecast_confidence": 0.9204360474183375,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "Holiday / Weekend Surge",
+        "shave_kw": 0.0,
+        "reserve_soc_pct": 0.3,
+        "target_soc_end": 0.82,
+        "rationale": "\u2022 Strategy chosen: Holiday / Weekend Surge (day_type=holiday; MD charge does NOT apply)\n\u2022 Risk managed: SOC is already very high (84.2%); avoid charging further and do not discharge without a cost driver since holiday/weekend has no MD penalty and loads are below md_limit_kw\n\u2022 Key numbers: SOC=84.2%; md_limit_kw=800 kW; forecast load ~208\u2013210 kW (<< 800) \u21d2 no MD-driven shaving, shave_kw=0 kW; maintain 30% reserve\n\u2022 History: prior ticks show \u201cbelow target\u201d performance but rules/MD constraints are satisfied\u2014best improvement here is SOC preservation at high SoC (no unnecessary cycling)",
+        "confidence": 0.58,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "reserve_30pct_soc",
+          "no_md_shaving_on_holidays",
+          "max_80kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.842
+      },
+      "dispatch_result": {
+        "new_soc": 0.8800000000000003,
+        "temp_increase_c": -0.056722446875214716,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 237.5332,
+      "actual_load_kw": 317.53319999999997,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    },
+    {
+      "tick": 10,
+      "datetime": "2026-01-07T17:00:00",
+      "forecast_kw": 237.6514,
+      "forecast_confidence": 0.90810091711744,
+      "tariff_window": "WEEKEND",
+      "optimization_strategy": {
+        "strategy_name": "conservative_shaving",
+        "shave_kw": 50.0,
+        "reserve_soc_pct": 0.25,
+        "target_soc_end": 0.5,
+        "rationale": "Fallback strategy used due to missing or invalid planner output.",
+        "confidence": 0.90810091711744,
+        "md_limit_kw": 800.0,
+        "constraints": [
+          "max_100kW_interval"
+        ]
+      },
+      "dispatch_action": {
+        "action": "charge",
+        "discharge_kw": null,
+        "charge_kw": 80.0,
+        "duration_min": 30,
+        "expected_soc_after": 0.88
+      },
+      "dispatch_result": {
+        "new_soc": 0.9180000000000004,
+        "temp_increase_c": -0.05388632453145406,
+        "cycle_count_delta": 0.0,
+        "action_taken": "charge",
+        "actual_discharge_kw": 0.0,
+        "efficiency_loss_pct": 0.05
+      },
+      "baseline_load_kw": 237.6514,
+      "actual_load_kw": 317.65139999999997,
+      "peak_reduction_kw": 0.0,
+      "within_limit": null,
+      "savings_rm": 0.0
+    }
+  ],
+  "summary": {
+    "total_ticks": 11,
+    "peak_ticks": 0,
+    "peak_within_limit_ticks": 0,
+    "peak_compliance_rate": 0.0,
+    "avg_peak_reduction_kw": 0.0,
+    "max_baseline_kw": 0.0,
+    "max_actual_kw": 0.0,
+    "total_savings_rm": 0.0,
+    "shave_percentage": 0.0,
+    "final_soc_percent": 91
+  }
+}

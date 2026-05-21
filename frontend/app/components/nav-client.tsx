@@ -6,11 +6,6 @@ import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/", label: "Overview" },
-  { href: "/baseline", label: "Baseline" },
-  { href: "/simulation", label: "Simulation" },
-  { href: "/decisions", label: "AI Decisions" },
-  { href: "/scenarios", label: "Scenarios" },
-  { href: "/setup", label: "Setup" },
 ];
 
 export function HeaderNav() {
@@ -36,6 +31,32 @@ export function HeaderNav() {
         );
       })}
     </nav>
+  );
+}
+
+export function SimulationConfigChips() {
+  const [mdLimit, setMdLimit] = useState(800);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("fusionquad-md-limit");
+    if (saved) setMdLimit(Number(saved));
+    const handler = (e: Event) => setMdLimit((e as CustomEvent<number>).detail);
+    window.addEventListener("fusionquad-md-limit", handler);
+    return () => window.removeEventListener("fusionquad-md-limit", handler);
+  }, []);
+
+  return (
+    <>
+      <span className="rounded-full border border-primary/35 bg-primary/10 px-2.5 py-1 text-[10px] text-primary">
+        {mdLimit} kW limit
+      </span>
+      <span className="rounded-full border border-tertiary/35 bg-tertiary/10 px-2.5 py-1 text-[10px] text-tertiary">
+        14:00–22:00 peak
+      </span>
+      <span className="rounded-full border border-secondary/35 bg-secondary/10 px-2.5 py-1 text-[10px] text-secondary">
+        RM 97.06/kW
+      </span>
+    </>
   );
 }
 

@@ -80,11 +80,10 @@ export default function LiveDashboardPage() {
   const points = simulation.history;
   const hasHistory = points.length > 0;
   const isIdle = simulation.status === "idle";
+  // Compliance only counts PEAK ticks — MD charges only apply during PEAK window
   const complianceRate =
-    simulation.currentInterval > 0
-      ? Math.round(
-          (simulation.withinLimitTicks / Math.max(simulation.currentInterval, 1)) * 100,
-        )
+    simulation.peakTicks > 0
+      ? Math.round((simulation.withinLimitTicks / simulation.peakTicks) * 100)
       : 0;
 
   return (
@@ -482,7 +481,7 @@ export default function LiveDashboardPage() {
                   title="Projected Monthly Savings"
                   value={formatCurrencyValue(simulation.summary.md_savings_rm)}
                   prefix="RM"
-                  detail={`${complianceRate}% ticks within limit`}
+                  detail={`${complianceRate}% PEAK ticks within MD limit · avg ${simulation.avgPeakReductionKw.toFixed(1)} kW reduction`}
                   tone="tertiary"
                 />
               </div>

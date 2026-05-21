@@ -49,36 +49,7 @@ export type ScenarioMetadata = {
   total_rows: number;
 };
 
-export type ScenarioKey =
-  | "baseline"
-  | "solarOnly"
-  | "batteryOnly"
-  | "loadShiftingOnly"
-  | "batteryAndShifting";
-
-export type ScenarioAccent = "primary" | "secondary" | "tertiary";
-
-export type ScenarioData = {
-  key: ScenarioKey;
-  label: string;
-  blurb: string;
-  accent: ScenarioAccent;
-  summary: SimulationSummary;
-  timeseries: EnergyPoint[];
-  decisionLogs: DecisionLog[];
-};
-
-export type NavItem = {
-  href: string;
-  label: string;
-};
-
 export type SimulationDayType = "weekday" | "holiday" | "solar_duck_curve" | "large_weekday";
-
-export type DateTimeRange = {
-  start: string | null;
-  end: string | null;
-};
 
 export type SimulationRunStatus = "idle" | "paused" | "playing" | "completed";
 
@@ -105,6 +76,8 @@ export type SimulationApiState = {
   total_savings_rm: number;
   shave_percentage: number;
   within_limit_ticks: number;
+  peak_ticks: number;
+  avg_peak_reduction_kw: number;
   decision_log: Array<Record<string, unknown>>;
   agent_trace: DecisionLog[];
   last_dispatch_kw: number;
@@ -155,6 +128,8 @@ export type SimulationViewModel = {
   totalSavingsRm: number;
   shavePercentage: number;
   withinLimitTicks: number;
+  peakTicks: number;
+  avgPeakReductionKw: number;
   mdLimitKw: number;
   lastDispatchKw: number;
   agentTrace: DecisionLog[];

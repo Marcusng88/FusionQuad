@@ -3,6 +3,7 @@
 import {
   startTransition,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -47,7 +48,7 @@ export function useSimulationController() {
   const [bessCapacityKwh, setBessCapacityKwh] = useState(1000);
   const [batterySoc, setBatterySoc] = useState(0.5);
   const [mdLimitKw, setMdLimitKw] = useState(800);
-  const [maxDischargeKw, setMaxDischargeKw] = useState(500);
+  const [maxDischargeKw, setMaxDischargeKw] = useState(100);
   const [timeRange, setTimeRange] = useState<{ start: string | null; end: string | null }>({
     start: null,
     end: null,
@@ -208,6 +209,11 @@ export function useSimulationController() {
   async function runOptimization() {
     await bootstrapSimulation(selectedDayType, bessCapacityKwh, batterySoc, timeRange, forecastModel, mdLimitKw, maxDischargeKw);
   }
+
+  useEffect(() => {
+    localStorage.setItem("fusionquad-md-limit", String(mdLimitKw));
+    window.dispatchEvent(new CustomEvent("fusionquad-md-limit", { detail: mdLimitKw }));
+  }, [mdLimitKw]);
 
   const canRun = !isBusy && timeRange.start !== null && timeRange.end !== null;
 
