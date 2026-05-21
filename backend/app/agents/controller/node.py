@@ -8,6 +8,7 @@ from typing import Any
 
 from deepagents import create_deep_agent
 from langchain.tools import tool
+from langgraph.checkpoint.memory import MemorySaver
 from typing_extensions import TypedDict
 
 from app.agents.config import PEAK_END_HOUR, RESERVE_SOC
@@ -134,6 +135,7 @@ def _build_controller_agent() -> Any:
         system_prompt=_CONTROLLER_PROMPT,
         tools=[check_battery_guardrails, run_milp_optimization],
         response_format=ControllerResponse,
+        checkpointer=MemorySaver(),
     )
 
 
@@ -205,7 +207,7 @@ PLANNER STRATEGY:
     try:
         agent = _get_controller_agent()
         session_id = state.get("session_id", "default")
-        invoke_config = {"configurable": {"thread_id": f"controller-{session_id}-{state.get('current_interval', 0)}"}}
+        invoke_config = {"configurable": {"thread_id": f"controller-{session_id}"}}
         result = await agent.ainvoke(
             {"messages": [{"role": "user", "content": prompt}]},
             invoke_config,

@@ -11,6 +11,7 @@ from deepagents import create_deep_agent
 from deepagents.backends import FilesystemBackend
 from deepagents.backends.state import StateBackend
 from deepagents.backends.composite import CompositeBackend
+from langgraph.checkpoint.memory import MemorySaver
 import logging
 
 from app.agents.config import RESERVE_SOC
@@ -73,6 +74,7 @@ def _get_planner_agent() -> Any:
                 agent_name="planner",
             )],
             skills=[str(SKILLS_DIR)] if SKILLS_DIR.exists() else [],
+            checkpointer=MemorySaver(),
         )
     return _PLANNER_AGENT
 
@@ -152,7 +154,7 @@ async def planner_node(state: AgentState) -> dict:
     try:
         agent = _get_planner_agent()
         session_id = state.get("session_id", "default")
-        invoke_config = {"configurable": {"thread_id": f"planner-{session_id}-{state.get('current_interval', 0)}"}}
+        invoke_config = {"configurable": {"thread_id": f"planner-{session_id}"}}
         result = await agent.ainvoke(
             {"messages": [{"role": "user", "content": prompt}]},
             invoke_config,

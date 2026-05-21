@@ -758,12 +758,16 @@ def _extract_node_token(node_name: str, node_state: dict[str, Any]) -> str:
 
     if node_name == "controller":
         dispatch = node_state.get("dispatch_action") or {}
+        battery = node_state.get("battery") or {}
         return _json.dumps({
             "action": dispatch.get("action", "hold"),
             "discharge_kw": dispatch.get("discharge_kw"),
             "charge_kw": dispatch.get("charge_kw"),
             "duration_min": dispatch.get("duration_min", 30),
             "expected_soc_after": dispatch.get("expected_soc_after"),
+            "current_soc": battery.get("soc"),
+            "baseline_load": node_state.get("baseline_load"),
+            "actual_load": node_state.get("actual_load"),
         }, default=str)
 
     if node_name == "auditor":
@@ -775,6 +779,9 @@ def _extract_node_token(node_name: str, node_state: dict[str, Any]) -> str:
             "reasoning": llm.get("reasoning") or auditor.get("reason", ""),
             "recommendation": llm.get("recommendation") or auditor.get("act", ""),
             "confidence": float(raw_conf),
+            "delta_score": delta.get("delta_score"),
+            "interval_savings_rm": delta.get("interval_savings_rm"),
+            "shave_kw": delta.get("shave_kw"),
         }, default=str)
 
     return ""

@@ -24,6 +24,7 @@ from deepagents.backends import FilesystemBackend
 from deepagents.backends.state import StateBackend
 from deepagents.backends.composite import CompositeBackend
 from langchain.tools import tool
+from langgraph.checkpoint.memory import MemorySaver
 
 from app.agents.auditor.evaluation import (
     DeltaEvaluation,
@@ -151,6 +152,7 @@ def _get_tick_agent() -> object:
             system_prompt=_AUDITOR_PROMPT_TICK,
             tools=[evaluate_rules_tool, evaluate_delta_tool],
             backend=_build_tick_backend(),
+            checkpointer=MemorySaver(),
         )
     return _AUDITOR_AGENT_TICK
 
@@ -253,7 +255,7 @@ async def auditor_node(state: dict) -> dict:
 
     if should_run_llm(delta_eval, rule_eval):
         try:
-            invoke_config = {"configurable": {"thread_id": f"auditor-{state.get('session_id', 'default')}-{state.get('current_interval', 0)}"}}
+            invoke_config = {"configurable": {"thread_id": f"auditor-{state.get('session_id', 'default')}"}}
             result = await agent.ainvoke(
                 {"messages": [{"role": "user", "content": prompt}]},
                 invoke_config,

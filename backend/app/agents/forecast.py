@@ -89,6 +89,14 @@ def forecast_node(state: AgentState) -> dict:
 
         try:
             history = _historical_window(df, current_index, model.config.seq_len)
+            if len(history) < min_rows:
+                logger.warning(
+                    "forecast | facility=%s model=%s skipped: need %d rows, got %d",
+                    facility, model_name, min_rows, len(history),
+                )
+                forecasts[facility] = []
+                confidences[facility] = 0.0
+                continue
             ghi_norm = _fetch_ghi_for_model(model, history)
             # Use live trailing-MAPE confidence from previous tick's auditor when available;
             # fall back to static single-step estimate only on tick 0.
