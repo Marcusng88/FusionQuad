@@ -100,6 +100,7 @@ class AgentState(TypedDict, total=False):
     forecast_kw: float | None
     baseline_load: float | None
     actual_load: float | None
+    previous_soc: float | None
     last_dispatch_kw: float | None
     last_dispatch_duration_min: int | None
 

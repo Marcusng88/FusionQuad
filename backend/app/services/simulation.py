@@ -482,6 +482,7 @@ class SimulationService:
             md_rate=MD_RATE,
             dispatch_action=state.get("dispatch_action"),
             scenarios=SCENARIO_META,
+            predicted_next_kw=_coerce_optional_float(state.get("predicted_next_kw")),
         )
 
     async def get_scenario_metadata(self, day_type: str) -> ScenarioMetadataResponse:
@@ -758,14 +759,15 @@ def _extract_node_token(node_name: str, node_state: dict[str, Any]) -> str:
 
     if node_name == "controller":
         dispatch = node_state.get("dispatch_action") or {}
+        dispatch_result = node_state.get("dispatch_result") or {}
         battery = node_state.get("battery") or {}
         return _json.dumps({
             "action": dispatch.get("action", "hold"),
             "discharge_kw": dispatch.get("discharge_kw"),
             "charge_kw": dispatch.get("charge_kw"),
             "duration_min": dispatch.get("duration_min", 30),
-            "expected_soc_after": dispatch.get("expected_soc_after"),
-            "current_soc": battery.get("soc"),
+            "current_soc": dispatch_result.get("new_soc") or battery.get("soc"),
+            "previous_soc": node_state.get("previous_soc"),
             "baseline_load": node_state.get("baseline_load"),
             "actual_load": node_state.get("actual_load"),
         }, default=str)

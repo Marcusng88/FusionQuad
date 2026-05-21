@@ -119,14 +119,14 @@ function AgentCard({
       action?: string;
       charge_kw?: number;
       discharge_kw?: number;
-      expected_soc_after?: number;
+      previous_soc?: number;
       current_soc?: number;
       duration_min?: number;
       baseline_load?: number;
       actual_load?: number;
     };
     const kw = d.charge_kw ?? d.discharge_kw ?? 0;
-    const socBefore = d.expected_soc_after != null ? `${(d.expected_soc_after * 100).toFixed(0)}%` : "—";
+    const socBefore = d.previous_soc != null ? `${(d.previous_soc * 100).toFixed(0)}%` : "—";
     const socAfter = d.current_soc != null ? `${(d.current_soc * 100).toFixed(0)}%` : "—";
     body = (
       <div className="space-y-1.5">
@@ -225,7 +225,7 @@ function DetailsModal({
       charge_kw?: number;
       discharge_kw?: number;
       duration_min?: number;
-      expected_soc_after?: number;
+      previous_soc?: number;
       current_soc?: number;
       baseline_load?: number;
       actual_load?: number;
@@ -235,7 +235,7 @@ function DetailsModal({
       { label: "Charge kW", value: d.charge_kw != null ? `${d.charge_kw} kW` : "—" },
       { label: "Discharge kW", value: d.discharge_kw != null ? `${d.discharge_kw} kW` : "—" },
       { label: "Duration", value: d.duration_min != null ? `${d.duration_min} min` : "—" },
-      { label: "SoC Before", value: d.expected_soc_after != null ? `${(d.expected_soc_after * 100).toFixed(0)}%` : "—" },
+      { label: "SoC Before", value: d.previous_soc != null ? `${(d.previous_soc * 100).toFixed(0)}%` : "—" },
       { label: "SoC After", value: d.current_soc != null ? `${(d.current_soc * 100).toFixed(0)}%` : "—" },
       { label: "Baseline Load", value: d.baseline_load != null ? `${d.baseline_load.toFixed(1)} kW` : "—" },
       { label: "Actual Load", value: d.actual_load != null ? `${d.actual_load.toFixed(1)} kW` : "—" },

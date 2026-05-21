@@ -142,6 +142,7 @@ function buildEnergyPoint(
     shifted_load_kw: Math.max(snapshot.baseline_load - snapshot.actual_load - Math.abs(Math.min(batteryPowerKw, 0)), 0),
     demand_limit_kw: mdLimitKw,
     is_peak_period: (snapshot.tariff_window || "").toUpperCase() === "PEAK",
+    predicted_kw: snapshot.predicted_next_kw ?? null,
   };
 }
 
@@ -170,9 +171,23 @@ function buildSummary(
     };
   }
 
-  const originalMd = Math.max(...history.map((point) => point.original_grid_import_kw));
-  const optimizedMd = Math.max(...history.map((point) => point.optimized_grid_import_kw));
-  const peakReductionKw = Math.max(originalMd - optimizedMd, 0);
+  const mdRate = snapshot.md_rate || 97.06;
+
+  let originalMd: number | null = null;
+  let optimizedMd: number | null = null;
+  let peakReductionKw = 0;
+  let mdSavingsRm = 0;
+
+  if (snapshot.status === "completed") {
+    const peakHistory = history.filter((p) => p.is_peak_period);
+    if (peakHistory.length > 0) {
+      originalMd = Math.max(...peakHistory.map((p) => p.original_grid_import_kw));
+      optimizedMd = Math.max(...peakHistory.map((p) => p.optimized_grid_import_kw));
+      peakReductionKw = Math.max(originalMd - optimizedMd, 0);
+      mdSavingsRm = Number((peakReductionKw * mdRate).toFixed(2));
+    }
+  }
+
   const batteryEnergyUsedKwh = Math.round(
     history.reduce((sum, point) => sum + Math.abs(point.battery_power_kw) * 0.5, 0),
   );
@@ -184,9 +199,9 @@ function buildSummary(
     original_md_kw: originalMd,
     optimized_md_kw: optimizedMd,
     peak_reduction_kw: peakReductionKw,
-    original_md_cost_rm: Math.round(originalMd * (snapshot.md_rate || 97.06)),
-    optimized_md_cost_rm: Math.round(optimizedMd * (snapshot.md_rate || 97.06)),
-    md_savings_rm: snapshot.total_savings_rm || Number((peakReductionKw * (snapshot.md_rate || 97.06)).toFixed(2)),
+    original_md_cost_rm: originalMd != null ? Math.round(originalMd * mdRate) : 0,
+    optimized_md_cost_rm: optimizedMd != null ? Math.round(optimizedMd * mdRate) : 0,
+    md_savings_rm: mdSavingsRm,
     battery_energy_used_kwh: batteryEnergyUsedKwh,
     final_soc_percent: Math.round(snapshot.battery_soc * 100),
     shifted_load_kwh: shiftedLoadKwh,
@@ -389,8 +404,8 @@ export function handleAgentComplete(
 
 function emptySummary(): SimulationSummary {
   return {
-    original_md_kw: 0,
-    optimized_md_kw: 0,
+    original_md_kw: null,
+    optimized_md_kw: null,
     peak_reduction_kw: 0,
     original_md_cost_rm: 0,
     optimized_md_cost_rm: 0,

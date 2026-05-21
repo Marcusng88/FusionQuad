@@ -67,17 +67,16 @@ function yMax(max: number) {
 
 export function BaselineChart({ points }: { points: EnergyPoint[] }) {
   const peak = peakBounds(points);
-  const limit = points[0]?.demand_limit_kw ?? 800;
+  const hasPrediction = points.some((p) => p.predicted_kw != null);
 
   return (
     <Card
-      title="Demand profile and target limit"
-      subtitle="Original grid import, solar contribution, and weekday peak shading."
+      title="ML Model Forecast vs Actual Load"
+      subtitle="GRU model's next-interval prediction compared to actual grid import."
       legend={
         <>
-          <Dot color={C.secondary} label="Grid import" />
-          <Dot color={C.primary} label="Solar" />
-          <Dot color={C.danger} label={`${limit} kW limit`} />
+          <Dot color={C.secondary} label="Actual load" />
+          {hasPrediction && <Dot color={C.tertiary} label="GRU forecast (T+1)" />}
         </>
       }
     >
@@ -92,7 +91,6 @@ export function BaselineChart({ points }: { points: EnergyPoint[] }) {
               stroke="rgba(255,185,95,0.18)"
             />
           )}
-          <ReferenceLine y={limit} stroke={C.danger} strokeDasharray="10 6" strokeWidth={2} />
           <XAxis
             dataKey="timestamp"
             tickFormatter={fmtTs}
@@ -113,22 +111,24 @@ export function BaselineChart({ points }: { points: EnergyPoint[] }) {
             formatter={(v: any, n: any) => [`${Math.round(Number(v ?? 0))} kW`, n]}
             labelFormatter={(l) => fmtTs(String(l))}
           />
-          <Area
-            dataKey="solar_kw"
-            name="Solar"
-            fill="rgba(78,222,163,0.18)"
-            stroke={C.primary}
-            strokeWidth={2}
-            dot={false}
-          />
           <Line
             dataKey="original_grid_import_kw"
-            name="Grid import"
+            name="Actual load"
             stroke={C.secondary}
             strokeWidth={2.5}
-            strokeDasharray="8 6"
             dot={false}
           />
+          {hasPrediction && (
+            <Line
+              dataKey="predicted_kw"
+              name="GRU forecast (T+1)"
+              stroke={C.tertiary}
+              strokeWidth={2}
+              strokeDasharray="6 4"
+              dot={false}
+              connectNulls={false}
+            />
+          )}
         </ComposedChart>
       </ResponsiveContainer>
     </Card>
@@ -188,13 +188,6 @@ export function SimulationChart({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             formatter={(v: any, n: any) => [`${Math.round(Number(v ?? 0))} kW`, n]}
             labelFormatter={(l) => fmtTs(String(l))}
-          />
-          <Area
-            dataKey="solar_kw"
-            name="Solar"
-            fill="rgba(78,222,163,0.08)"
-            stroke="none"
-            dot={false}
           />
           <Line
             dataKey="original_grid_import_kw"
